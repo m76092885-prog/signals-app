@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Signals Trading Panel</title>
+<title>Signals Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -15,13 +15,13 @@ body {
     display: flex;
 }
 
-/* LEFT - CHART */
+/* LEFT */
 .left {
     width: 70%;
     padding: 10px;
 }
 
-/* RIGHT - SIGNALS */
+/* RIGHT */
 .right {
     width: 30%;
     background: #111827;
@@ -50,25 +50,41 @@ canvas {
     background: #0f172a;
     border-radius: 10px;
 }
+
+/* STATS BOX */
+.stats {
+    background: #0f172a;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
 </style>
 </head>
 
 <body>
 
+<!-- LEFT: CHART -->
 <div class="left">
     <canvas id="chart"></canvas>
 </div>
 
+<!-- RIGHT: PANEL -->
 <div class="right">
-    <div class="header">📊 LIVE SIGNALS</div>
-    <div id="signals">Loading...</div>
+
+    <div class="header">📊 DASHBOARD</div>
+
+    <!-- STATS -->
+    <div class="stats" id="statsBox">Loading stats...</div>
+
+    <div id="signals">Loading signals...</div>
 </div>
 
 <script>
+
 const API = "https://signals-app-yk11.onrender.com";
 
 /* =====================
-   ГРАФИК
+   CHART
 ===================== */
 const ctx = document.getElementById("chart");
 
@@ -85,10 +101,7 @@ let chart = new Chart(ctx, {
         }]
     },
     options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false }
-        },
+        plugins: { legend: { display: false } },
         scales: {
             x: { display: false },
             y: { display: true }
@@ -96,11 +109,9 @@ let chart = new Chart(ctx, {
     }
 });
 
-/* fake price movement */
 function updateChart() {
     let last = chart.data.datasets[0].data.slice(-1)[0] || 1.1;
-    let change = (Math.random() - 0.5) * 0.002;
-    let price = last + change;
+    let price = last + (Math.random() - 0.5) * 0.002;
 
     if (chart.data.labels.length > 50) {
         chart.data.labels.shift();
@@ -114,7 +125,7 @@ function updateChart() {
 }
 
 /* =====================
-   СИГНАЛЫ
+   SIGNALS
 ===================== */
 async function loadSignals() {
     try {
@@ -148,12 +159,35 @@ async function loadSignals() {
 }
 
 /* =====================
+   STATS
+===================== */
+async function loadStats() {
+    try {
+        const res = await fetch(API + "/stats");
+        const s = await res.json();
+
+        document.getElementById("statsBox").innerHTML = `
+            📊 WINRATE: <b>${s.winrate}%</b><br>
+            🟢 Wins: ${s.wins}<br>
+            🔴 Losses: ${s.losses}<br>
+            📦 Total: ${s.total}
+        `;
+    } catch (e) {
+        document.getElementById("statsBox").innerHTML =
+            "Stats error";
+    }
+}
+
+/* =====================
    LOOP
 ===================== */
 setInterval(updateChart, 1000);
 setInterval(loadSignals, 5000);
+setInterval(loadStats, 5000);
 
 loadSignals();
+loadStats();
+
 </script>
 
 </body>
