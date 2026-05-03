@@ -17,51 +17,20 @@
 body {
     height: 100vh;
     overflow: hidden;
-    background: #000;
-    color: #fff;
+    color: white;
+    background: black;
 }
 
-/* ===== АНИМИРОВАННЫЙ ФОН ===== */
-.bg {
-    position: fixed;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(120deg, #0f172a, #020617, #0f172a);
-    animation: moveBg 20s linear infinite;
-    filter: blur(20px);
-    z-index: 0;
-}
-
-@keyframes moveBg {
-    0% { transform: translate(0,0); }
-    50% { transform: translate(-25%, -25%); }
-    100% { transform: translate(0,0); }
-}
-
-/* ===== СВЕЧИ (ФЕЙК) ===== */
-.candles {
+/* ===== ЖИВОЙ ГРАФИК ===== */
+#chart {
     position: fixed;
     width: 100%;
     height: 100%;
-    opacity: 0.15;
+    filter: blur(6px) brightness(0.35);
     z-index: 0;
 }
 
-.candle {
-    position: absolute;
-    bottom: 0;
-    width: 4px;
-    background: #00ff9d;
-    animation: grow 2s infinite;
-}
-
-@keyframes grow {
-    0% { height: 10px; }
-    50% { height: 100px; }
-    100% { height: 20px; }
-}
-
-/* ===== ОСНОВА ===== */
+/* ===== UI ===== */
 .container {
     position: relative;
     z-index: 1;
@@ -75,8 +44,8 @@ body {
 /* ===== СТАТИСТИКА ===== */
 .stats {
     text-align: center;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 15px;
     font-size: 16px;
 }
 
@@ -92,18 +61,18 @@ body {
 button {
     width: 80%;
     padding: 14px;
-    border-radius: 20px;
+    border-radius: 25px;
     border: none;
     font-size: 16px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.12);
     color: white;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
 }
 
 /* ===== СИГНАЛЫ ===== */
 .signals {
     margin-top: 10px;
-    max-height: 50vh;
+    max-height: 55vh;
     overflow-y: auto;
 }
 
@@ -133,13 +102,12 @@ button {
 
 <body>
 
-<div class="bg"></div>
-<div class="candles" id="candles"></div>
+<canvas id="chart"></canvas>
 
 <div class="container">
 
     <div class="stats">
-        📊 Последние 10 сделок: <span id="stat">--</span>
+        📊 Winrate (10): <span id="stat">--</span>
     </div>
 
     <div class="buttons">
@@ -152,17 +120,80 @@ button {
 </div>
 
 <script>
-// ===== ФЕЙК СВЕЧИ =====
-const candleContainer = document.getElementById("candles");
-for (let i = 0; i < 40; i++) {
-    const c = document.createElement("div");
-    c.className = "candle";
-    c.style.left = Math.random() * 100 + "%";
-    c.style.animationDelay = Math.random() * 2 + "s";
-    candleContainer.appendChild(c);
+/* ===== СВЕЧНОЙ ГРАФИК ===== */
+const canvas = document.getElementById("chart");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+let candles = [];
+let price = 100;
+
+function generateCandle() {
+    let open = price;
+    let close = open + (Math.random() - 0.5) * 3;
+    let high = Math.max(open, close) + Math.random() * 1.5;
+    let low = Math.min(open, close) - Math.random() * 1.5;
+
+    price = close;
+    return { open, close, high, low };
 }
 
-// ===== СИГНАЛЫ =====
+for (let i = 0; i < 80; i++) candles.push(generateCandle());
+
+function drawChart() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const w = 6;
+    const gap = 3;
+
+    const max = Math.max(...candles.map(c => c.high));
+    const min = Math.min(...candles.map(c => c.low));
+    const scale = canvas.height / (max - min);
+
+    candles.forEach((c, i) => {
+        const x = i * (w + gap);
+
+        const openY = canvas.height - (c.open - min) * scale;
+        const closeY = canvas.height - (c.close - min) * scale;
+        const highY = canvas.height - (c.high - min) * scale;
+        const lowY = canvas.height - (c.low - min) * scale;
+
+        const color = c.close > c.open ? "#00ff9d" : "#ff4d4d";
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+
+        // фитиль
+        ctx.beginPath();
+        ctx.moveTo(x + w/2, highY);
+        ctx.lineTo(x + w/2, lowY);
+        ctx.stroke();
+
+        // тело
+        ctx.fillRect(
+            x,
+            Math.min(openY, closeY),
+            w,
+            Math.abs(openY - closeY)
+        );
+    });
+}
+
+function updateChart() {
+    candles.push(generateCandle());
+    if (candles.length > 100) candles.shift();
+    drawChart();
+}
+
+setInterval(updateChart, 700);
+
+/* ===== СИГНАЛЫ ===== */
 async function loadSignals() {
     const res = await fetch("/signals");
     const data = await res.json();
