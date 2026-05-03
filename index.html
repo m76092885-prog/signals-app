@@ -4,49 +4,82 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Signals App</title>
+<title>Signals Pro</title>
 
 <style>
-body {
+* {
     margin: 0;
-    background: #0e0e11;
-    color: #fff;
+    padding: 0;
+    box-sizing: border-box;
     font-family: Arial;
 }
 
-.header {
-    padding: 15px;
-    font-size: 18px;
-    font-weight: bold;
-    border-bottom: 1px solid #222;
+body {
+    height: 100vh;
+    overflow: hidden;
+    background: black;
+    color: white;
 }
 
-.stats {
+/* ===== ФОН (ГРАФИК) ===== */
+.bg {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: url("https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3") center/cover no-repeat;
+    filter: blur(12px) brightness(0.4);
+    z-index: 0;
+}
+
+/* ===== СТЕКЛЯННАЯ ПАНЕЛЬ ===== */
+.container {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* ===== HEADER ===== */
+.header {
+    text-align: center;
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+/* ===== КНОПКИ ===== */
+.buttons {
     display: flex;
     gap: 10px;
-    padding: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
 }
 
-.card {
-    background: #1a1a1f;
-    padding: 10px;
+button {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    padding: 10px 15px;
     border-radius: 10px;
-    flex: 1;
-    text-align: center;
+    color: white;
+    backdrop-filter: blur(10px);
 }
 
+/* ===== СИГНАЛЫ ===== */
 .signals {
-    padding: 10px;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .signal {
-    background: #1a1a1f;
-    margin-bottom: 10px;
-    padding: 12px;
-    border-radius: 10px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    margin-bottom: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
 }
 
 .buy { color: #00ff9d; }
@@ -58,28 +91,36 @@ body {
 }
 
 .time {
-    font-size: 12px;
+    font-size: 11px;
     opacity: 0.5;
+}
+
+/* ===== СКРОЛЛ ===== */
+.signals::-webkit-scrollbar {
+    width: 4px;
+}
+.signals::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 2px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">📊 Signal Dashboard</div>
+<div class="bg"></div>
 
-<div class="stats">
-    <div class="card">
-        <div id="total">0</div>
-        <small>Signals</small>
+<div class="container">
+
+    <div class="header">📊 Live Signals</div>
+
+    <div class="buttons">
+        <button onclick="loadSignals()">🔄 Refresh</button>
     </div>
-    <div class="card">
-        <div id="winrate">--%</div>
-        <small>Winrate</small>
-    </div>
+
+    <div class="signals" id="signals"></div>
+
 </div>
-
-<div class="signals" id="signals"></div>
 
 <script>
 async function loadSignals() {
@@ -88,8 +129,6 @@ async function loadSignals() {
 
     const container = document.getElementById("signals");
     container.innerHTML = "";
-
-    document.getElementById("total").innerText = data.length;
 
     data.reverse().forEach(s => {
         const el = document.createElement("div");
