@@ -1,193 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Signals Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Signals App</title>
 
 <style>
 body {
     margin: 0;
+    background: #0e0e11;
+    color: #fff;
     font-family: Arial;
-    background: #0b0f14;
-    color: white;
-    display: flex;
-}
-
-/* LEFT */
-.left {
-    width: 70%;
-    padding: 10px;
-}
-
-/* RIGHT */
-.right {
-    width: 30%;
-    background: #111827;
-    height: 100vh;
-    overflow-y: auto;
-    padding: 10px;
 }
 
 .header {
+    padding: 15px;
     font-size: 18px;
     font-weight: bold;
-    margin-bottom: 10px;
+    border-bottom: 1px solid #222;
+}
+
+.stats {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
 }
 
 .card {
-    background: #1b2333;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-}
-
-.buy { color: #00ff88; font-weight: bold; }
-.sell { color: #ff4d4d; font-weight: bold; }
-
-canvas {
-    background: #0f172a;
-    border-radius: 10px;
-}
-
-/* STATS BOX */
-.stats {
-    background: #0f172a;
+    background: #1a1a1f;
     padding: 10px;
     border-radius: 10px;
+    flex: 1;
+    text-align: center;
+}
+
+.signals {
+    padding: 10px;
+}
+
+.signal {
+    background: #1a1a1f;
     margin-bottom: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.buy { color: #00ff9d; }
+.sell { color: #ff4d4d; }
+
+.prob {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.time {
+    font-size: 12px;
+    opacity: 0.5;
 }
 </style>
 </head>
 
 <body>
 
-<!-- LEFT: CHART -->
-<div class="left">
-    <canvas id="chart"></canvas>
+<div class="header">📊 Signal Dashboard</div>
+
+<div class="stats">
+    <div class="card">
+        <div id="total">0</div>
+        <small>Signals</small>
+    </div>
+    <div class="card">
+        <div id="winrate">--%</div>
+        <small>Winrate</small>
+    </div>
 </div>
 
-<!-- RIGHT: PANEL -->
-<div class="right">
-
-    <div class="header">📊 DASHBOARD</div>
-
-    <!-- STATS -->
-    <div class="stats" id="statsBox">Loading stats...</div>
-
-    <div id="signals">Loading signals...</div>
-</div>
+<div class="signals" id="signals"></div>
 
 <script>
-
-const API = "https://signals-app-yk11.onrender.com";
-
-/* =====================
-   CHART
-===================== */
-const ctx = document.getElementById("chart");
-
-let chart = new Chart(ctx, {
-    type: "line",
-    data: {
-        labels: [],
-        datasets: [{
-            label: "Price",
-            data: [],
-            borderColor: "#00d4ff",
-            borderWidth: 2,
-            tension: 0.3
-        }]
-    },
-    options: {
-        plugins: { legend: { display: false } },
-        scales: {
-            x: { display: false },
-            y: { display: true }
-        }
-    }
-});
-
-function updateChart() {
-    let last = chart.data.datasets[0].data.slice(-1)[0] || 1.1;
-    let price = last + (Math.random() - 0.5) * 0.002;
-
-    if (chart.data.labels.length > 50) {
-        chart.data.labels.shift();
-        chart.data.datasets[0].data.shift();
-    }
-
-    chart.data.labels.push("");
-    chart.data.datasets[0].data.push(price);
-
-    chart.update();
-}
-
-/* =====================
-   SIGNALS
-===================== */
 async function loadSignals() {
-    try {
-        const res = await fetch(API + "/signals");
-        const data = await res.json();
+    const res = await fetch("/signals");
+    const data = await res.json();
 
-        let html = "";
+    const container = document.getElementById("signals");
+    container.innerHTML = "";
 
-        if (data.length === 0) {
-            html = "<div class='card'>No signals yet</div>";
-        }
+    document.getElementById("total").innerText = data.length;
 
-        data.slice().reverse().forEach(s => {
-            html += `
-                <div class="card">
-                    <div><b>${s.symbol}</b></div>
-                    <div class="${s.signal === 'BUY' ? 'buy' : 'sell'}">
-                        ${s.signal}
-                    </div>
-                    <div>🔥 ${s.probability}%</div>
-                </div>
-            `;
-        });
+    data.reverse().forEach(s => {
+        const el = document.createElement("div");
+        el.className = "signal";
 
-        document.getElementById("signals").innerHTML = html;
+        const side = s.signal === "BUY" ? "buy" : "sell";
 
-    } catch (e) {
-        document.getElementById("signals").innerHTML =
-            "<div class='card'>API error</div>";
-    }
-}
-
-/* =====================
-   STATS
-===================== */
-async function loadStats() {
-    try {
-        const res = await fetch(API + "/stats");
-        const s = await res.json();
-
-        document.getElementById("statsBox").innerHTML = `
-            📊 WINRATE: <b>${s.winrate}%</b><br>
-            🟢 Wins: ${s.wins}<br>
-            🔴 Losses: ${s.losses}<br>
-            📦 Total: ${s.total}
+        el.innerHTML = `
+            <div>
+                <b>${s.symbol}</b><br>
+                <span class="${side}">${s.signal}</span>
+            </div>
+            <div style="text-align:right">
+                <div class="prob">${s.probability}%</div>
+                <div class="time">${new Date(s.time * 1000).toLocaleTimeString()}</div>
+            </div>
         `;
-    } catch (e) {
-        document.getElementById("statsBox").innerHTML =
-            "Stats error";
-    }
+
+        container.appendChild(el);
+    });
 }
 
-/* =====================
-   LOOP
-===================== */
-setInterval(updateChart, 1000);
-setInterval(loadSignals, 5000);
-setInterval(loadStats, 5000);
-
+setInterval(loadSignals, 2000);
 loadSignals();
-loadStats();
-
 </script>
 
 </body>
