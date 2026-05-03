@@ -2,72 +2,120 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Signals App</title>
+<title>Signals Trading Panel</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {
     margin: 0;
     font-family: Arial;
-    background: #0f1115;
+    background: #0b0f14;
     color: white;
+    display: flex;
+}
+
+/* LEFT - CHART */
+.left {
+    width: 70%;
+    padding: 10px;
+}
+
+/* RIGHT - SIGNALS */
+.right {
+    width: 30%;
+    background: #111827;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 10px;
 }
 
 .header {
-    padding: 20px;
-    text-align: center;
-    font-size: 22px;
+    font-size: 18px;
     font-weight: bold;
-    background: #151924;
+    margin-bottom: 10px;
 }
 
 .card {
-    background: #1b2030;
-    margin: 10px;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-}
-
-.symbol {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.signal-buy {
-    color: #00ff99;
-    font-weight: bold;
-}
-
-.signal-sell {
-    color: #ff4d4d;
-    font-weight: bold;
-}
-
-.prob {
-    font-size: 20px;
-    margin-top: 5px;
-}
-
-.refresh {
-    text-align: center;
+    background: #1b2333;
     padding: 10px;
-    opacity: 0.6;
-    font-size: 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+}
+
+.buy { color: #00ff88; font-weight: bold; }
+.sell { color: #ff4d4d; font-weight: bold; }
+
+canvas {
+    background: #0f172a;
+    border-radius: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">📊 LIVE SIGNALS</div>
+<div class="left">
+    <canvas id="chart"></canvas>
+</div>
 
-<div id="app">Loading...</div>
-
-<div class="refresh">Auto update every 5 sec</div>
+<div class="right">
+    <div class="header">📊 LIVE SIGNALS</div>
+    <div id="signals">Loading...</div>
+</div>
 
 <script>
 const API = "https://signals-app-yk11.onrender.com";
 
+/* =====================
+   ГРАФИК
+===================== */
+const ctx = document.getElementById("chart");
+
+let chart = new Chart(ctx, {
+    type: "line",
+    data: {
+        labels: [],
+        datasets: [{
+            label: "Price",
+            data: [],
+            borderColor: "#00d4ff",
+            borderWidth: 2,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            x: { display: false },
+            y: { display: true }
+        }
+    }
+});
+
+/* fake price movement */
+function updateChart() {
+    let last = chart.data.datasets[0].data.slice(-1)[0] || 1.1;
+    let change = (Math.random() - 0.5) * 0.002;
+    let price = last + change;
+
+    if (chart.data.labels.length > 50) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+    }
+
+    chart.data.labels.push("");
+    chart.data.datasets[0].data.push(price);
+
+    chart.update();
+}
+
+/* =====================
+   СИГНАЛЫ
+===================== */
 async function loadSignals() {
     try {
         const res = await fetch(API + "/signals");
@@ -76,37 +124,35 @@ async function loadSignals() {
         let html = "";
 
         if (data.length === 0) {
-            html = "<div class='card'>No signals yet...</div>";
+            html = "<div class='card'>No signals yet</div>";
         }
 
         data.slice().reverse().forEach(s => {
-
-            const isBuy = s.signal === "BUY";
-
             html += `
                 <div class="card">
-                    <div class="symbol">${s.symbol}</div>
-
-                    <div class="${isBuy ? 'signal-buy' : 'signal-sell'}">
+                    <div><b>${s.symbol}</b></div>
+                    <div class="${s.signal === 'BUY' ? 'buy' : 'sell'}">
                         ${s.signal}
                     </div>
-
-                    <div class="prob">
-                        🔥 ${s.probability}%
-                    </div>
+                    <div>🔥 ${s.probability}%</div>
                 </div>
             `;
         });
 
-        document.getElementById("app").innerHTML = html;
+        document.getElementById("signals").innerHTML = html;
 
     } catch (e) {
-        document.getElementById("app").innerHTML =
-            "<div class='card'>Error loading data</div>";
+        document.getElementById("signals").innerHTML =
+            "<div class='card'>API error</div>";
     }
 }
 
+/* =====================
+   LOOP
+===================== */
+setInterval(updateChart, 1000);
 setInterval(loadSignals, 5000);
+
 loadSignals();
 </script>
 
