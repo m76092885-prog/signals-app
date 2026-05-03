@@ -1,142 +1,138 @@
 <!DOCTYPE html>
+
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Signals Pro</title>
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial;
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+
+body{
+    background:#020617;
+    color:#fff;
+    height:100vh;
+    overflow:hidden;
 }
 
-body {
-    background: #020617;
-    color: white;
-    height: 100vh;
-    overflow: hidden;
+/* ===== ГРАФИК ===== */
+#chart{
+    position:fixed;
+    top:50%;
+    left:50%;
+    width:150%;
+    height:150%;
+    transform:translate(-50%,-50%);
+    filter:blur(8px) brightness(0.5);
+    z-index:0;
 }
 
-/* ===== ЦЕНТРАЛЬНЫЙ ГРАФИК ===== */
-#chart {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 140%;
-    height: 140%;
-    transform: translate(-50%, -50%);
-    filter: blur(8px) brightness(0.5);
-    z-index: 0;
-}
-
-/* затемнение поверх */
-.overlay {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, transparent 30%, #020617 80%);
-    z-index: 1;
+.overlay{
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:radial-gradient(circle,transparent 30%,#020617 80%);
+    z-index:1;
 }
 
 /* ===== UI ===== */
-.container {
-    position: relative;
-    z-index: 2;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 20px;
+.container{
+    position:relative;
+    z-index:2;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:20px;
 }
 
-/* ===== СТАТИСТИКА ===== */
-.stats {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 18px;
-    opacity: 0.9;
+.stats{
+    text-align:center;
+    margin-bottom:20px;
+    font-size:18px;
 }
 
-/* ===== КНОПКИ ===== */
-.buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: center;
-    margin-bottom: 20px;
+.buttons{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    align-items:center;
+    margin-bottom:20px;
 }
 
-button {
-    width: 80%;
-    padding: 15px;
-    border-radius: 30px;
-    border: none;
-    font-size: 16px;
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    color: white;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+button{
+    width:80%;
+    padding:15px;
+    border-radius:30px;
+    border:none;
+    font-size:16px;
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:#fff;
 }
 
 /* ===== СИГНАЛЫ ===== */
-.signals {
-    max-height: 45vh;
-    overflow-y: auto;
+.signals{
+    max-height:45vh;
+    overflow-y:auto;
 }
 
-.signal {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    padding: 14px;
-    border-radius: 18px;
-    background: rgba(15,23,42,0.7);
-    backdrop-filter: blur(10px);
+.signal{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:10px;
+    padding:14px;
+    border-radius:18px;
+    background:rgba(15,23,42,0.7);
 }
 
-.buy { color: #00ff9d; }
-.sell { color: #ff4d4d; }
-
-.prob {
-    font-size: 14px;
-}
-
-.time {
-    font-size: 11px;
-    opacity: 0.6;
-}
+.buy{color:#22c55e}
+.sell{color:#ef4444}
 </style>
+
 </head>
 
 <body>
 
+<!-- 🔊 ЗВУК -->
+
+<audio id="alertSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
 <canvas id="chart"></canvas>
+
 <div class="overlay"></div>
 
 <div class="container">
 
-    <div class="stats">
-        📊 Winrate (10): <span id="stat">--</span>
-    </div>
+```
+<div class="stats">
+    📊 Winrate (10): <span id="stat">--</span>
+</div>
 
-    <div class="buttons">
-        <button onclick="loadSignals()">🔄 Обновить</button>
-        <button>🚀 Авто режим</button>
-    </div>
+<div class="buttons">
+    <button onclick="loadSignals()">🔄 Обновить</button>
+</div>
 
-    <div class="signals" id="signals"></div>
+<div class="signals" id="signals"></div>
+```
 
 </div>
 
 <script>
-/* ===== РЕАЛЬНЫЙ ДВИГАЮЩИЙСЯ ГРАФИК ===== */
+/* ===== ЗВУК ===== */
+let lastSignalTime = 0;
+
+function playSound(){
+    const audio = document.getElementById("alertSound");
+    audio.currentTime = 0;
+    audio.play().catch(()=>{});
+}
+
+/* ===== ГРАФИК ===== */
 const canvas = document.getElementById("chart");
 const ctx = canvas.getContext("2d");
 
-function resize() {
+function resize(){
     canvas.width = window.innerWidth * 1.5;
     canvas.height = window.innerHeight * 1.5;
 }
@@ -146,64 +142,60 @@ window.addEventListener("resize", resize);
 let candles = [];
 let price = 100;
 
-function generateCandle() {
+function generateCandle(){
     let open = price;
-    let close = open + (Math.random() - 0.5) * 2.5;
-    let high = Math.max(open, close) + Math.random() * 1.2;
-    let low = Math.min(open, close) - Math.random() * 1.2;
-
+    let close = open + (Math.random()-0.5)*2.5;
+    let high = Math.max(open,close) + Math.random()*1.2;
+    let low = Math.min(open,close) - Math.random()*1.2;
     price = close;
-    return { open, close, high, low };
+    return {open,close,high,low};
 }
 
-for (let i = 0; i < 120; i++) candles.push(generateCandle());
+for(let i=0;i<120;i++) candles.push(generateCandle());
 
 let offset = 0;
 
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    const w = 8;
-    const gap = 4;
+    const w=8;
+    const gap=4;
 
-    const max = Math.max(...candles.map(c => c.high));
-    const min = Math.min(...candles.map(c => c.low));
+    const max = Math.max(...candles.map(c=>c.high));
+    const min = Math.min(...candles.map(c=>c.low));
+    const scale = canvas.height/(max-min);
 
-    const scale = canvas.height / (max - min);
+    candles.forEach((c,i)=>{
+        const x = i*(w+gap) - offset;
 
-    candles.forEach((c, i) => {
-        const x = i * (w + gap) - offset;
+        const openY = canvas.height-(c.open-min)*scale;
+        const closeY = canvas.height-(c.close-min)*scale;
+        const highY = canvas.height-(c.high-min)*scale;
+        const lowY = canvas.height-(c.low-min)*scale;
 
-        const openY = canvas.height - (c.open - min) * scale;
-        const closeY = canvas.height - (c.close - min) * scale;
-        const highY = canvas.height - (c.high - min) * scale;
-        const lowY = canvas.height - (c.low - min) * scale;
-
-        const color = c.close > c.open ? "#22c55e" : "#ef4444";
+        const color = c.close>c.open ? "#22c55e" : "#ef4444";
 
         ctx.strokeStyle = color;
         ctx.fillStyle = color;
 
-        // фитиль
         ctx.beginPath();
-        ctx.moveTo(x + w/2, highY);
-        ctx.lineTo(x + w/2, lowY);
+        ctx.moveTo(x+w/2, highY);
+        ctx.lineTo(x+w/2, lowY);
         ctx.stroke();
 
-        // тело
         ctx.fillRect(
             x,
-            Math.min(openY, closeY),
+            Math.min(openY,closeY),
             w,
-            Math.abs(openY - closeY)
+            Math.abs(openY-closeY)
         );
     });
 }
 
-function update() {
+function update(){
     offset += 1.5;
 
-    if (offset > 12) {
+    if(offset > 12){
         offset = 0;
         candles.push(generateCandle());
         candles.shift();
@@ -212,26 +204,29 @@ function update() {
     draw();
 }
 
-setInterval(update, 16);
+setInterval(update,16);
 
 /* ===== СИГНАЛЫ ===== */
-async function loadSignals() {
+async function loadSignals(){
     const res = await fetch("/signals");
     const data = await res.json();
 
     const container = document.getElementById("signals");
     container.innerHTML = "";
 
+    let newestTime = lastSignalTime;
     let wins = 0;
 
-    data.slice(-10).forEach(s => {
-        if (s.probability > 70) wins++;
+    data.slice(-10).forEach(s=>{
+        if(s.probability > 70) wins++;
     });
 
     document.getElementById("stat").innerText =
-        Math.round((wins / 10) * 100) + "%";
+        Math.round((wins/10)*100) + "%";
 
-    data.reverse().forEach(s => {
+    data.reverse().forEach(s=>{
+        if(s.time > newestTime) newestTime = s.time;
+
         const el = document.createElement("div");
         el.className = "signal";
 
@@ -242,17 +237,20 @@ async function loadSignals() {
                 <b>${s.symbol}</b><br>
                 <span class="${side}">${s.signal}</span>
             </div>
-            <div style="text-align:right">
-                <div class="prob">${s.probability}%</div>
-                <div class="time">${new Date(s.time * 1000).toLocaleTimeString()}</div>
-            </div>
+            <div>${s.probability}%</div>
         `;
 
         container.appendChild(el);
     });
+
+    if(newestTime > lastSignalTime && lastSignalTime !== 0){
+        playSound();
+    }
+
+    lastSignalTime = newestTime;
 }
 
-setInterval(loadSignals, 2000);
+setInterval(loadSignals,2000);
 loadSignals();
 </script>
 
