@@ -8,14 +8,13 @@ signals = []
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 @app.get("/")
 def home():
-    return {"status": "server running"}
+    return {"status": "ok"}
 
 @app.get("/signals")
 def get_signals():
@@ -24,4 +23,4 @@ def get_signals():
 @app.post("/add_signal")
 def add_signal(data: dict):
     signals.append(data)
-    return {"status": "ok", "total": len(signals)}
+    return {"status": "added", "total": len(signals)}
