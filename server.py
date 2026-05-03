@@ -1,14 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import random
-import asyncio
 import time
+import threading
+import time as t
 
 app = FastAPI()
 
-# =====================
-# STORAGE
-# =====================
 signals = []
 
 app.add_middleware(
@@ -18,63 +16,51 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-SYMBOLS = [
-    "EUR/USD",
-    "GBP/USD",
-    "USD/JPY",
-    "AUD/USD",
-    "USD/CAD",
-    "EUR/JPY"
-]
+SYMBOLS = ["EUR/USD","GBP/USD","USD/JPY","AUD/USD","USD/CAD","EUR/JPY"]
 
 # =====================
-# GENERATE SIGNAL
+# SIGNAL GENERATOR
 # =====================
 def generate_signal():
-    symbol = random.choice(SYMBOLS)
-
-    probability = random.randint(60, 95)
-
-    signal = "BUY" if random.random() > 0.5 else "SELL"
-
     return {
-        "symbol": symbol,
-        "signal": signal,
-        "probability": probability,
+        "symbol": random.choice(SYMBOLS),
+        "signal": "BUY" if random.random() > 0.5 else "SELL",
+        "probability": random.randint(60, 95),
         "time": time.time()
     }
 
 # =====================
-# AUTO LOOP
+# BACKGROUND LOOP (SAFE)
 # =====================
-async def auto_signals():
+def loop():
     while True:
+        try:
+            signals.append(generate_signal())
 
-        new_signal = generate_signal()
+            if len(signals) > 100:
+                signals.pop(0)
 
-        signals.append(new_signal)
+            print("NEW SIGNAL ADDED")
 
-        # ограничим память
-        if len(signals) > 100:
-            signals.pop(0)
+        except Exception as e:
+            print("ERROR:", e)
 
-        print("NEW SIGNAL:", new_signal)
-
-        await asyncio.sleep(10)  # каждые 10 секунд
+        t.sleep(10)
 
 # =====================
-# STARTUP
+# START THREAD
 # =====================
 @app.on_event("startup")
-async def startup():
-    asyncio.create_task(auto_signals())
+def start():
+    thread = threading.Thread(target=loop, daemon=True)
+    thread.start()
 
 # =====================
 # API
 # =====================
 @app.get("/")
 def home():
-    return {"status": "live", "signals": len(signals)}
+    return {"status": "running"}
 
 @app.get("/signals")
 def get_signals():
@@ -84,28 +70,14 @@ def get_signals():
 def stats():
 
     if not signals:
-        return {
-            "winrate": 0,
-            "wins": 0,
-            "losses": 0,
-            "total": 0
-        }
+        return {"winrate": 0, "wins": 0, "losses": 0, "total": 0}
 
-    wins = 0
-    losses = 0
-
-    for s in signals:
-        if s["probability"] >= 70:
-            wins += 1
-        else:
-            losses += 1
-
-    total = wins + losses
-    winrate = round((wins / total) * 100, 2)
+    wins = sum(1 for s in signals if s["probability"] >= 70)
+    losses = len(signals) - wins
 
     return {
-        "winrate": winrate,
+        "winrate": round(wins / len(signals) * 100, 2),
         "wins": wins,
         "losses": losses,
-        "total": total
+        "total": len(signals)
     }
