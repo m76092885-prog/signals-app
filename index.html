@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Signals</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #0f172a;
+            color: white;
+            font-family: Arial;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .card {
+            background: #1e293b;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .buy {
+            color: #22c55e;
+        }
+
+        .sell {
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>📊 Signals</h1>
+<div id="signals">Загрузка...</div>
+
+<script>
+async function loadSignals() {
+    const container = document.getElementById("signals");
+
+    try {
+        const res = await fetch("dataset.csv");
+        const text = await res.text();
+
+        if (!text || text.length < 10) {
+            container.innerHTML = "Нет данных";
+            return;
+        }
+
+        const lines = text.split("\n").filter(line => line.trim() !== "");
+
+        if (lines.length <= 1) {
+            container.innerHTML = "Нет сделок";
+            return;
+        }
+
+        container.innerHTML = "";
+
+        // пропускаем заголовок и берем последние
+        const data = lines.slice(1).reverse().slice(0, 10);
+
+        data.forEach(line => {
+            const parts = line.split(",");
+
+            if (parts.length < 10) return;
+
+            const symbol = parts[1].trim();
+            const signal = parts[2].trim();
+            const prob = parts[3].trim();
+            const result = parts[9].trim();
+
+            const colorClass = signal === "BUY" ? "buy" : "sell";
+            const resultText = result === "WIN" ? "✅ WIN" : "❌ LOSS";
+
+            const card = `
+                <div class="card">
+                    <b>${symbol}</b><br>
+                    <span class="${colorClass}">${signal}</span> | ${prob}%<br>
+                    ${resultText}
+                </div>
+            `;
+
+            container.innerHTML += card;
+        });
+
+    } catch (err) {
+        console.log(err);
+        container.innerHTML = "Ошибка загрузки данных";
+    }
+}
+
+// автообновление каждые 5 сек
+setInterval(loadSignals, 5000);
+
+loadSignals();
+</script>
+
+</body>
+</html>
