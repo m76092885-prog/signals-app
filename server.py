@@ -1,16 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import random
+import asyncio
+import time
 
 app = FastAPI()
 
 # =====================
-# ХРАНИЛИЩЕ СИГНАЛОВ
+# STORAGE
 # =====================
 signals = []
 
-# =====================
-# CORS (для Mini App)
-# =====================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,45 +18,72 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+SYMBOLS = [
+    "EUR/USD",
+    "GBP/USD",
+    "USD/JPY",
+    "AUD/USD",
+    "USD/CAD",
+    "EUR/JPY"
+]
+
 # =====================
-# HEALTH CHECK
+# GENERATE SIGNAL
+# =====================
+def generate_signal():
+    symbol = random.choice(SYMBOLS)
+
+    probability = random.randint(60, 95)
+
+    signal = "BUY" if random.random() > 0.5 else "SELL"
+
+    return {
+        "symbol": symbol,
+        "signal": signal,
+        "probability": probability,
+        "time": time.time()
+    }
+
+# =====================
+# AUTO LOOP
+# =====================
+async def auto_signals():
+    while True:
+
+        new_signal = generate_signal()
+
+        signals.append(new_signal)
+
+        # ограничим память
+        if len(signals) > 100:
+            signals.pop(0)
+
+        print("NEW SIGNAL:", new_signal)
+
+        await asyncio.sleep(10)  # каждые 10 секунд
+
+# =====================
+# STARTUP
+# =====================
+@app.on_event("startup")
+async def startup():
+    asyncio.create_task(auto_signals())
+
+# =====================
+# API
 # =====================
 @app.get("/")
 def home():
-    return {"status": "ok", "signals": len(signals)}
+    return {"status": "live", "signals": len(signals)}
 
-# =====================
-# ПОЛУЧИТЬ СИГНАЛЫ
-# =====================
 @app.get("/signals")
 def get_signals():
     return signals
 
-# =====================
-# ДОБАВИТЬ СИГНАЛ
-# =====================
-@app.post("/add_signal")
-def add_signal(data: dict):
-    signals.append(data)
-
-    # ограничим память (последние 200)
-    if len(signals) > 200:
-        signals.pop(0)
-
-    return {
-        "status": "added",
-        "total": len(signals)
-    }
-
-# =====================
-# 📊 СТАТИСТИКА WINRATE
-# =====================
 @app.get("/stats")
 def stats():
 
-    total = len(signals)
-
-    if total == 0:
+    if not signals:
         return {
             "winrate": 0,
             "wins": 0,
@@ -67,17 +94,13 @@ def stats():
     wins = 0
     losses = 0
 
-    # простая логика оценки результата
     for s in signals:
-
-        prob = s.get("probability", 0)
-
-        # WIN если вероятность >= 70
-        if prob >= 70:
+        if s["probability"] >= 70:
             wins += 1
         else:
             losses += 1
 
+    total = wins + losses
     winrate = round((wins / total) * 100, 2)
 
     return {
