@@ -14,18 +14,16 @@ body{
     overflow:hidden;
 }
 
-/* 🔥 ФОН ГРАФИК */
+/* ФОН */
 #bg{
     position:fixed;
-    top:0;
-    left:0;
     width:100%;
     height:100%;
-    filter:blur(12px) brightness(0.4);
+    filter:blur(10px) brightness(0.6);
     z-index:0;
 }
 
-/* UI */
+/* СПИСОК */
 .container{
     position:relative;
     z-index:2;
@@ -42,7 +40,7 @@ body{
     backdrop-filter:blur(6px);
 }
 
-/* экран сделки */
+/* СДЕЛКА */
 .trade{
     position:fixed;
     top:0;
@@ -59,7 +57,6 @@ body{
     height:60%;
 }
 
-/* инфа */
 .info{
     padding:15px;
 }
@@ -99,40 +96,68 @@ body{
 
 <script>
 
-// ===== ФОН ГРАФИК =====
+// ===== ФОН СВЕЧИ =====
 const bg = document.getElementById("bg")
 const bctx = bg.getContext("2d")
 
 bg.width = window.innerWidth
 bg.height = window.innerHeight
 
-let bgPrice = 100
-let bgPoints = []
+let bgCandles = []
 
-for(let i=0;i<120;i++){
-    bgPoints.push(bgPrice)
+function newCandle(prev){
+    let open = prev ? prev.close : 100
+    let close = open + (Math.random()-0.5)*2
+    let high = Math.max(open,close) + Math.random()
+    let low = Math.min(open,close) - Math.random()
+    return {open,close,high,low}
+}
+
+for(let i=0;i<60;i++){
+    bgCandles.push(newCandle(bgCandles[i-1]))
 }
 
 function drawBG(){
+
     bctx.clearRect(0,0,bg.width,bg.height)
 
-    bgPrice += (Math.random()-0.5)*0.3
-    bgPoints.push(bgPrice)
-    bgPoints.shift()
+    bgCandles.push(newCandle(bgCandles[bgCandles.length-1]))
+    bgCandles.shift()
 
-    bctx.beginPath()
-    bgPoints.forEach((p,i)=>{
-        let x = i * (bg.width/120)
-        let y = bg.height/2 + (p-100)*5
-        if(i===0) bctx.moveTo(x,y)
-        else bctx.lineTo(x,y)
+    let w = bg.width / bgCandles.length
+
+    bgCandles.forEach((c,i)=>{
+
+        let x = i*w
+        let mid = bg.height/2
+
+        let scale = 5
+
+        let o = mid - (c.open-100)*scale
+        let cl = mid - (c.close-100)*scale
+        let h = mid - (c.high-100)*scale
+        let l = mid - (c.low-100)*scale
+
+        // тень
+        bctx.strokeStyle = "rgba(255,255,255,0.2)"
+        bctx.beginPath()
+        bctx.moveTo(x+w/2,h)
+        bctx.lineTo(x+w/2,l)
+        bctx.stroke()
+
+        // тело
+        bctx.fillStyle = c.close > c.open
+            ? "rgba(34,197,94,0.4)"
+            : "rgba(239,68,68,0.4)"
+
+        let y = Math.min(o,cl)
+        let height = Math.abs(o-cl)
+
+        bctx.fillRect(x, y, w*0.7, height || 1)
     })
-
-    bctx.strokeStyle="#22c55e"
-    bctx.stroke()
 }
 
-setInterval(drawBG,50)
+setInterval(drawBG,120)
 
 // ===== СИГНАЛЫ =====
 let signalsData=[]
@@ -163,17 +188,14 @@ setInterval(load,3000)
 load()
 
 // ===== СДЕЛКА =====
-let trade = null
-let price = 100
-let entry = 100
-
 const canvas = document.getElementById("chart")
 const ctx = canvas.getContext("2d")
 
 canvas.width = window.innerWidth
 canvas.height = window.innerHeight * 0.6
 
-let points = []
+let trade = null
+let candles = []
 
 function openTrade(s){
     trade = s
@@ -192,54 +214,73 @@ function closeTrade(){
     document.getElementById("trade").style.display="none"
 }
 
-// ===== ПЛАВНЫЙ ГРАФИК =====
+// ===== СВЕЧНОЙ ГРАФИК =====
 function startTrade(){
 
-    points=[]
-    price = 100
-    entry = price
+    candles=[]
 
+    for(let i=0;i<50;i++){
+        candles.push(newCandle(candles[i-1]))
+    }
+
+    let entry = candles[candles.length-1].close
     let start = Date.now()
 
     function animate(){
 
         ctx.clearRect(0,0,canvas.width,canvas.height)
 
-        // плавное движение
-        price += (Math.random()-0.5)*0.05
-        points.push(price)
-        if(points.length > 100) points.shift()
+        candles.push(newCandle(candles[candles.length-1]))
+        if(candles.length > 80) candles.shift()
 
-        // линия
-        ctx.beginPath()
-        points.forEach((p,i)=>{
-            let x = i * (canvas.width/100)
-            let y = canvas.height/2 + (p-100)*8
+        let w = canvas.width / candles.length
 
-            if(i===0) ctx.moveTo(x,y)
-            else ctx.lineTo(x,y)
+        candles.forEach((c,i)=>{
+
+            let x = i*w
+            let mid = canvas.height/2
+
+            let scale = 15
+
+            let o = mid - (c.open-entry)*scale
+            let cl = mid - (c.close-entry)*scale
+            let h = mid - (c.high-entry)*scale
+            let l = mid - (c.low-entry)*scale
+
+            // тень
+            ctx.strokeStyle = "#888"
+            ctx.beginPath()
+            ctx.moveTo(x+w/2,h)
+            ctx.lineTo(x+w/2,l)
+            ctx.stroke()
+
+            // тело
+            ctx.fillStyle = c.close > c.open
+                ? "#22c55e"
+                : "#ef4444"
+
+            let y = Math.min(o,cl)
+            let height = Math.abs(o-cl)
+
+            ctx.fillRect(x, y, w*0.7, height || 1)
         })
 
-        let profit =
-            (trade.signal=="BUY" && price > entry) ||
-            (trade.signal=="SELL" && price < entry)
-
-        ctx.strokeStyle = profit ? "#22c55e" : "#ef4444"
-        ctx.lineWidth = 2
-        ctx.stroke()
-
         // линия входа
-        ctx.strokeStyle="#888"
+        ctx.strokeStyle="#fff"
         ctx.beginPath()
         ctx.moveTo(0,canvas.height/2)
         ctx.lineTo(canvas.width,canvas.height/2)
         ctx.stroke()
 
-        // статус
+        let last = candles[candles.length-1].close
+
+        let profit =
+            (trade.signal=="BUY" && last > entry) ||
+            (trade.signal=="SELL" && last < entry)
+
         document.getElementById("status").innerText =
             profit ? "🟢 В профите" : "🔴 В минусе"
 
-        // плавный таймер
         let left = 60 - (Date.now()-start)/1000
         document.getElementById("timer").innerText =
             "⏱ " + left.toFixed(1) + " сек"
@@ -256,4 +297,3 @@ function startTrade(){
 
 </body>
 </html>
-
