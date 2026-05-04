@@ -7,7 +7,7 @@ import threading
 
 app = FastAPI()
 
-API_KEY = "44e14a6e8f7c4360885483d51e2f4523"  # TwelveData
+API_KEY = "44e14a6e8f7c4360885483d51e2f4523"
 
 SYMBOLS = [
 "EUR/USD",
@@ -22,7 +22,7 @@ TIMEFRAME = "5min"
 signals = []
 last_signal_time = {}
 
-# ===== ПОЛУЧЕНИЕ ДАННЫХ =====
+# ===== DATA =====
 
 def get_data(symbol):
 try:
@@ -45,7 +45,7 @@ except Exception as e:
     return None
 ```
 
-# ===== ИНДИКАТОРЫ =====
+# ===== INDICATORS =====
 
 def RSI(df):
 return ta.momentum.RSIIndicator(df['close'], 7).rsi()
@@ -59,7 +59,7 @@ return ta.momentum.WilliamsRIndicator(df['high'], df['low'], df['close'], 14).wi
 def EMA(df, period):
 return ta.trend.EMAIndicator(df['close'], period).ema_indicator()
 
-# ===== ТРЕНД =====
+# ===== TREND =====
 
 def detect_trend(df):
 ema50 = EMA(df, 50).iloc[-1]
@@ -73,7 +73,7 @@ elif ema50 < ema200:
 return "flat"
 ```
 
-# ===== СКОРИНГ =====
+# ===== SCORE =====
 
 def calculate_score(df):
 rsi = RSI(df)
@@ -87,54 +87,66 @@ wr_prev, wr_now = wr.iloc[-2], wr.iloc[-1]
 
 score_buy = 0
 score_sell = 0
+reasons = []
 
 # RSI
 if rsi_prev < 30 and rsi_now > 30:
     score_buy += 2
+    reasons.append("RSI oversold → up")
 if rsi_prev > 70 and rsi_now < 70:
     score_sell += 2
+    reasons.append("RSI overbought → down")
 
 # CCI
 if cci_prev < -100 and cci_now > -100:
     score_buy += 2
+    reasons.append("CCI breakout up")
 if cci_prev > 100 and cci_now < 100:
     score_sell += 2
+    reasons.append("CCI breakout down")
 
 # WR
 if wr_prev < -80 and wr_now > -80:
     score_buy += 2
+    reasons.append("Williams %R buy zone")
 if wr_prev > -20 and wr_now < -20:
     score_sell += 2
+    reasons.append("Williams %R sell zone")
 
-return score_buy, score_sell
+return score_buy, score_sell, reasons
 ```
 
-# ===== АНАЛИЗ =====
+# ===== ANALYZE =====
 
 def analyze_symbol(df):
-score_buy, score_sell = calculate_score(df)
+score_buy, score_sell, reasons = calculate_score(df)
 trend = detect_trend(df)
 
 ```
 if trend == "up":
     score_buy += 1
+    reasons.append("Trend up")
 if trend == "down":
     score_sell += 1
+    reasons.append("Trend down")
 
 max_score = 7
 
 prob_buy = int((score_buy / max_score) * 100)
 prob_sell = int((score_sell / max_score) * 100)
 
-if prob_buy >= 55 and prob_buy > prob_sell:
-    return "BUY", prob_buy
-elif prob_sell >= 55 and prob_sell > prob_buy:
-    return "SELL", prob_sell
+entry_price = df['close'].iloc[-1]
 
-return None, 0
+if prob_buy >= 55 and prob_buy > prob_sell:
+    return "BUY", prob_buy, entry_price, ", ".join(reasons)
+
+elif prob_sell >= 55 and prob_sell > prob_buy:
+    return "SELL", prob_sell, entry_price, ", ".join(reasons)
+
+return None, 0, None, None
 ```
 
-# ===== ГЕНЕРАЦИЯ СИГНАЛОВ =====
+# ===== SIGNAL ENGINE =====
 
 def generate_signals():
 global signals
@@ -148,12 +160,12 @@ while True:
         if df is None or len(df) < 50:
             continue
 
-        signal, prob = analyze_symbol(df)
+        signal, prob, price, reason = analyze_symbol(df)
 
         if signal:
             now = time.time()
 
-            # анти-спам (1 сигнал на пару в 3 минуты)
+            # анти-спам (3 минуты)
             if symbol in last_signal_time:
                 if now - last_signal_time[symbol] < 180:
                     continue
@@ -164,10 +176,11 @@ while True:
                 "symbol": symbol,
                 "signal": signal,
                 "probability": prob,
-                "time": now
+                "time": now,
+                "entry_price": round(price, 5),
+                "reason": reason
             })
 
-            # ограничение списка
             if len(signals) > 50:
                 signals = signals[-50:]
 
@@ -185,10 +198,11 @@ def get_signals():
 return signals
 
 @app.get("/status")
-def get_status():
+def status():
 return {"status": "running"}
 
-# ===== СТАРТ =====
+# ===== START =====
 
 threading.Thread(target=generate_signals, daemon=True).start()
+
 
