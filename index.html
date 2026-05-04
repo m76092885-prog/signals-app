@@ -11,22 +11,35 @@ body{
     background:#020617;
     color:#fff;
     font-family:Arial;
+    overflow:hidden;
 }
 
-/* список */
+/* 🔥 ФОН ГРАФИК */
+#bg{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    filter:blur(12px) brightness(0.4);
+    z-index:0;
+}
+
+/* UI */
 .container{
+    position:relative;
+    z-index:2;
     padding:15px;
+    height:100vh;
+    overflow:auto;
 }
 
 .signal{
-    background:#111827;
+    background:rgba(17,24,39,0.85);
     margin-bottom:10px;
-    padding:15px;
-    border-radius:15px;
-}
-
-.signal:active{
-    transform:scale(0.95);
+    padding:16px;
+    border-radius:18px;
+    backdrop-filter:blur(6px);
 }
 
 /* экран сделки */
@@ -39,19 +52,21 @@ body{
     background:#020617;
     display:none;
     flex-direction:column;
+    z-index:10;
 }
 
 #chart{
     height:60%;
 }
 
+/* инфа */
 .info{
     padding:15px;
 }
 
 .btn{
     margin-top:10px;
-    padding:12px;
+    padding:14px;
     background:#1e293b;
     border-radius:20px;
     text-align:center;
@@ -61,6 +76,8 @@ body{
 </head>
 
 <body>
+
+<canvas id="bg"></canvas>
 
 <div class="container" id="signals"></div>
 
@@ -82,19 +99,54 @@ body{
 
 <script>
 
-let signalsData = []
+// ===== ФОН ГРАФИК =====
+const bg = document.getElementById("bg")
+const bctx = bg.getContext("2d")
 
-// ===== ЗАГРУЗКА СИГНАЛОВ =====
+bg.width = window.innerWidth
+bg.height = window.innerHeight
+
+let bgPrice = 100
+let bgPoints = []
+
+for(let i=0;i<120;i++){
+    bgPoints.push(bgPrice)
+}
+
+function drawBG(){
+    bctx.clearRect(0,0,bg.width,bg.height)
+
+    bgPrice += (Math.random()-0.5)*0.3
+    bgPoints.push(bgPrice)
+    bgPoints.shift()
+
+    bctx.beginPath()
+    bgPoints.forEach((p,i)=>{
+        let x = i * (bg.width/120)
+        let y = bg.height/2 + (p-100)*5
+        if(i===0) bctx.moveTo(x,y)
+        else bctx.lineTo(x,y)
+    })
+
+    bctx.strokeStyle="#22c55e"
+    bctx.stroke()
+}
+
+setInterval(drawBG,50)
+
+// ===== СИГНАЛЫ =====
+let signalsData=[]
+
 async function load(){
     let res = await fetch("/signals")
     signalsData = await res.json()
 
-    let container = document.getElementById("signals")
-    container.innerHTML=""
+    let c = document.getElementById("signals")
+    c.innerHTML=""
 
-    signalsData.forEach((s,i)=>{
+    signalsData.forEach(s=>{
         let div = document.createElement("div")
-        div.className = "signal"
+        div.className="signal"
 
         div.innerHTML = `
             <b>${s.symbol}</b><br>
@@ -103,89 +155,105 @@ async function load(){
 
         div.onclick = ()=> openTrade(s)
 
-        container.appendChild(div)
+        c.appendChild(div)
     })
 }
 
 setInterval(load,3000)
 load()
 
-// ===== ОТКРЫТИЕ СДЕЛКИ =====
-let currentTrade = null
+// ===== СДЕЛКА =====
+let trade = null
+let price = 100
+let entry = 100
 
-function openTrade(s){
-    currentTrade = s
-
-    document.getElementById("trade").style.display="flex"
-    document.getElementById("pair").innerText =
-        s.symbol + " | " + s.signal
-
-    // причина (фейк логика пока)
-    document.getElementById("reason").innerText =
-        "📊 Причина: RSI + тренд + импульс"
-
-    runTrade()
-}
-
-function closeTrade(){
-    document.getElementById("trade").style.display="none"
-}
-
-// ===== ГРАФИК =====
 const canvas = document.getElementById("chart")
 const ctx = canvas.getContext("2d")
 
 canvas.width = window.innerWidth
 canvas.height = window.innerHeight * 0.6
 
-function runTrade(){
+let points = []
 
-    let entry = 100
-    let price = entry
+function openTrade(s){
+    trade = s
+    document.getElementById("trade").style.display="flex"
+
+    document.getElementById("pair").innerText =
+        s.symbol + " | " + s.signal
+
+    document.getElementById("reason").innerText =
+        "RSI + тренд + импульс"
+
+    startTrade()
+}
+
+function closeTrade(){
+    document.getElementById("trade").style.display="none"
+}
+
+// ===== ПЛАВНЫЙ ГРАФИК =====
+function startTrade(){
+
+    points=[]
+    price = 100
+    entry = price
+
     let start = Date.now()
 
-    let interval = setInterval(()=>{
+    function animate(){
 
         ctx.clearRect(0,0,canvas.width,canvas.height)
 
-        // движение цены
-        price += (Math.random() - 0.5) * 0.002
+        // плавное движение
+        price += (Math.random()-0.5)*0.05
+        points.push(price)
+        if(points.length > 100) points.shift()
+
+        // линия
+        ctx.beginPath()
+        points.forEach((p,i)=>{
+            let x = i * (canvas.width/100)
+            let y = canvas.height/2 + (p-100)*8
+
+            if(i===0) ctx.moveTo(x,y)
+            else ctx.lineTo(x,y)
+        })
 
         let profit =
-            (currentTrade.signal=="BUY" && price > entry) ||
-            (currentTrade.signal=="SELL" && price < entry)
+            (trade.signal=="BUY" && price > entry) ||
+            (trade.signal=="SELL" && price < entry)
 
-        // линия входа
-        ctx.strokeStyle = "#888"
-        ctx.beginPath()
-        ctx.moveTo(0,200)
-        ctx.lineTo(canvas.width,200)
+        ctx.strokeStyle = profit ? "#22c55e" : "#ef4444"
+        ctx.lineWidth = 2
         ctx.stroke()
 
-        // линия цены
-        ctx.strokeStyle = profit ? "#22c55e" : "#ef4444"
+        // линия входа
+        ctx.strokeStyle="#888"
         ctx.beginPath()
-        ctx.moveTo(50,200)
-        ctx.lineTo(300 + (price-entry)*10000,200)
+        ctx.moveTo(0,canvas.height/2)
+        ctx.lineTo(canvas.width,canvas.height/2)
         ctx.stroke()
 
         // статус
         document.getElementById("status").innerText =
             profit ? "🟢 В профите" : "🔴 В минусе"
 
-        // таймер
-        let left = 60 - Math.floor((Date.now()-start)/1000)
+        // плавный таймер
+        let left = 60 - (Date.now()-start)/1000
         document.getElementById("timer").innerText =
-            "⏱ " + left + " сек"
+            "⏱ " + left.toFixed(1) + " сек"
 
-        if(left <= 0){
-            clearInterval(interval)
+        if(left > 0){
+            requestAnimationFrame(animate)
         }
+    }
 
-    },200)
+    animate()
 }
 
 </script>
 
 </body>
 </html>
+
