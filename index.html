@@ -12,12 +12,11 @@
 body{
     background:#020617;
     color:#fff;
-    height:100vh;
     overflow:hidden;
 }
 
-/* ===== ГРАФИК ===== */
-#chart{
+/* ===== ФОН ГРАФИК ===== */
+#bgChart{
     position:fixed;
     top:50%;
     left:50%;
@@ -36,69 +35,78 @@ body{
     z-index:1;
 }
 
-/* ===== UI ===== */
+/* ===== ОСНОВА ===== */
 .container{
     position:relative;
     z-index:2;
-    height:100%;
+    height:100vh;
+    padding:20px;
     display:flex;
     flex-direction:column;
-    justify-content:center;
-    padding:20px;
 }
 
+/* ===== СТАТА ===== */
 .stats{
     text-align:center;
-    margin-bottom:20px;
-    font-size:18px;
-}
-
-.buttons{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-    align-items:center;
-    margin-bottom:20px;
-}
-
-button{
-    width:80%;
-    padding:15px;
-    border-radius:30px;
-    border:none;
-    font-size:16px;
-    background:linear-gradient(135deg,#0f172a,#1e293b);
-    color:#fff;
+    margin-bottom:10px;
 }
 
 /* ===== СИГНАЛЫ ===== */
 .signals{
-    max-height:45vh;
-    overflow-y:auto;
+    overflow:auto;
+    flex:1;
 }
 
 .signal{
+    background:rgba(15,23,42,0.8);
+    margin-bottom:10px;
+    padding:15px;
+    border-radius:18px;
     display:flex;
     justify-content:space-between;
-    margin-bottom:10px;
-    padding:14px;
-    border-radius:18px;
-    background:rgba(15,23,42,0.7);
+    cursor:pointer;
 }
 
-.buy{color:#22c55e}
-.sell{color:#ef4444}
+.buy{border-left:4px solid #22c55e}
+.sell{border-left:4px solid #ef4444}
+
+/* ===== ЭКРАН СДЕЛКИ ===== */
+.trade{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:#020617;
+    z-index:10;
+    display:none;
+    flex-direction:column;
+}
+
+#tradeChart{
+    height:60%;
+}
+
+.info{
+    padding:15px;
+}
+
+.btn{
+    margin-top:10px;
+    padding:14px;
+    border-radius:25px;
+    background:#1e293b;
+    text-align:center;
+}
 </style>
 
 </head>
 
 <body>
 
-<!-- 🔊 ЗВУК -->
+<audio id="sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
-<audio id="alertSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-
-<canvas id="chart"></canvas>
+<canvas id="bgChart"></canvas>
 
 <div class="overlay"></div>
 
@@ -109,150 +117,207 @@ button{
     📊 Winrate (10): <span id="stat">--</span>
 </div>
 
-<div class="buttons">
-    <button onclick="loadSignals()">🔄 Обновить</button>
-</div>
-
 <div class="signals" id="signals"></div>
 ```
 
 </div>
 
-<script>
-/* ===== ЗВУК ===== */
-let lastSignalTime = 0;
+<!-- ===== TRADE SCREEN ===== -->
 
-function playSound(){
-    const audio = document.getElementById("alertSound");
-    audio.currentTime = 0;
-    audio.play().catch(()=>{});
+<div class="trade" id="trade">
+    <canvas id="tradeChart"></canvas>
+
+```
+<div class="info">
+    <div id="pair"></div>
+    <div id="status"></div>
+    <div id="reason"></div>
+    <div id="timer"></div>
+
+    <div class="btn" onclick="closeTrade()">Назад</div>
+</div>
+```
+
+</div>
+
+<script>
+
+/* ===== ЗВУК ===== */
+let lastTime = 0
+function play(){
+    let s = document.getElementById("sound")
+    s.currentTime=0
+    s.play().catch(()=>{})
 }
 
-/* ===== ГРАФИК ===== */
-const canvas = document.getElementById("chart");
-const ctx = canvas.getContext("2d");
+/* ===== ФОН ГРАФИК ===== */
+const bg = document.getElementById("bgChart")
+const bctx = bg.getContext("2d")
 
 function resize(){
-    canvas.width = window.innerWidth * 1.5;
-    canvas.height = window.innerHeight * 1.5;
+    bg.width = window.innerWidth*1.5
+    bg.height = window.innerHeight*1.5
 }
-resize();
-window.addEventListener("resize", resize);
+resize()
 
-let candles = [];
-let price = 100;
+let candles=[]
+let price=100
 
-function generateCandle(){
-    let open = price;
-    let close = open + (Math.random()-0.5)*2.5;
-    let high = Math.max(open,close) + Math.random()*1.2;
-    let low = Math.min(open,close) - Math.random()*1.2;
-    price = close;
-    return {open,close,high,low};
+function gen(){
+    let open=price
+    let close=open+(Math.random()-0.5)*3
+    let high=Math.max(open,close)+Math.random()*2
+    let low=Math.min(open,close)-Math.random()*2
+    price=close
+    return {open,close,high,low}
 }
 
-for(let i=0;i<120;i++) candles.push(generateCandle());
+for(let i=0;i<120;i++) candles.push(gen())
 
-let offset = 0;
+let offset=0
 
-function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+function drawBg(){
+    bctx.clearRect(0,0,bg.width,bg.height)
 
-    const w=8;
-    const gap=4;
-
-    const max = Math.max(...candles.map(c=>c.high));
-    const min = Math.min(...candles.map(c=>c.low));
-    const scale = canvas.height/(max-min);
+    const w=8,g=4
+    const max=Math.max(...candles.map(c=>c.high))
+    const min=Math.min(...candles.map(c=>c.low))
+    const scale=bg.height/(max-min)
 
     candles.forEach((c,i)=>{
-        const x = i*(w+gap) - offset;
+        let x=i*(w+g)-offset
+        let o=bg.height-(c.open-min)*scale
+        let cl=bg.height-(c.close-min)*scale
+        let h=bg.height-(c.high-min)*scale
+        let l=bg.height-(c.low-min)*scale
 
-        const openY = canvas.height-(c.open-min)*scale;
-        const closeY = canvas.height-(c.close-min)*scale;
-        const highY = canvas.height-(c.high-min)*scale;
-        const lowY = canvas.height-(c.low-min)*scale;
+        let col=c.close>c.open?"#22c55e":"#ef4444"
+        bctx.fillStyle=col
+        bctx.strokeStyle=col
 
-        const color = c.close>c.open ? "#22c55e" : "#ef4444";
+        bctx.beginPath()
+        bctx.moveTo(x+w/2,h)
+        bctx.lineTo(x+w/2,l)
+        bctx.stroke()
 
-        ctx.strokeStyle = color;
-        ctx.fillStyle = color;
-
-        ctx.beginPath();
-        ctx.moveTo(x+w/2, highY);
-        ctx.lineTo(x+w/2, lowY);
-        ctx.stroke();
-
-        ctx.fillRect(
-            x,
-            Math.min(openY,closeY),
-            w,
-            Math.abs(openY-closeY)
-        );
-    });
+        bctx.fillRect(x,Math.min(o,cl),w,Math.abs(o-cl))
+    })
 }
 
-function update(){
-    offset += 1.5;
-
-    if(offset > 12){
-        offset = 0;
-        candles.push(generateCandle());
-        candles.shift();
+function updateBg(){
+    offset+=1.5
+    if(offset>12){
+        offset=0
+        candles.push(gen())
+        candles.shift()
     }
-
-    draw();
+    drawBg()
 }
 
-setInterval(update,16);
+setInterval(updateBg,16)
 
 /* ===== СИГНАЛЫ ===== */
-async function loadSignals(){
-    const res = await fetch("/signals");
-    const data = await res.json();
+async function load(){
+    let res=await fetch("/signals")
+    let data=await res.json()
 
-    const container = document.getElementById("signals");
-    container.innerHTML = "";
+    let container=document.getElementById("signals")
+    container.innerHTML=""
 
-    let newestTime = lastSignalTime;
-    let wins = 0;
+    let newest=lastTime
+    let wins=0
 
     data.slice(-10).forEach(s=>{
-        if(s.probability > 70) wins++;
-    });
+        if(s.probability>70) wins++
+    })
 
     document.getElementById("stat").innerText =
-        Math.round((wins/10)*100) + "%";
+        Math.round((wins/10)*100)+"%"
 
     data.reverse().forEach(s=>{
-        if(s.time > newestTime) newestTime = s.time;
+        if(s.time>newest) newest=s.time
 
-        const el = document.createElement("div");
-        el.className = "signal";
+        let div=document.createElement("div")
+        div.className="signal "+(s.signal=="BUY"?"buy":"sell")
 
-        const side = s.signal === "BUY" ? "buy" : "sell";
+        div.innerHTML=`
+        <div>
+            <b>${s.symbol}</b><br>
+            ${s.signal}
+        </div>
+        <div>${s.probability}%</div>
+        `
 
-        el.innerHTML = `
-            <div>
-                <b>${s.symbol}</b><br>
-                <span class="${side}">${s.signal}</span>
-            </div>
-            <div>${s.probability}%</div>
-        `;
+        div.onclick=()=>openTrade(s)
+        container.appendChild(div)
+    })
 
-        container.appendChild(el);
-    });
-
-    if(newestTime > lastSignalTime && lastSignalTime !== 0){
-        playSound();
+    if(newest>lastTime && lastTime!=0){
+        play()
     }
 
-    lastSignalTime = newestTime;
+    lastTime=newest
 }
 
-setInterval(loadSignals,2000);
-loadSignals();
+setInterval(load,2000)
+load()
+
+/* ===== TRADE ===== */
+let tcanvas=document.getElementById("tradeChart")
+let tctx=tcanvas.getContext("2d")
+
+tcanvas.width=window.innerWidth
+tcanvas.height=window.innerHeight*0.6
+
+let trade=null
+
+function openTrade(s){
+    trade=s
+    document.getElementById("trade").style.display="flex"
+    document.getElementById("pair").innerText=s.symbol+" "+s.signal
+    document.getElementById("reason").innerText=s.reason||"Signal logic"
+
+    runTrade()
+}
+
+function closeTrade(){
+    document.getElementById("trade").style.display="none"
+}
+
+function runTrade(){
+    let entry=trade.entry_price || 100
+    let current=entry
+    let start=Date.now()
+
+    let interval=setInterval(()=>{
+        tctx.clearRect(0,0,tcanvas.width,tcanvas.height)
+
+        current += (Math.random()-0.5)*0.002
+
+        let profit =
+            (trade.signal=="BUY" && current>entry) ||
+            (trade.signal=="SELL" && current<entry)
+
+        tctx.strokeStyle = profit ? "#22c55e" : "#ef4444"
+        tctx.beginPath()
+        tctx.moveTo(50,tcanvas.height/2)
+        tctx.lineTo(300+(current-entry)*10000,tcanvas.height/2)
+        tctx.stroke()
+
+        document.getElementById("status").innerText =
+            profit ? "🟢 В профите" : "🔴 В просадке"
+
+        let left = 180 - Math.floor((Date.now()-start)/1000)
+        document.getElementById("timer").innerText = "⏱ "+left+"s"
+
+        if(left<=0){
+            clearInterval(interval)
+        }
+
+    },200)
+}
 </script>
 
 </body>
 </html>
+
