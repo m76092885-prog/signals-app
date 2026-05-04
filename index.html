@@ -68,6 +68,7 @@ body{
     display:flex;
     justify-content:space-between;
     cursor:pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .buy{border-left:4px solid #22c55e}
@@ -113,12 +114,11 @@ body{
 <div class="overlay"></div>
 
 <div class="container">
+    <div class="stats">
+        📊 Signals
+    </div>
 
 ```
-<div class="stats">
-    📊 Статистика: <span id="stat">--</span>
-</div>
-
 <div class="signals" id="signals"></div>
 ```
 
@@ -134,7 +134,7 @@ body{
     <div id="reason"></div>
     <div id="timer"></div>
 
-    <div class="btn" onclick="closeTrade()">Назад</div>
+    <div class="btn" id="backBtn">Назад</div>
 </div>
 ```
 
@@ -147,7 +147,7 @@ if (window.Telegram && Telegram.WebApp) {
     Telegram.WebApp.expand();
 }
 
-// ===== ФОН ГРАФИК =====
+// ===== BACKGROUND CHART =====
 const bg = document.getElementById("bgChart")
 const bctx = bg.getContext("2d")
 
@@ -209,7 +209,7 @@ function updateBg(){
 }
 setInterval(updateBg,16)
 
-// ===== СИГНАЛЫ =====
+// ===== LOAD SIGNALS =====
 async function load(){
     try{
         let res = await fetch("https://signals-app-yk11.onrender.com/signals")
@@ -230,7 +230,10 @@ async function load(){
                 <div>${s.probability}%</div>
             `
 
-            div.onclick=()=>openTrade(s)
+            div.addEventListener("click", function(){
+                openTrade(s)
+            })
+
             container.appendChild(div)
         })
 
@@ -261,9 +264,9 @@ function openTrade(s){
     runTrade()
 }
 
-function closeTrade(){
+document.getElementById("backBtn").addEventListener("click", ()=>{
     document.getElementById("trade").style.display="none"
-}
+})
 
 function runTrade(){
     let entry=trade.entry_price || 100
@@ -297,6 +300,7 @@ function runTrade(){
 
     },200)
 }
+
 </script>
 
 </body>
