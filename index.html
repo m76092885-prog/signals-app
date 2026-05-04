@@ -13,7 +13,7 @@ body{
     overflow:hidden;
 }
 
-/* ===== ФОН ===== */
+/* 🌌 фон */
 #bg{
     position:fixed;
     top:0;
@@ -24,25 +24,14 @@ body{
     z-index:0;
 }
 
-/* ===== СПИСОК ===== */
+/* контейнер сигналов (пока пустой, можно расширить) */
 .container{
     position:relative;
     z-index:2;
     padding:15px;
-    height:100vh;
-    overflow:auto;
 }
 
-.signal{
-    background:rgba(17,24,39,0.85);
-    margin-bottom:10px;
-    padding:16px;
-    border-radius:18px;
-    backdrop-filter:blur(8px);
-    cursor:pointer;
-}
-
-/* ===== ПЛАВАЮЩАЯ КАРТА ГРАФИКА ===== */
+/* 💎 график карточка */
 .trade{
     position:fixed;
     top:50%;
@@ -53,14 +42,14 @@ body{
     background:rgba(15,23,42,0.92);
     border-radius:26px;
     backdrop-filter:blur(18px);
-    display:none;
+    overflow:hidden;
+    display:flex;
     flex-direction:column;
     z-index:10;
-    overflow:hidden;
     box-shadow:0 0 50px rgba(0,0,0,0.6);
 }
 
-/* график */
+/* canvas график */
 #chart{
     width:100%;
     height:65%;
@@ -72,6 +61,7 @@ body{
     padding:15px;
 }
 
+/* кнопка */
 .btn{
     margin-top:10px;
     padding:14px;
@@ -80,13 +70,13 @@ body{
     text-align:center;
 }
 
-/* ===== СВЕЧЕНИЕ ===== */
+/* свечения */
 .trade.glow-green{
-    box-shadow:0 0 120px rgba(34,197,94,0.25), 0 0 40px rgba(34,197,94,0.15);
+    box-shadow:0 0 120px rgba(34,197,94,0.25);
 }
 
 .trade.glow-red{
-    box-shadow:0 0 120px rgba(239,68,68,0.25), 0 0 40px rgba(239,68,68,0.15);
+    box-shadow:0 0 120px rgba(239,68,68,0.25);
 }
 </style>
 </head>
@@ -95,25 +85,20 @@ body{
 
 <canvas id="bg"></canvas>
 
-<div class="container" id="signals"></div>
-
 <div class="trade" id="trade">
     <canvas id="chart"></canvas>
 
     <div class="info">
-        <div id="pair"></div>
-        <div id="status"></div>
-        <div id="timer"></div>
-        <div id="reason"></div>
-
-        <div class="btn" onclick="closeTrade()">Назад</div>
+        <div id="pair">EUR/USD</div>
+        <div id="status">Waiting...</div>
+        <div id="price"></div>
     </div>
 </div>
 
 <script>
 
 /////////////////////////////////////////////////////
-// 🌌 ФОН
+// 🌐 BACKGROUND (легкий рынок)
 /////////////////////////////////////////////////////
 
 const bg = document.getElementById("bg")
@@ -124,215 +109,127 @@ bg.height = window.innerHeight
 
 let bgCandles = []
 
-function newCandle(prev){
-    let open = prev ? prev.close : 100
-    let close = open + (Math.random()-0.5)*0.4
-    let high = Math.max(open,close) + Math.random()*0.3
-    let low = Math.min(open,close) - Math.random()*0.3
-    return {open,close,high,low}
+function gen(prev){
+    let o = prev ? prev.close : 100
+    let c = o + (Math.random()-0.5)*0.3
+    return {
+        open:o,
+        close:c,
+        high:Math.max(o,c)+Math.random()*0.2,
+        low:Math.min(o,c)-Math.random()*0.2
+    }
 }
 
 for(let i=0;i<80;i++){
-    bgCandles.push(newCandle(bgCandles[i-1]))
+    bgCandles.push(gen(bgCandles[i-1]))
 }
 
 function drawBG(){
-
     bctx.clearRect(0,0,bg.width,bg.height)
 
-    bgCandles.push(newCandle(bgCandles[bgCandles.length-1]))
+    bgCandles.push(gen(bgCandles[bgCandles.length-1]))
     bgCandles.shift()
 
-    let w = bg.width / bgCandles.length
+    let w = bg.width/bgCandles.length
     let mid = bg.height/2
 
     bgCandles.forEach((c,i)=>{
 
         let x = i*w
-        let scale = 6
+        let s = 6
 
-        let o = mid - (c.open-100)*scale
-        let cl = mid - (c.close-100)*scale
-        let h = mid - (c.high-100)*scale
-        let l = mid - (c.low-100)*scale
+        let o = mid - (c.open-100)*s
+        let cl = mid - (c.close-100)*s
+        let h = mid - (c.high-100)*s
+        let l = mid - (c.low-100)*s
 
-        bctx.strokeStyle = "rgba(255,255,255,0.15)"
+        bctx.strokeStyle="rgba(255,255,255,0.1)"
         bctx.beginPath()
         bctx.moveTo(x+w/2,h)
         bctx.lineTo(x+w/2,l)
         bctx.stroke()
 
-        bctx.fillStyle = c.close > c.open
-            ? "rgba(34,197,94,0.25)"
-            : "rgba(239,68,68,0.25)"
+        bctx.fillStyle = c.close>c.open
+            ? "rgba(34,197,94,0.2)"
+            : "rgba(239,68,68,0.2)"
 
-        let y = Math.min(o,cl)
-        let height = Math.abs(o-cl)
-
-        bctx.fillRect(x,y,w*0.6,height || 1)
+        bctx.fillRect(x,Math.min(o,cl),w*0.6,Math.abs(o-cl))
     })
 }
 
 setInterval(drawBG,120)
 
 /////////////////////////////////////////////////////
-// 📊 СИГНАЛЫ
+// 📡 WEB SOCKET (LIVE DATA)
 /////////////////////////////////////////////////////
 
-let signalsData=[]
-
-async function load(){
-    let res = await fetch("/signals")
-    signalsData = await res.json()
-
-    let c = document.getElementById("signals")
-    c.innerHTML=""
-
-    signalsData.forEach(s=>{
-
-        let div = document.createElement("div")
-        div.className="signal"
-
-        div.innerHTML = `
-            <b>${s.symbol}</b><br>
-            ${s.signal} (${s.probability}%)
-        `
-
-        div.onclick = ()=> openTrade(s)
-
-        c.appendChild(div)
-    })
-}
-
-setInterval(load,3000)
-load()
-
-/////////////////////////////////////////////////////
-// 📈 СДЕЛКА
-/////////////////////////////////////////////////////
+const ws = new WebSocket("ws://127.0.0.1:8000/ws")
 
 const canvas = document.getElementById("chart")
 const ctx = canvas.getContext("2d")
 
 canvas.width = window.innerWidth
-canvas.height = window.innerHeight * 0.6
+canvas.height = window.innerHeight * 0.65
 
-let trade = null
 let candles = []
+let price = 0
 
-function newTradeCandle(prev){
-    let open = prev ? prev.close : 100
-    let close = open + (Math.random()-0.5)*0.2
-    let high = Math.max(open,close) + Math.random()*0.2
-    let low = Math.min(open,close) - Math.random()*0.2
-    return {open,close,high,low}
-}
+ws.onmessage = (e)=>{
 
-function openTrade(s){
+    const data = JSON.parse(e.data)
 
-    trade = s
-    document.getElementById("trade").style.display="flex"
-    document.getElementById("trade").classList.remove("glow-green","glow-red")
+    price = data.price
+    candles = data.candles
 
-    document.getElementById("pair").innerText =
-        s.symbol + " | " + s.signal
-
-    document.getElementById("reason").innerText =
-        "RSI + EMA + импульс"
-
-    startTrade()
-}
-
-function closeTrade(){
-    document.getElementById("trade").style.display="none"
+    drawChart(candles, price)
 }
 
 /////////////////////////////////////////////////////
-// 🚀 ГРАФИК
+// 📊 RENDER CHART
 /////////////////////////////////////////////////////
 
-function startTrade(){
+function drawChart(candles, price){
 
-    candles=[]
+    if(!candles) return
 
-    for(let i=0;i<70;i++){
-        candles.push(newTradeCandle(candles[i-1]))
-    }
+    ctx.clearRect(0,0,canvas.width,canvas.height)
 
-    let entry = candles[candles.length-1].close
-    let start = Date.now()
+    let w = canvas.width/candles.length
+    let mid = canvas.height/2
+    let scale = 2000
 
-    function animate(){
+    candles.forEach((c,i)=>{
 
-        ctx.clearRect(0,0,canvas.width,canvas.height)
+        let x = i*w
 
-        candles.push(newTradeCandle(candles[candles.length-1]))
-        if(candles.length > 90) candles.shift()
+        let o = mid - (c.open-price)*scale
+        let cl = mid - (c.close-price)*scale
+        let h = mid - (c.high-price)*scale
+        let l = mid - (c.low-price)*scale
 
-        let w = canvas.width / candles.length
-        let mid = canvas.height/2
-        let scale = 18
-
-        candles.forEach((c,i)=>{
-
-            let x = i*w
-
-            let o = mid - (c.open-entry)*scale
-            let cl = mid - (c.close-entry)*scale
-            let h = mid - (c.high-entry)*scale
-            let l = mid - (c.low-entry)*scale
-
-            ctx.strokeStyle = "rgba(255,255,255,0.2)"
-            ctx.beginPath()
-            ctx.moveTo(x+w/2,h)
-            ctx.lineTo(x+w/2,l)
-            ctx.stroke()
-
-            ctx.fillStyle = c.close > c.open
-                ? "#22c55e"
-                : "#ef4444"
-
-            let y = Math.min(o,cl)
-            let height = Math.abs(o-cl)
-
-            ctx.fillRect(x,y,w*0.6,height || 1)
-        })
-
-        ctx.strokeStyle="rgba(255,255,255,0.25)"
+        // тень
+        ctx.strokeStyle="rgba(255,255,255,0.2)"
         ctx.beginPath()
-        ctx.moveTo(0,mid)
-        ctx.lineTo(canvas.width,mid)
+        ctx.moveTo(x+w/2,h)
+        ctx.lineTo(x+w/2,l)
         ctx.stroke()
 
-        let last = candles[candles.length-1].close
+        // тело
+        ctx.fillStyle = c.close>c.open ? "#22c55e" : "#ef4444"
 
-        let profit =
-            (trade.signal=="BUY" && last > entry) ||
-            (trade.signal=="SELL" && last < entry)
+        ctx.fillRect(
+            x,
+            Math.min(o,cl),
+            w*0.6,
+            Math.abs(o-cl) || 1
+        )
+    })
 
-        // 🔥 СВЕЧЕНИЕ
-        let box = document.getElementById("trade")
-        box.classList.remove("glow-green","glow-red")
+    document.getElementById("price").innerText =
+        "Price: " + price
 
-        if(profit){
-            box.classList.add("glow-green")
-        }else{
-            box.classList.add("glow-red")
-        }
-
-        document.getElementById("status").innerText =
-            profit ? "🟢 В профите" : "🔴 В минусе"
-
-        let left = 60 - (Date.now()-start)/1000
-        document.getElementById("timer").innerText =
-            "⏱ " + left.toFixed(1) + " сек"
-
-        if(left > 0){
-            requestAnimationFrame(animate)
-        }
-    }
-
-    animate()
+    document.getElementById("status").innerText =
+        "LIVE"
 }
 
 </script>
