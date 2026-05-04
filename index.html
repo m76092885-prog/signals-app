@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Signals Pro</title>
+<title>Signals App</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
@@ -15,7 +15,12 @@ body{
     overflow:hidden;
 }
 
-/* ===== ФОН ГРАФИК ===== */
+/* ===== FIX КЛИКОВ ===== */
+#bgChart, .overlay{
+    pointer-events:none;
+}
+
+/* ===== ФОН ===== */
 #bgChart{
     position:fixed;
     top:50%;
@@ -35,7 +40,7 @@ body{
     z-index:1;
 }
 
-/* ===== ОСНОВА ===== */
+/* ===== UI ===== */
 .container{
     position:relative;
     z-index:2;
@@ -45,20 +50,18 @@ body{
     flex-direction:column;
 }
 
-/* ===== СТАТА ===== */
 .stats{
     text-align:center;
     margin-bottom:10px;
 }
 
-/* ===== СИГНАЛЫ ===== */
 .signals{
-    overflow:auto;
     flex:1;
+    overflow:auto;
 }
 
 .signal{
-    background:rgba(15,23,42,0.8);
+    background:rgba(15,23,42,0.9);
     margin-bottom:10px;
     padding:15px;
     border-radius:18px;
@@ -70,7 +73,7 @@ body{
 .buy{border-left:4px solid #22c55e}
 .sell{border-left:4px solid #ef4444}
 
-/* ===== ЭКРАН СДЕЛКИ ===== */
+/* ===== TRADE ===== */
 .trade{
     position:fixed;
     top:0;
@@ -97,14 +100,13 @@ body{
     border-radius:25px;
     background:#1e293b;
     text-align:center;
+    cursor:pointer;
 }
 </style>
 
 </head>
 
 <body>
-
-<audio id="sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <canvas id="bgChart"></canvas>
 
@@ -114,15 +116,13 @@ body{
 
 ```
 <div class="stats">
-    📊 Winrate (10): <span id="stat">--</span>
+    📊 Статистика: <span id="stat">--</span>
 </div>
 
 <div class="signals" id="signals"></div>
 ```
 
 </div>
-
-<!-- ===== TRADE SCREEN ===== -->
 
 <div class="trade" id="trade">
     <canvas id="tradeChart"></canvas>
@@ -142,23 +142,17 @@ body{
 
 <script>
 
-/* ===== ЗВУК ===== */
-let lastTime = 0
-function play(){
-    let s = document.getElementById("sound")
-    s.currentTime=0
-    s.play().catch(()=>{})
+// ===== TELEGRAM FIX =====
+if (window.Telegram && Telegram.WebApp) {
+    Telegram.WebApp.expand();
 }
 
-/* ===== ФОН ГРАФИК ===== */
+// ===== ФОН ГРАФИК =====
 const bg = document.getElementById("bgChart")
 const bctx = bg.getContext("2d")
 
-function resize(){
-    bg.width = window.innerWidth*1.5
-    bg.height = window.innerHeight*1.5
-}
-resize()
+bg.width = window.innerWidth*1.5
+bg.height = window.innerHeight*1.5
 
 let candles=[]
 let price=100
@@ -172,7 +166,7 @@ function gen(){
     return {open,close,high,low}
 }
 
-for(let i=0;i<120;i++) candles.push(gen())
+for(let i=0;i<100;i++) candles.push(gen())
 
 let offset=0
 
@@ -213,56 +207,42 @@ function updateBg(){
     }
     drawBg()
 }
-
 setInterval(updateBg,16)
 
-/* ===== СИГНАЛЫ ===== */
+// ===== СИГНАЛЫ =====
 async function load(){
-    let res=await fetch("/signals")
-    let data=await res.json()
+    try{
+        let res = await fetch("https://signals-app-yk11.onrender.com/signals")
+        let data = await res.json()
 
-    let container=document.getElementById("signals")
-    container.innerHTML=""
+        let container=document.getElementById("signals")
+        container.innerHTML=""
 
-    let newest=lastTime
-    let wins=0
+        data.reverse().forEach(s=>{
+            let div=document.createElement("div")
+            div.className="signal "+(s.signal=="BUY"?"buy":"sell")
 
-    data.slice(-10).forEach(s=>{
-        if(s.probability>70) wins++
-    })
+            div.innerHTML=`
+                <div>
+                    <b>${s.symbol}</b><br>
+                    ${s.signal}
+                </div>
+                <div>${s.probability}%</div>
+            `
 
-    document.getElementById("stat").innerText =
-        Math.round((wins/10)*100)+"%"
+            div.onclick=()=>openTrade(s)
+            container.appendChild(div)
+        })
 
-    data.reverse().forEach(s=>{
-        if(s.time>newest) newest=s.time
-
-        let div=document.createElement("div")
-        div.className="signal "+(s.signal=="BUY"?"buy":"sell")
-
-        div.innerHTML=`
-        <div>
-            <b>${s.symbol}</b><br>
-            ${s.signal}
-        </div>
-        <div>${s.probability}%</div>
-        `
-
-        div.onclick=()=>openTrade(s)
-        container.appendChild(div)
-    })
-
-    if(newest>lastTime && lastTime!=0){
-        play()
+    }catch(e){
+        console.log("Ошибка загрузки", e)
     }
-
-    lastTime=newest
 }
 
-setInterval(load,2000)
+setInterval(load,3000)
 load()
 
-/* ===== TRADE ===== */
+// ===== TRADE =====
 let tcanvas=document.getElementById("tradeChart")
 let tctx=tcanvas.getContext("2d")
 
@@ -274,8 +254,9 @@ let trade=null
 function openTrade(s){
     trade=s
     document.getElementById("trade").style.display="flex"
-    document.getElementById("pair").innerText=s.symbol+" "+s.signal
-    document.getElementById("reason").innerText=s.reason||"Signal logic"
+
+    document.getElementById("pair").innerText = s.symbol+" "+s.signal
+    document.getElementById("reason").innerText = s.reason || "Signal logic"
 
     runTrade()
 }
@@ -320,4 +301,3 @@ function runTrade(){
 
 </body>
 </html>
-
