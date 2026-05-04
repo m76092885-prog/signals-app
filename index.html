@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <meta charset="UTF-8">
@@ -12,6 +13,7 @@ body{
     font-family:Arial;
 }
 
+/* список */
 .container{
     padding:15px;
 }
@@ -22,52 +24,166 @@ body{
     padding:15px;
     border-radius:15px;
 }
+
 .signal:active{
     transform:scale(0.95);
 }
+
+/* экран сделки */
+.trade{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:#020617;
+    display:none;
+    flex-direction:column;
+}
+
+#chart{
+    height:60%;
+}
+
+.info{
+    padding:15px;
+}
+
+.btn{
+    margin-top:10px;
+    padding:12px;
+    background:#1e293b;
+    border-radius:20px;
+    text-align:center;
+}
 </style>
+
 </head>
 
 <body>
 
 <div class="container" id="signals"></div>
 
+<div class="trade" id="trade">
+    <canvas id="chart"></canvas>
+
+```
+<div class="info">
+    <div id="pair"></div>
+    <div id="status"></div>
+    <div id="timer"></div>
+    <div id="reason"></div>
+
+    <div class="btn" onclick="closeTrade()">Назад</div>
+</div>
+```
+
+</div>
+
 <script>
 
 let signalsData = []
 
+// ===== ЗАГРУЗКА СИГНАЛОВ =====
 async function load(){
-    try{
-        let res = await fetch("/signals")
-        signalsData = await res.json()
+    let res = await fetch("/signals")
+    signalsData = await res.json()
 
-        let container = document.getElementById("signals")
-        container.innerHTML=""
+    let container = document.getElementById("signals")
+    container.innerHTML=""
 
-        signalsData.forEach((s,i)=>{
-            let div = document.createElement("div")
-            div.className = "signal"
+    signalsData.forEach((s,i)=>{
+        let div = document.createElement("div")
+        div.className = "signal"
 
-            div.innerHTML = `
-                <b>${s.symbol}</b><br>
-                ${s.signal} (${s.probability}%)
-            `
+        div.innerHTML = `
+            <b>${s.symbol}</b><br>
+            ${s.signal} (${s.probability}%)
+        `
 
-            // 🔥 НАДЁЖНЫЙ КЛИК
-            div.onclick = function(){
-                alert("ОТКРЫЛ: " + s.symbol + " " + s.signal)
-            }
+        div.onclick = ()=> openTrade(s)
 
-            container.appendChild(div)
-        })
-
-    }catch(e){
-        console.log(e)
-    }
+        container.appendChild(div)
+    })
 }
 
 setInterval(load,3000)
 load()
+
+// ===== ОТКРЫТИЕ СДЕЛКИ =====
+let currentTrade = null
+
+function openTrade(s){
+    currentTrade = s
+
+    document.getElementById("trade").style.display="flex"
+    document.getElementById("pair").innerText =
+        s.symbol + " | " + s.signal
+
+    // причина (фейк логика пока)
+    document.getElementById("reason").innerText =
+        "📊 Причина: RSI + тренд + импульс"
+
+    runTrade()
+}
+
+function closeTrade(){
+    document.getElementById("trade").style.display="none"
+}
+
+// ===== ГРАФИК =====
+const canvas = document.getElementById("chart")
+const ctx = canvas.getContext("2d")
+
+canvas.width = window.innerWidth
+canvas.height = window.innerHeight * 0.6
+
+function runTrade(){
+
+    let entry = 100
+    let price = entry
+    let start = Date.now()
+
+    let interval = setInterval(()=>{
+
+        ctx.clearRect(0,0,canvas.width,canvas.height)
+
+        // движение цены
+        price += (Math.random() - 0.5) * 0.002
+
+        let profit =
+            (currentTrade.signal=="BUY" && price > entry) ||
+            (currentTrade.signal=="SELL" && price < entry)
+
+        // линия входа
+        ctx.strokeStyle = "#888"
+        ctx.beginPath()
+        ctx.moveTo(0,200)
+        ctx.lineTo(canvas.width,200)
+        ctx.stroke()
+
+        // линия цены
+        ctx.strokeStyle = profit ? "#22c55e" : "#ef4444"
+        ctx.beginPath()
+        ctx.moveTo(50,200)
+        ctx.lineTo(300 + (price-entry)*10000,200)
+        ctx.stroke()
+
+        // статус
+        document.getElementById("status").innerText =
+            profit ? "🟢 В профите" : "🔴 В минусе"
+
+        // таймер
+        let left = 60 - Math.floor((Date.now()-start)/1000)
+        document.getElementById("timer").innerText =
+            "⏱ " + left + " сек"
+
+        if(left <= 0){
+            clearInterval(interval)
+        }
+
+    },200)
+}
 
 </script>
 
