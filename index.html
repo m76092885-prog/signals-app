@@ -20,7 +20,7 @@ body{
     left:0;
     width:100%;
     height:100%;
-    filter:blur(10px) brightness(0.6);
+    filter:blur(12px) brightness(0.5);
     z-index:0;
 }
 
@@ -38,27 +38,36 @@ body{
     margin-bottom:10px;
     padding:16px;
     border-radius:18px;
-    backdrop-filter:blur(6px);
+    backdrop-filter:blur(8px);
     cursor:pointer;
 }
 
-/* ===== СДЕЛКА ===== */
+/* ===== ПЛАВАЮЩАЯ КАРТА ГРАФИКА ===== */
 .trade{
     position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:#020617;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:92%;
+    height:70%;
+    background:rgba(15,23,42,0.92);
+    border-radius:26px;
+    backdrop-filter:blur(18px);
     display:none;
     flex-direction:column;
     z-index:10;
+    overflow:hidden;
+    box-shadow:0 0 50px rgba(0,0,0,0.6);
 }
 
+/* график */
 #chart{
-    height:60%;
+    width:100%;
+    height:65%;
+    background:linear-gradient(180deg,#0b1220,#0a0f1d);
 }
 
+/* инфо */
 .info{
     padding:15px;
 }
@@ -67,8 +76,17 @@ body{
     margin-top:10px;
     padding:14px;
     background:#1e293b;
-    border-radius:20px;
+    border-radius:18px;
     text-align:center;
+}
+
+/* ===== СВЕЧЕНИЕ ===== */
+.trade.glow-green{
+    box-shadow:0 0 120px rgba(34,197,94,0.25), 0 0 40px rgba(34,197,94,0.15);
+}
+
+.trade.glow-red{
+    box-shadow:0 0 120px rgba(239,68,68,0.25), 0 0 40px rgba(239,68,68,0.15);
 }
 </style>
 </head>
@@ -95,7 +113,7 @@ body{
 <script>
 
 /////////////////////////////////////////////////////
-// 🔥 ФОН (медленные свечи)
+// 🌌 ФОН
 /////////////////////////////////////////////////////
 
 const bg = document.getElementById("bg")
@@ -138,14 +156,12 @@ function drawBG(){
         let h = mid - (c.high-100)*scale
         let l = mid - (c.low-100)*scale
 
-        // тень
         bctx.strokeStyle = "rgba(255,255,255,0.15)"
         bctx.beginPath()
         bctx.moveTo(x+w/2,h)
         bctx.lineTo(x+w/2,l)
         bctx.stroke()
 
-        // тело
         bctx.fillStyle = c.close > c.open
             ? "rgba(34,197,94,0.25)"
             : "rgba(239,68,68,0.25)"
@@ -160,7 +176,7 @@ function drawBG(){
 setInterval(drawBG,120)
 
 /////////////////////////////////////////////////////
-// 🔥 СИГНАЛЫ
+// 📊 СИГНАЛЫ
 /////////////////////////////////////////////////////
 
 let signalsData=[]
@@ -192,7 +208,7 @@ setInterval(load,3000)
 load()
 
 /////////////////////////////////////////////////////
-// 🔥 СДЕЛКА (свечи как TradingView)
+// 📈 СДЕЛКА
 /////////////////////////////////////////////////////
 
 const canvas = document.getElementById("chart")
@@ -206,7 +222,7 @@ let candles = []
 
 function newTradeCandle(prev){
     let open = prev ? prev.close : 100
-    let close = open + (Math.random()-0.5)*0.25
+    let close = open + (Math.random()-0.5)*0.2
     let high = Math.max(open,close) + Math.random()*0.2
     let low = Math.min(open,close) - Math.random()*0.2
     return {open,close,high,low}
@@ -216,6 +232,7 @@ function openTrade(s){
 
     trade = s
     document.getElementById("trade").style.display="flex"
+    document.getElementById("trade").classList.remove("glow-green","glow-red")
 
     document.getElementById("pair").innerText =
         s.symbol + " | " + s.signal
@@ -231,7 +248,7 @@ function closeTrade(){
 }
 
 /////////////////////////////////////////////////////
-// 🔥 АНИМАЦИЯ СДЕЛКИ
+// 🚀 ГРАФИК
 /////////////////////////////////////////////////////
 
 function startTrade(){
@@ -265,14 +282,12 @@ function startTrade(){
             let h = mid - (c.high-entry)*scale
             let l = mid - (c.low-entry)*scale
 
-            // тень
-            ctx.strokeStyle = "rgba(255,255,255,0.25)"
+            ctx.strokeStyle = "rgba(255,255,255,0.2)"
             ctx.beginPath()
             ctx.moveTo(x+w/2,h)
             ctx.lineTo(x+w/2,l)
             ctx.stroke()
 
-            // тело
             ctx.fillStyle = c.close > c.open
                 ? "#22c55e"
                 : "#ef4444"
@@ -283,7 +298,6 @@ function startTrade(){
             ctx.fillRect(x,y,w*0.6,height || 1)
         })
 
-        // линия входа
         ctx.strokeStyle="rgba(255,255,255,0.25)"
         ctx.beginPath()
         ctx.moveTo(0,mid)
@@ -296,11 +310,15 @@ function startTrade(){
             (trade.signal=="BUY" && last > entry) ||
             (trade.signal=="SELL" && last < entry)
 
-        // ===== СВЕЧЕНИЕ ЭКРАНА =====
-        document.getElementById("trade").style.boxShadow =
-            profit
-            ? "inset 0 0 140px rgba(34,197,94,0.25)"
-            : "inset 0 0 140px rgba(239,68,68,0.25)"
+        // 🔥 СВЕЧЕНИЕ
+        let box = document.getElementById("trade")
+        box.classList.remove("glow-green","glow-red")
+
+        if(profit){
+            box.classList.add("glow-green")
+        }else{
+            box.classList.add("glow-red")
+        }
 
         document.getElementById("status").innerText =
             profit ? "🟢 В профите" : "🔴 В минусе"
