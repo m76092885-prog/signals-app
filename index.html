@@ -1,51 +1,72 @@
 <!DOCTYPE html>
-
 <html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body{background:#000;color:#fff;font-family:Arial}
+body{
+    margin:0;
+    background:#020617;
+    color:#fff;
+    font-family:Arial;
+}
+
+.container{
+    padding:15px;
+}
+
 .signal{
-    background:#111;
-    padding:20px;
-    margin:10px;
-    border-radius:12px;
+    background:#111827;
+    margin-bottom:10px;
+    padding:15px;
+    border-radius:15px;
+}
+.signal:active{
+    transform:scale(0.95);
 }
 </style>
 </head>
 
 <body>
 
-<div id="signals"></div>
+<div class="container" id="signals"></div>
 
 <script>
 
 let signalsData = []
 
 async function load(){
-    let res = await fetch("https://signals-app-yk11.onrender.com/signals")
-    signalsData = await res.json()
+    try{
+        let res = await fetch("/signals")
+        signalsData = await res.json()
 
-    let container = document.getElementById("signals")
-    container.innerHTML=""
+        let container = document.getElementById("signals")
+        container.innerHTML=""
 
-    signalsData.forEach((s,i)=>{
-        let div = document.createElement("div")
-        div.className="signal"
+        signalsData.forEach((s,i)=>{
+            let div = document.createElement("div")
+            div.className = "signal"
 
-        div.innerText = s.symbol + " " + s.signal
+            div.innerHTML = `
+                <b>${s.symbol}</b><br>
+                ${s.signal} (${s.probability}%)
+            `
 
-        // 👉 САМЫЙ НАДЁЖНЫЙ СПОСОБ
-        div.onclick = function(){
-            alert("CLICK OK: " + s.symbol)
-        }
+            // 🔥 НАДЁЖНЫЙ КЛИК
+            div.onclick = function(){
+                alert("ОТКРЫЛ: " + s.symbol + " " + s.signal)
+            }
 
-        container.appendChild(div)
-    })
+            container.appendChild(div)
+        })
+
+    }catch(e){
+        console.log(e)
+    }
 }
 
-setInterval(load,2000)
+setInterval(load,3000)
 load()
 
 </script>
