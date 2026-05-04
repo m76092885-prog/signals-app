@@ -15,12 +15,12 @@ body{
     overflow:hidden;
 }
 
-/* ===== FIX КЛИКОВ ===== */
+/* 🔥 КРИТИЧЕСКИЙ ФИКС */
 #bgChart, .overlay{
     pointer-events:none;
 }
 
-/* ===== ФОН ===== */
+/* фон */
 #bgChart{
     position:fixed;
     top:50%;
@@ -40,7 +40,7 @@ body{
     z-index:1;
 }
 
-/* ===== UI ===== */
+/* UI */
 .container{
     position:relative;
     z-index:2;
@@ -48,11 +48,6 @@ body{
     padding:20px;
     display:flex;
     flex-direction:column;
-}
-
-.stats{
-    text-align:center;
-    margin-bottom:10px;
 }
 
 .signals{
@@ -67,14 +62,9 @@ body{
     border-radius:18px;
     display:flex;
     justify-content:space-between;
-    cursor:pointer;
-    -webkit-tap-highlight-color: transparent;
 }
 
-.buy{border-left:4px solid #22c55e}
-.sell{border-left:4px solid #ef4444}
-
-/* ===== TRADE ===== */
+/* trade */
 .trade{
     position:fixed;
     top:0;
@@ -91,17 +81,12 @@ body{
     height:60%;
 }
 
-.info{
-    padding:15px;
-}
-
 .btn{
     margin-top:10px;
     padding:14px;
     border-radius:25px;
     background:#1e293b;
     text-align:center;
-    cursor:pointer;
 }
 </style>
 
@@ -114,24 +99,16 @@ body{
 <div class="overlay"></div>
 
 <div class="container">
-    <div class="stats">
-        📊 Signals
-    </div>
-
-```
-<div class="signals" id="signals"></div>
-```
-
+    <div class="signals" id="signals"></div>
 </div>
 
 <div class="trade" id="trade">
     <canvas id="tradeChart"></canvas>
 
 ```
-<div class="info">
+<div style="padding:15px">
     <div id="pair"></div>
     <div id="status"></div>
-    <div id="reason"></div>
     <div id="timer"></div>
 
     <div class="btn" id="backBtn">Назад</div>
@@ -142,125 +119,69 @@ body{
 
 <script>
 
-// ===== TELEGRAM FIX =====
+// TELEGRAM FIX
 if (window.Telegram && Telegram.WebApp) {
     Telegram.WebApp.expand();
 }
 
-// ===== BACKGROUND CHART =====
-const bg = document.getElementById("bgChart")
-const bctx = bg.getContext("2d")
+// ===== ЗАГРУЗКА =====
+let signalsData = []
 
-bg.width = window.innerWidth*1.5
-bg.height = window.innerHeight*1.5
-
-let candles=[]
-let price=100
-
-function gen(){
-    let open=price
-    let close=open+(Math.random()-0.5)*3
-    let high=Math.max(open,close)+Math.random()*2
-    let low=Math.min(open,close)-Math.random()*2
-    price=close
-    return {open,close,high,low}
-}
-
-for(let i=0;i<100;i++) candles.push(gen())
-
-let offset=0
-
-function drawBg(){
-    bctx.clearRect(0,0,bg.width,bg.height)
-
-    const w=8,g=4
-    const max=Math.max(...candles.map(c=>c.high))
-    const min=Math.min(...candles.map(c=>c.low))
-    const scale=bg.height/(max-min)
-
-    candles.forEach((c,i)=>{
-        let x=i*(w+g)-offset
-        let o=bg.height-(c.open-min)*scale
-        let cl=bg.height-(c.close-min)*scale
-        let h=bg.height-(c.high-min)*scale
-        let l=bg.height-(c.low-min)*scale
-
-        let col=c.close>c.open?"#22c55e":"#ef4444"
-        bctx.fillStyle=col
-        bctx.strokeStyle=col
-
-        bctx.beginPath()
-        bctx.moveTo(x+w/2,h)
-        bctx.lineTo(x+w/2,l)
-        bctx.stroke()
-
-        bctx.fillRect(x,Math.min(o,cl),w,Math.abs(o-cl))
-    })
-}
-
-function updateBg(){
-    offset+=1.5
-    if(offset>12){
-        offset=0
-        candles.push(gen())
-        candles.shift()
-    }
-    drawBg()
-}
-setInterval(updateBg,16)
-
-// ===== LOAD SIGNALS =====
 async function load(){
     try{
         let res = await fetch("https://signals-app-yk11.onrender.com/signals")
-        let data = await res.json()
+        signalsData = await res.json()
 
         let container=document.getElementById("signals")
         container.innerHTML=""
 
-        data.reverse().forEach(s=>{
+        signalsData.reverse().forEach((s, i)=>{
             let div=document.createElement("div")
-            div.className="signal "+(s.signal=="BUY"?"buy":"sell")
+            div.className="signal"
+            div.dataset.index = i
 
             div.innerHTML=`
                 <div>
-                    <b>${s.symbol}</b><br>
-                    ${s.signal}
+                    <b>${s.symbol}</b><br>${s.signal}
                 </div>
                 <div>${s.probability}%</div>
             `
-
-            div.addEventListener("click", function(){
-                openTrade(s)
-            })
 
             container.appendChild(div)
         })
 
     }catch(e){
-        console.log("Ошибка загрузки", e)
+        console.log(e)
     }
 }
 
 setInterval(load,3000)
 load()
 
+// ===== 🔥 ГЛАВНЫЙ ФИКС =====
+// делегирование кликов + touch
+const container = document.getElementById("signals")
+
+function handleClick(e){
+    let el = e.target.closest(".signal")
+    if(!el) return
+
+    let index = el.dataset.index
+    let signal = signalsData.reverse()[index]
+
+    openTrade(signal)
+}
+
+container.addEventListener("click", handleClick)
+container.addEventListener("touchstart", handleClick)
+
 // ===== TRADE =====
-let tcanvas=document.getElementById("tradeChart")
-let tctx=tcanvas.getContext("2d")
-
-tcanvas.width=window.innerWidth
-tcanvas.height=window.innerHeight*0.6
-
 let trade=null
 
 function openTrade(s){
     trade=s
     document.getElementById("trade").style.display="flex"
-
-    document.getElementById("pair").innerText = s.symbol+" "+s.signal
-    document.getElementById("reason").innerText = s.reason || "Signal logic"
-
+    document.getElementById("pair").innerText=s.symbol+" "+s.signal
     runTrade()
 }
 
@@ -268,13 +189,18 @@ document.getElementById("backBtn").addEventListener("click", ()=>{
     document.getElementById("trade").style.display="none"
 })
 
+let canvas=document.getElementById("tradeChart")
+let ctx=canvas.getContext("2d")
+
+canvas.width=window.innerWidth
+canvas.height=window.innerHeight*0.6
+
 function runTrade(){
     let entry=trade.entry_price || 100
     let current=entry
-    let start=Date.now()
 
-    let interval=setInterval(()=>{
-        tctx.clearRect(0,0,tcanvas.width,tcanvas.height)
+    setInterval(()=>{
+        ctx.clearRect(0,0,canvas.width,canvas.height)
 
         current += (Math.random()-0.5)*0.002
 
@@ -282,21 +208,14 @@ function runTrade(){
             (trade.signal=="BUY" && current>entry) ||
             (trade.signal=="SELL" && current<entry)
 
-        tctx.strokeStyle = profit ? "#22c55e" : "#ef4444"
-        tctx.beginPath()
-        tctx.moveTo(50,tcanvas.height/2)
-        tctx.lineTo(300+(current-entry)*10000,tcanvas.height/2)
-        tctx.stroke()
+        ctx.strokeStyle = profit ? "#22c55e" : "#ef4444"
+        ctx.beginPath()
+        ctx.moveTo(50,200)
+        ctx.lineTo(300+(current-entry)*10000,200)
+        ctx.stroke()
 
         document.getElementById("status").innerText =
-            profit ? "🟢 В профите" : "🔴 В просадке"
-
-        let left = 180 - Math.floor((Date.now()-start)/1000)
-        document.getElementById("timer").innerText = "⏱ "+left+"s"
-
-        if(left<=0){
-            clearInterval(interval)
-        }
+            profit ? "🟢 Profit" : "🔴 Loss"
 
     },200)
 }
