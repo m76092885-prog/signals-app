@@ -1,226 +1,48 @@
 <!DOCTYPE html>
 
-<html lang="ru">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Signals App</title>
-
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-
-body{
-    background:#020617;
-    color:#fff;
-    overflow:hidden;
-}
-
-/* 🔥 КРИТИЧЕСКИЙ ФИКС */
-#bgChart, .overlay{
-    pointer-events:none;
-}
-
-/* фон */
-#bgChart{
-    position:fixed;
-    top:50%;
-    left:50%;
-    width:150%;
-    height:150%;
-    transform:translate(-50%,-50%);
-    filter:blur(8px) brightness(0.5);
-    z-index:0;
-}
-
-.overlay{
-    position:fixed;
-    width:100%;
-    height:100%;
-    background:radial-gradient(circle,transparent 30%,#020617 80%);
-    z-index:1;
-}
-
-/* UI */
-.container{
-    position:relative;
-    z-index:2;
-    height:100vh;
-    padding:20px;
-    display:flex;
-    flex-direction:column;
-}
-
-.signals{
-    flex:1;
-    overflow:auto;
-}
-
+body{background:#000;color:#fff;font-family:Arial}
 .signal{
-    background:rgba(15,23,42,0.9);
-    margin-bottom:10px;
-    padding:15px;
-    border-radius:18px;
-    display:flex;
-    justify-content:space-between;
-}
-
-/* trade */
-.trade{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:#020617;
-    z-index:10;
-    display:none;
-    flex-direction:column;
-}
-
-#tradeChart{
-    height:60%;
-}
-
-.btn{
-    margin-top:10px;
-    padding:14px;
-    border-radius:25px;
-    background:#1e293b;
-    text-align:center;
+    background:#111;
+    padding:20px;
+    margin:10px;
+    border-radius:10px;
 }
 </style>
-
 </head>
 
 <body>
 
-<canvas id="bgChart"></canvas>
-
-<div class="overlay"></div>
-
-<div class="container">
-    <div class="signals" id="signals"></div>
-</div>
-
-<div class="trade" id="trade">
-    <canvas id="tradeChart"></canvas>
-
-```
-<div style="padding:15px">
-    <div id="pair"></div>
-    <div id="status"></div>
-    <div id="timer"></div>
-
-    <div class="btn" id="backBtn">Назад</div>
-</div>
-```
-
-</div>
+<div id="signals"></div>
 
 <script>
 
-// TELEGRAM FIX
-if (window.Telegram && Telegram.WebApp) {
-    Telegram.WebApp.expand();
-}
+let data = [
+    {symbol:"EUR/USD", signal:"BUY"},
+    {symbol:"USD/JPY", signal:"SELL"}
+]
 
-// ===== ЗАГРУЗКА =====
-let signalsData = []
+let container = document.getElementById("signals")
 
-async function load(){
-    try{
-        let res = await fetch("https://signals-app-yk11.onrender.com/signals")
-        signalsData = await res.json()
+data.forEach((s,i)=>{
+    let div = document.createElement("div")
+    div.className = "signal"
+    div.innerText = s.symbol + " " + s.signal
 
-        let container=document.getElementById("signals")
-        container.innerHTML=""
+    div.addEventListener("click", ()=>{
+        alert("CLICK OK: " + s.symbol)
+    })
 
-        signalsData.reverse().forEach((s, i)=>{
-            let div=document.createElement("div")
-            div.className="signal"
-            div.dataset.index = i
-
-            div.innerHTML=`
-                <div>
-                    <b>${s.symbol}</b><br>${s.signal}
-                </div>
-                <div>${s.probability}%</div>
-            `
-
-            container.appendChild(div)
-        })
-
-    }catch(e){
-        console.log(e)
-    }
-}
-
-setInterval(load,3000)
-load()
-
-// ===== 🔥 ГЛАВНЫЙ ФИКС =====
-// делегирование кликов + touch
-const container = document.getElementById("signals")
-
-function handleClick(e){
-    let el = e.target.closest(".signal")
-    if(!el) return
-
-    let index = el.dataset.index
-    let signal = signalsData.reverse()[index]
-
-    openTrade(signal)
-}
-
-container.addEventListener("click", handleClick)
-container.addEventListener("touchstart", handleClick)
-
-// ===== TRADE =====
-let trade=null
-
-function openTrade(s){
-    trade=s
-    document.getElementById("trade").style.display="flex"
-    document.getElementById("pair").innerText=s.symbol+" "+s.signal
-    runTrade()
-}
-
-document.getElementById("backBtn").addEventListener("click", ()=>{
-    document.getElementById("trade").style.display="none"
+    container.appendChild(div)
 })
-
-let canvas=document.getElementById("tradeChart")
-let ctx=canvas.getContext("2d")
-
-canvas.width=window.innerWidth
-canvas.height=window.innerHeight*0.6
-
-function runTrade(){
-    let entry=trade.entry_price || 100
-    let current=entry
-
-    setInterval(()=>{
-        ctx.clearRect(0,0,canvas.width,canvas.height)
-
-        current += (Math.random()-0.5)*0.002
-
-        let profit =
-            (trade.signal=="BUY" && current>entry) ||
-            (trade.signal=="SELL" && current<entry)
-
-        ctx.strokeStyle = profit ? "#22c55e" : "#ef4444"
-        ctx.beginPath()
-        ctx.moveTo(50,200)
-        ctx.lineTo(300+(current-entry)*10000,200)
-        ctx.stroke()
-
-        document.getElementById("status").innerText =
-            profit ? "🟢 Profit" : "🔴 Loss"
-
-    },200)
-}
 
 </script>
 
 </body>
+</html>
+
 </html>
