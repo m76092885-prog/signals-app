@@ -4,106 +4,307 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ✅ стабильная версия -->
-<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
-
 <style>
 body{
     margin:0;
-    background:#0b0f1a;
+    background:#05070d;
     color:white;
     font-family:Arial;
 }
 
-.trade-box{
-    position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    width:95%;
-    height:85%;
-    background:#0f172a;
-    border-radius:20px;
-    display:flex;
+/* ===== ГЛАВНЫЙ */
+#main{
+    padding:20px;
+}
+
+.title{
+    font-size:24px;
+    margin-bottom:15px;
+}
+
+.signal{
+    background:linear-gradient(145deg,#0f172a,#020617);
+    border:1px solid #1f2937;
+    padding:16px;
+    border-radius:16px;
+    margin-bottom:12px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.signal:hover{
+    transform:scale(1.02);
+    border-color:#38bdf8;
+}
+
+/* ===== СДЕЛКА */
+#trade{
+    display:none;
+    height:100vh;
     flex-direction:column;
 }
 
-#chart{
-    flex:1;
+.top{
+    padding:15px;
 }
 
-.panel{
-    height:80px;
-    background:#020617;
-    display:flex;
-    justify-content:space-around;
-    align-items:center;
-}
-
-.btn{
-    padding:12px 30px;
-    border-radius:10px;
+.back{
+    background:#111827;
+    padding:10px 14px;
+    border-radius:12px;
     cursor:pointer;
-    font-size:18px;
+    margin-bottom:10px;
+    display:inline-block;
 }
 
-.buy{ background:#16a34a }
-.sell{ background:#dc2626 }
+/* график */
+.chart-box{
+    flex:1;
+    background:linear-gradient(180deg,#020617,#020617 60%,#0ea5e9);
+    border-top-left-radius:25px;
+    border-top-right-radius:25px;
+    overflow:hidden;
+}
+
+canvas{
+    width:100%;
+    height:100%;
+}
+
+/* текст */
+.green{ color:#22c55e }
+.red{ color:#ef4444 }
 
 </style>
 </head>
 
 <body>
 
-<div class="trade-box">
-    <div id="chart"></div>
+<!-- ===== ГЛАВНЫЙ -->
+<div id="main">
+    <div class="title">Signals</div>
+    <div id="signals"></div>
+</div>
 
-    <div class="panel">
-        <div class="btn buy">CALL</div>
-        <div id="price">0.0000</div>
-        <div class="btn sell">PUT</div>
+<!-- ===== СДЕЛКА -->
+<div id="trade">
+
+    <div class="top">
+        <div class="back" onclick="back()">← Назад</div>
+        <div id="pair"></div>
+        <div id="timer"></div>
+        <div id="profit"></div>
+        <div id="reason"></div>
     </div>
+
+    <div class="chart-box">
+        <canvas id="chart"></canvas>
+    </div>
+
 </div>
 
 <script>
 
-// 🔥 проверка
-console.log("Chart lib:", typeof LightweightCharts)
-
-// создаём график
-const chart = LightweightCharts.createChart(document.getElementById('chart'), {
-    layout: { background: { color: '#0f172a' }, textColor: '#aaa' },
-    grid: { vertLines: { color: '#1f2937' }, horzLines: { color: '#1f2937' } }
-})
-
-const candleSeries = chart.addCandlestickSeries()
-
-// WebSocket
-const ws = new WebSocket(
-    (location.protocol === "https:" ? "wss://" : "ws://") +
-    location.host + "/ws"
-)
-
-ws.onopen = ()=>{
-    console.log("WS OK")
+// 🔥 ЖЁСТКИЙ ФИКС TELEGRAM
+window.onload = ()=>{
+    document.getElementById("main").style.display = "block"
+    document.getElementById("trade").style.display = "none"
 }
 
-ws.onmessage = (e)=>{
-    const data = JSON.parse(e.data)
+// ===== сигналы
+let signals = [
+    {pair:"EUR/USD", direction:"CALL", reason:"RSI oversold", time:60},
+    {pair:"GBP/USD", direction:"PUT", reason:"Resistance", time:60},
+    {pair:"USD/JPY", direction:"CALL", reason:"Breakout", time:60},
+]
 
-    document.getElementById("price").innerText = data.price
+// ===== рендер
+function render(){
+    let box = document.getElementById("signals")
+    box.innerHTML = ""
 
-    if(data.candles){
-        candleSeries.setData(data.candles)
+    signals.forEach((s,i)=>{
+        box.innerHTML += `
+            <div class="signal" onclick="openTrade(${i})">
+                <b>${s.pair}</b><br>
+                ${s.direction}
+            </div>
+        `
+    })
+}
+
+render()
+
+// ===== навигация
+let active = null
+
+function openTrade(i){
+    active = signals[i]
+
+    document.getElementById("main").style.display = "none"
+    document.getElementById("trade").style.display = "flex"
+
+    document.getElementById("pair").innerText =
+        active.pair + " | " + active.direction
+
+    document.getElementById("reason").innerText =
+        "Reason: " + active.reason
+
+    startTrade()
+}
+
+function back(){
+    document.getElementById("trade").style.display = "none"
+    document.getElementById("main").style.display = "block"
+}
+
+// ===== ГРАФИК
+const canvas = document.getElementById("chart")
+const ctx = canvas.getContext("2d")
+
+canvas.width = window.innerWidth
+canvas.height = window.innerHeight * 0.7
+
+let candles = []
+let current = null
+let price = 100
+
+function newCandle(p){
+    return {open:p, high:p, low:p, close:p}
+}
+
+// плавное движение
+function tick(){
+    price += (Math.random()-0.5)*0.8
+
+    current.high = Math.max(current.high, price)
+    current.low = Math.min(current.low, price)
+    current.close = price
+}
+
+// новая свеча каждые 2 сек
+setInterval(()=>{
+    if(current){
+        candles.push(current)
+        if(candles.length > 40) candles.shift()
     }
+    current = newCandle(price)
+},2000)
+
+// ===== рисование
+function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height)
+
+    let all = [...candles, current].filter(Boolean)
+    if(all.length < 2) return
+
+    let max = Math.max(...all.map(c=>c.high))
+    let min = Math.min(...all.map(c=>c.low))
+
+    let range = max - min
+    if(range < 0.5) range = 0.5 // 🔥 фикс гигантской свечи
+
+    let w = canvas.width / all.length
+
+    all.forEach((c,i)=>{
+
+        let x = i*w
+
+        let scale = canvas.height / range
+
+        let o = canvas.height-(c.open-min)*scale
+        let cl = canvas.height-(c.close-min)*scale
+        let hi = canvas.height-(c.high-min)*scale
+        let lo = canvas.height-(c.low-min)*scale
+
+        // тень
+        ctx.strokeStyle="#94a3b8"
+        ctx.beginPath()
+        ctx.moveTo(x+w/2,hi)
+        ctx.lineTo(x+w/2,lo)
+        ctx.stroke()
+
+        // тело
+        ctx.fillStyle = c.close>c.open ? "#22c55e" : "#ef4444"
+
+        ctx.fillRect(
+            x+w*0.25,
+            Math.min(o,cl),
+            w*0.5,
+            Math.abs(o-cl) || 2
+        )
+    })
 }
 
-ws.onerror = (e)=>{
-    console.log("WS ERROR", e)
-}
+// ===== сделка
+let timeLeft = 0
+let entry = 0
+let loop = null
 
+function startTrade(){
+
+    candles = []
+    current = newCandle(price)
+    entry = price
+    timeLeft = active.time
+
+    if(loop) clearInterval(loop)
+
+    loop = setInterval(()=>{
+
+        tick()
+        draw()
+
+        let profit = price - entry
+
+        document.getElementById("timer").innerText =
+            "Time: " + timeLeft
+
+        document.getElementById("profit").innerText =
+            "P/L: " + profit.toFixed(2)
+
+        document.getElementById("profit").className =
+            profit>=0 ? "green" : "red"
+
+        timeLeft--
+
+        if(timeLeft<=0){
+            clearInterval(loop)
+        }
+
+    },200)
+}
+// 🔥 TELEGRAM HARD RESET
+(function(){
+
+    function forceMain(){
+        const main = document.getElementById("main")
+        const trade = document.getElementById("trade")
+
+        if(main && trade){
+            main.style.display = "block"
+            trade.style.display = "none"
+        }
+    }
+
+    // 1. сразу
+    forceMain()
+
+    // 2. через 100мс (Telegram лаг)
+    setTimeout(forceMain, 100)
+
+    // 3. через 500мс (ещё раз на всякий)
+    setTimeout(forceMain, 500)
+
+    // 4. если вкладка возвращается
+    document.addEventListener("visibilitychange", forceMain)
+
+    // 5. если Telegram перерисовал DOM
+    window.addEventListener("focus", forceMain)
+
+})();
 </script>
 
 </body>
-</html>
 </html>
