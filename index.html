@@ -15,6 +15,7 @@ body{
 /* ===== MAIN */
 #main{
     padding:20px;
+    transition:0.2s;
 }
 
 .title{
@@ -28,17 +29,47 @@ body{
     color:#38bdf8;
 }
 
-/* сигнал */
+/* ===== SIGNAL BUTTON */
 .signal{
+    position:relative;
+    overflow:hidden;
+
     background:linear-gradient(145deg,#0f172a,#020617);
     border:1px solid #1f2937;
     padding:16px;
     border-radius:16px;
     margin-bottom:12px;
     cursor:pointer;
+
+    transition: all 0.2s ease;
 }
 
-/* история */
+.signal:hover{
+    transform: scale(1.03);
+    border-color:#38bdf8;
+    box-shadow:0 0 20px rgba(56,189,248,0.25);
+}
+
+.signal:active{
+    transform: scale(0.97);
+    box-shadow:0 0 25px rgba(56,189,248,0.4);
+}
+
+.signal::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:16px;
+    opacity:0;
+    transition:0.3s;
+}
+
+.signal:active::after{
+    opacity:1;
+    box-shadow:0 0 30px rgba(56,189,248,0.4) inset;
+}
+
+/* ===== HISTORY */
 .history{
     margin-top:20px;
 }
@@ -54,6 +85,7 @@ body{
     display:none;
     height:100vh;
     flex-direction:column;
+    transition:0.2s;
 }
 
 .chart-box{
@@ -169,7 +201,7 @@ function renderHistory(){
     history.slice().reverse().forEach(h=>{
         box.innerHTML += `
             <div class="history-item">
-                ${h.pair} | ${h.direction} → 
+                ${h.pair} | ${h.direction} →
                 <span class="${h.result === 'WIN' ? 'green' : 'red'}">
                     ${h.result}
                 </span>
@@ -199,8 +231,20 @@ let active = null
 function openTrade(i){
     active = signals[i]
 
-    document.getElementById("main").style.display = "none"
-    document.getElementById("trade").style.display = "flex"
+    let main = document.getElementById("main")
+    let trade = document.getElementById("trade")
+
+    main.style.opacity = "0"
+
+    setTimeout(()=>{
+        main.style.display = "none"
+        trade.style.display = "flex"
+        trade.style.opacity = "0"
+
+        setTimeout(()=>{
+            trade.style.opacity = "1"
+        },50)
+    },150)
 
     document.getElementById("pair").innerText =
         active.pair + " | " + active.direction
@@ -272,6 +316,7 @@ function draw(){
 
     let max = Math.max(...all.map(c=>c.high))
     let min = Math.min(...all.map(c=>c.low))
+
     let range = max - min
     if(range < 2) range = 2
 
