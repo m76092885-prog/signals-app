@@ -10,191 +10,79 @@ body{
     background:#020617;
     color:#fff;
     font-family:Arial;
-    overflow:hidden;
 }
 
-/* 🌌 фон */
-#bg{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    filter:blur(12px) brightness(0.5);
-    z-index:0;
-}
-
-/* контейнер сигналов (пока пустой, можно расширить) */
-.container{
-    position:relative;
-    z-index:2;
-    padding:15px;
-}
-
-/* 💎 график карточка */
+/* график */
 .trade{
     position:fixed;
     top:50%;
     left:50%;
     transform:translate(-50%,-50%);
-    width:92%;
+    width:90%;
     height:70%;
-    background:rgba(15,23,42,0.92);
-    border-radius:26px;
-    backdrop-filter:blur(18px);
-    overflow:hidden;
+    background:#0f172a;
+    border-radius:20px;
     display:flex;
     flex-direction:column;
-    z-index:10;
-    box-shadow:0 0 50px rgba(0,0,0,0.6);
 }
 
-/* canvas график */
 #chart{
     width:100%;
-    height:65%;
-    background:linear-gradient(180deg,#0b1220,#0a0f1d);
+    height:70%;
 }
 
-/* инфо */
 .info{
-    padding:15px;
-}
-
-/* кнопка */
-.btn{
-    margin-top:10px;
-    padding:14px;
-    background:#1e293b;
-    border-radius:18px;
-    text-align:center;
-}
-
-/* свечения */
-.trade.glow-green{
-    box-shadow:0 0 120px rgba(34,197,94,0.25);
-}
-
-.trade.glow-red{
-    box-shadow:0 0 120px rgba(239,68,68,0.25);
+    padding:10px;
 }
 </style>
 </head>
 
 <body>
 
-<canvas id="bg"></canvas>
-
-<div class="trade" id="trade">
+<div class="trade">
     <canvas id="chart"></canvas>
 
     <div class="info">
-        <div id="pair">EUR/USD</div>
-        <div id="status">Waiting...</div>
-        <div id="price"></div>
+        <div id="price">Price:</div>
+        <div id="status">Connecting...</div>
     </div>
 </div>
 
 <script>
 
-/////////////////////////////////////////////////////
-// 🌐 BACKGROUND (легкий рынок)
-/////////////////////////////////////////////////////
-
-const bg = document.getElementById("bg")
-const bctx = bg.getContext("2d")
-
-bg.width = window.innerWidth
-bg.height = window.innerHeight
-
-let bgCandles = []
-
-function gen(prev){
-    let o = prev ? prev.close : 100
-    let c = o + (Math.random()-0.5)*0.3
-    return {
-        open:o,
-        close:c,
-        high:Math.max(o,c)+Math.random()*0.2,
-        low:Math.min(o,c)-Math.random()*0.2
-    }
-}
-
-for(let i=0;i<80;i++){
-    bgCandles.push(gen(bgCandles[i-1]))
-}
-
-function drawBG(){
-    bctx.clearRect(0,0,bg.width,bg.height)
-
-    bgCandles.push(gen(bgCandles[bgCandles.length-1]))
-    bgCandles.shift()
-
-    let w = bg.width/bgCandles.length
-    let mid = bg.height/2
-
-    bgCandles.forEach((c,i)=>{
-
-        let x = i*w
-        let s = 6
-
-        let o = mid - (c.open-100)*s
-        let cl = mid - (c.close-100)*s
-        let h = mid - (c.high-100)*s
-        let l = mid - (c.low-100)*s
-
-        bctx.strokeStyle="rgba(255,255,255,0.1)"
-        bctx.beginPath()
-        bctx.moveTo(x+w/2,h)
-        bctx.lineTo(x+w/2,l)
-        bctx.stroke()
-
-        bctx.fillStyle = c.close>c.open
-            ? "rgba(34,197,94,0.2)"
-            : "rgba(239,68,68,0.2)"
-
-        bctx.fillRect(x,Math.min(o,cl),w*0.6,Math.abs(o-cl))
-    })
-}
-
-setInterval(drawBG,120)
-
-/////////////////////////////////////////////////////
-// 📡 WEB SOCKET (LIVE DATA)
-/////////////////////////////////////////////////////
-
-const ws = new WebSocket("ws://127.0.0.1:8000/ws")
-
 const canvas = document.getElementById("chart")
 const ctx = canvas.getContext("2d")
 
 canvas.width = window.innerWidth
-canvas.height = window.innerHeight * 0.65
+canvas.height = window.innerHeight * 0.6
 
 let candles = []
 let price = 0
+
+// 🔥 WebSocket
+const ws = new WebSocket("ws://127.0.0.1:8000/ws")
+
+ws.onopen = ()=>{
+    document.getElementById("status").innerText = "Connected"
+}
 
 ws.onmessage = (e)=>{
 
     const data = JSON.parse(e.data)
 
-    price = data.price
     candles = data.candles
+    price = data.price
 
-    drawChart(candles, price)
+    draw()
 }
 
-/////////////////////////////////////////////////////
-// 📊 RENDER CHART
-/////////////////////////////////////////////////////
-
-function drawChart(candles, price){
-
-    if(!candles) return
+function draw(){
 
     ctx.clearRect(0,0,canvas.width,canvas.height)
 
-    let w = canvas.width/candles.length
+    if(candles.length === 0) return
+
+    let w = canvas.width / candles.length
     let mid = canvas.height/2
     let scale = 2000
 
@@ -207,15 +95,13 @@ function drawChart(candles, price){
         let h = mid - (c.high-price)*scale
         let l = mid - (c.low-price)*scale
 
-        // тень
-        ctx.strokeStyle="rgba(255,255,255,0.2)"
+        ctx.strokeStyle = "#aaa"
         ctx.beginPath()
         ctx.moveTo(x+w/2,h)
         ctx.lineTo(x+w/2,l)
         ctx.stroke()
 
-        // тело
-        ctx.fillStyle = c.close>c.open ? "#22c55e" : "#ef4444"
+        ctx.fillStyle = c.close > c.open ? "#22c55e" : "#ef4444"
 
         ctx.fillRect(
             x,
@@ -225,11 +111,7 @@ function drawChart(candles, price){
         )
     })
 
-    document.getElementById("price").innerText =
-        "Price: " + price
-
-    document.getElementById("status").innerText =
-        "LIVE"
+    document.getElementById("price").innerText = "Price: " + price
 }
 
 </script>
