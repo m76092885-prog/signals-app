@@ -19,9 +19,16 @@ body{
 
 .title{
     font-size:24px;
-    margin-bottom:15px;
+    margin-bottom:10px;
 }
 
+.winrate{
+    margin-bottom:15px;
+    font-size:18px;
+    color:#38bdf8;
+}
+
+/* сигнал */
 .signal{
     background:linear-gradient(145deg,#0f172a,#020617);
     border:1px solid #1f2937;
@@ -29,12 +36,17 @@ body{
     border-radius:16px;
     margin-bottom:12px;
     cursor:pointer;
-    transition:0.2s;
 }
 
-.signal:hover{
-    transform:scale(1.02);
-    border-color:#38bdf8;
+/* история */
+.history{
+    margin-top:20px;
+}
+
+.history-item{
+    font-size:14px;
+    margin-bottom:6px;
+    opacity:0.8;
 }
 
 /* ===== TRADE */
@@ -47,41 +59,29 @@ body{
 .chart-box{
     height:60%;
     background:#020617;
-    border-bottom:1px solid #1f2937;
-    position:relative;
 }
 
 .info-box{
     height:40%;
     padding:15px;
-    background:#05070d;
 }
 
 .back{
     background:#111827;
-    padding:10px 14px;
-    border-radius:12px;
+    padding:10px;
+    border-radius:10px;
     cursor:pointer;
-    margin-bottom:10px;
     display:inline-block;
+    margin-bottom:10px;
 }
 
-/* glow */
-.glow-green{
-    box-shadow:0 0 40px rgba(34,197,94,0.4);
-}
-
-.glow-red{
-    box-shadow:0 0 40px rgba(239,68,68,0.4);
-}
+.green{ color:#22c55e }
+.red{ color:#ef4444 }
 
 canvas{
     width:100%;
     height:100%;
 }
-
-.green{ color:#22c55e }
-.red{ color:#ef4444 }
 
 </style>
 </head>
@@ -91,7 +91,17 @@ canvas{
 <!-- ===== MAIN -->
 <div id="main">
     <div class="title">Signals</div>
+
+    <div class="winrate">
+        Winrate (last 10): <span id="wr">0%</span>
+    </div>
+
     <div id="signals"></div>
+
+    <div class="history">
+        <div class="title">History</div>
+        <div id="history"></div>
+    </div>
 </div>
 
 <!-- ===== TRADE -->
@@ -114,41 +124,74 @@ canvas{
 
 <script>
 
-// ===== TELEGRAM HARD RESET
+// ===== TELEGRAM FIX
 (function(){
-    function forceMain(){
+    function reset(){
         document.getElementById("main").style.display = "block"
         document.getElementById("trade").style.display = "none"
     }
-    forceMain()
-    setTimeout(forceMain,100)
-    setTimeout(forceMain,500)
-    document.addEventListener("visibilitychange", forceMain)
-    window.addEventListener("focus", forceMain)
+    reset()
+    setTimeout(reset,200)
 })()
 
-// ===== SIGNALS
+// ===== DATA
 let signals = [
-    {pair:"EUR/USD", direction:"CALL", reason:"RSI oversold", time:60},
-    {pair:"GBP/USD", direction:"PUT", reason:"Resistance", time:60},
-    {pair:"USD/JPY", direction:"CALL", reason:"Breakout", time:60},
+    {pair:"EUR/USD", direction:"BUY", reason:"RSI oversold", time:30},
+    {pair:"GBP/USD", direction:"SELL", reason:"Resistance", time:30},
+    {pair:"USD/JPY", direction:"BUY", reason:"Breakout", time:30},
 ]
 
-// ===== RENDER
-function render(){
+let history = []
+
+// ===== RENDER SIGNALS
+function renderSignals(){
     let box = document.getElementById("signals")
     box.innerHTML = ""
 
     signals.forEach((s,i)=>{
+
+        let color = s.direction === "BUY" ? "#22c55e" : "#ef4444"
+
         box.innerHTML += `
             <div class="signal" onclick="openTrade(${i})">
                 <b>${s.pair}</b><br>
-                ${s.direction}
+                <span style="color:${color}">${s.direction}</span>
             </div>
         `
     })
 }
-render()
+
+// ===== HISTORY
+function renderHistory(){
+    let box = document.getElementById("history")
+    box.innerHTML = ""
+
+    history.slice().reverse().forEach(h=>{
+        box.innerHTML += `
+            <div class="history-item">
+                ${h.pair} | ${h.direction} → 
+                <span class="${h.result === 'WIN' ? 'green' : 'red'}">
+                    ${h.result}
+                </span>
+            </div>
+        `
+    })
+}
+
+// ===== WINRATE
+function updateWinrate(){
+    let last = history.slice(-10)
+
+    if(last.length === 0){
+        document.getElementById("wr").innerText = "0%"
+        return
+    }
+
+    let wins = last.filter(h=>h.result==="WIN").length
+    let wr = Math.round((wins/last.length)*100)
+
+    document.getElementById("wr").innerText = wr + "%"
+}
 
 // ===== NAV
 let active = null
@@ -189,7 +232,6 @@ function newCandle(p){
     return {open:p, high:p, low:p, close:p}
 }
 
-// стартовая история
 function generateHistory(){
     candles = []
     price = 100
@@ -197,9 +239,8 @@ function generateHistory(){
     for(let i=0;i<40;i++){
         let open = price
         let close = open + (Math.random()-0.5)*2
-
-        let high = Math.max(open, close) + Math.random()*1
-        let low = Math.min(open, close) - Math.random()*1
+        let high = Math.max(open, close) + Math.random()
+        let low = Math.min(open, close) - Math.random()
 
         candles.push({open, high, low, close})
         price = close
@@ -208,7 +249,6 @@ function generateHistory(){
     current = newCandle(price)
 }
 
-// движение
 function tick(){
     price += (Math.random()-0.5)*0.6
 
@@ -217,19 +257,14 @@ function tick(){
     current.close = price
 }
 
-// новая свеча
 setInterval(()=>{
     if(!current) return
-
     candles.push(current)
     if(candles.length > 60) candles.shift()
-
     current = newCandle(price)
 },2000)
 
-// рисование
 function draw(){
-
     ctx.clearRect(0,0,canvas.width,canvas.height)
 
     let all = [...candles, current].filter(Boolean)
@@ -237,14 +272,12 @@ function draw(){
 
     let max = Math.max(...all.map(c=>c.high))
     let min = Math.min(...all.map(c=>c.low))
-
     let range = max - min
     if(range < 2) range = 2
 
     let w = canvas.width / all.length
 
     all.forEach((c,i)=>{
-
         let x = i*w
         let scale = canvas.height / range
 
@@ -253,36 +286,21 @@ function draw(){
         let hi = canvas.height-(c.high-min)*scale
         let lo = canvas.height-(c.low-min)*scale
 
-        // тень
         ctx.strokeStyle="#94a3b8"
         ctx.beginPath()
         ctx.moveTo(x+w/2,hi)
         ctx.lineTo(x+w/2,lo)
         ctx.stroke()
 
-        // тело
         ctx.fillStyle = c.close>c.open ? "#22c55e" : "#ef4444"
 
         ctx.fillRect(
             x+w*0.25,
             Math.min(o,cl),
             w*0.5,
-            Math.abs(o-cl) || 2
+            Math.abs(o-cl)||2
         )
     })
-
-    // линия входа
-    let entryY = canvas.height - ((entry - min)/range)*canvas.height
-
-    ctx.strokeStyle="#38bdf8"
-    ctx.setLineDash([5,5])
-
-    ctx.beginPath()
-    ctx.moveTo(0, entryY)
-    ctx.lineTo(canvas.width, entryY)
-    ctx.stroke()
-
-    ctx.setLineDash([])
 }
 
 // ===== TRADE
@@ -305,29 +323,37 @@ function startTrade(){
 
         let profit = price - entry
 
-        document.getElementById("timer").innerText =
-            "Time: " + timeLeft
-
+        document.getElementById("timer").innerText = "Time: " + timeLeft
         document.getElementById("profit").innerText =
             "P/L: " + profit.toFixed(2)
 
         document.getElementById("profit").className =
             profit>=0 ? "green" : "red"
 
-        let box = document.querySelector(".chart-box")
-        box.classList.remove("glow-green","glow-red")
-
-        if(profit > 0) box.classList.add("glow-green")
-        else box.classList.add("glow-red")
-
         timeLeft--
 
         if(timeLeft<=0){
             clearInterval(loop)
+
+            let result = profit >= 0 ? "WIN" : "LOSS"
+
+            history.push({
+                pair: active.pair,
+                direction: active.direction,
+                result: result
+            })
+
+            updateWinrate()
+            renderHistory()
         }
 
     },150)
 }
+
+// INIT
+renderSignals()
+renderHistory()
+updateWinrate()
 
 </script>
 
