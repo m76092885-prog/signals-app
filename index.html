@@ -12,129 +12,112 @@ body{
     font-family:Arial;
 }
 
-#main{ padding:20px; transition:.2s; }
-.title{ font-size:24px; margin-bottom:10px; }
-.winrate{ margin-bottom:15px; color:#38bdf8; }
-
-.signal{
-    position:relative;
-    overflow:hidden;
-    background:linear-gradient(145deg,#0f172a,#020617);
-    border:1px solid #1f2937;
-    padding:16px;
-    border-radius:16px;
-    margin-bottom:12px;
-    cursor:pointer;
-    transition:.2s;
+/* ===== FLOAT WINDOWS */
+.window{
+    position:fixed;
+    left:10px;
+    right:10px;
+    border-radius:20px;
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(56,189,248,0.2);
+    box-shadow:0 0 25px rgba(56,189,248,0.15);
 }
 
-.signal:hover{
-    transform:scale(1.03);
-    box-shadow:0 0 20px rgba(56,189,248,.25);
+/* ===== CHART WINDOW */
+#chartWindow{
+    top:10px;
+    height:50vh;
+
+    background:
+    linear-gradient(#020617,#020617),
+    repeating-linear-gradient(
+        0deg,
+        rgba(255,255,255,0.05) 0px,
+        rgba(255,255,255,0.05) 1px,
+        transparent 1px,
+        transparent 40px
+    ),
+    repeating-linear-gradient(
+        90deg,
+        rgba(255,255,255,0.05) 0px,
+        rgba(255,255,255,0.05) 1px,
+        transparent 1px,
+        transparent 40px
+    );
 }
 
-.signal:active{
-    transform:scale(.97);
+/* ===== INFO WINDOW */
+#infoWindow{
+    bottom:10px;
+    height:40vh;
+    padding:15px;
+
+    background:linear-gradient(145deg,#020617,#020617);
 }
 
-#trade{
-    display:none;
-    height:100vh;
-    flex-direction:column;
+/* glow при активности */
+.window:hover{
+    box-shadow:0 0 35px rgba(56,189,248,0.3);
 }
 
-.chart-box{ height:60%; }
-.info-box{ padding:15px; }
-
+/* ===== BUTTON */
 .back{
+    display:inline-block;
     padding:10px 16px;
     border-radius:12px;
     background:#111827;
-    display:inline-block;
     cursor:pointer;
     margin-bottom:10px;
+    transition:.2s;
 }
 
+.back:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 15px rgba(56,189,248,0.4);
+}
+
+/* ===== COLORS */
 .green{ color:#00ff88 }
 .red{ color:#ff3b3b }
 
-canvas{ width:100%; height:100%; }
+/* ===== CANVAS */
+canvas{
+    width:100%;
+    height:100%;
+}
 
 </style>
 </head>
 
 <body>
 
-<div id="main">
-    <div class="title">Signals</div>
-    <div class="winrate">Winrate: <span id="wr">0%</span></div>
-    <div id="signals"></div>
+<!-- ===== CHART -->
+<div id="chartWindow" class="window">
+    <canvas id="chart"></canvas>
 </div>
 
-<div id="trade">
-    <div class="chart-box">
-        <canvas id="chart"></canvas>
-    </div>
-    <div class="info-box">
-        <div class="back" onclick="back()">← Назад</div>
-        <div id="pair"></div>
-        <div id="timer"></div>
-        <div id="profit"></div>
-    </div>
+<!-- ===== INFO -->
+<div id="infoWindow" class="window">
+
+    <div class="back" onclick="back()">← Назад</div>
+
+    <div id="pair"></div>
+    <div id="timer"></div>
+    <div id="profit"></div>
+
 </div>
 
 <script>
 
 // ===== DATA
-let signals = [
-    {pair:"EUR/USD", direction:"BUY", time:30},
-    {pair:"GBP/USD", direction:"SELL", time:30}
-]
+let active = {pair:"EUR/USD", direction:"BUY", time:30}
 
-function renderSignals(){
-    let box = document.getElementById("signals")
-    box.innerHTML = ""
-
-    signals.forEach((s,i)=>{
-        let c = s.direction==="BUY"?"#00ff88":"#ff3b3b"
-
-        box.innerHTML += `
-        <div class="signal" onclick="openTrade(${i})">
-            ${s.pair}<br>
-            <span style="color:${c}">${s.direction}</span>
-        </div>`
-    })
-}
-
-renderSignals()
-
-// ===== NAV
-let active = null
-
-function openTrade(i){
-    active = signals[i]
-
-    document.getElementById("main").style.display="none"
-    document.getElementById("trade").style.display="flex"
-
-    document.getElementById("pair").innerText =
-        active.pair+" | "+active.direction
-
-    startTrade()
-}
-
-function back(){
-    running = false
-    document.getElementById("trade").style.display="none"
-    document.getElementById("main").style.display="block"
-}
-
-// ===== GRAPH ENGINE (FIXED)
+// ===== CANVAS
 const canvas = document.getElementById("chart")
 const ctx = canvas.getContext("2d")
 
 canvas.width = window.innerWidth
-canvas.height = window.innerHeight*0.6
+canvas.height = window.innerHeight*0.5
 
 let candles=[]
 let current=null
@@ -145,11 +128,12 @@ function newCandle(p){
     return {open:p,high:p,low:p,close:p}
 }
 
+// ===== GENERATE HISTORY
 function generate(){
     candles=[]
     price=100
 
-    for(let i=0;i<40;i++){
+    for(let i=0;i<80;i++){
         let o=price
         let c=o+(Math.random()-0.5)*2
         let h=Math.max(o,c)+Math.random()
@@ -162,40 +146,39 @@ function generate(){
     current=newCandle(price)
 }
 
-// ===== GAME LOOP
-let running=false
-let lastTime=0
+// ===== LOOP
+let running=true
+let last=0
 let candleTimer=0
-let timeLeft=0
+let timeLeft=active.time
 
 function loop(t){
 
     if(!running) return
 
-    let dt = t - lastTime
-    lastTime = t
+    let dt=t-last
+    last=t
+    candleTimer+=dt
 
-    candleTimer += dt
-
-    // обновление цены
+    // движение цены
     price += (Math.random()-0.5)*0.2
-    current.high = Math.max(current.high,price)
-    current.low = Math.min(current.low,price)
-    current.close = price
 
-    // новая свеча каждые 2 сек
-    if(candleTimer > 2000){
+    current.high=Math.max(current.high,price)
+    current.low=Math.min(current.low,price)
+    current.close=price
+
+    // новая свеча
+    if(candleTimer>2000){
         candles.push(current)
-        if(candles.length>60) candles.shift()
-        current = newCandle(price)
-        candleTimer = 0
+        if(candles.length>100) candles.shift()
+        current=newCandle(price)
+        candleTimer=0
     }
 
     draw()
 
-    // таймер сделки
+    // инфо
     timeLeft -= dt/1000
-
     let profit = price - entry
 
     document.getElementById("timer").innerText =
@@ -204,10 +187,13 @@ function loop(t){
     document.getElementById("profit").innerText =
         "P/L: "+profit.toFixed(2)
 
+    document.getElementById("profit").className =
+        profit>=0 ? "green" : "red"
+
     requestAnimationFrame(loop)
 }
 
-// ===== DRAW (ЧЁТКИЙ)
+// ===== DRAW (ЦЕНТР)
 function draw(){
 
     ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -218,11 +204,14 @@ function draw(){
     let min=Math.min(...all.map(c=>c.low))
     let range=max-min || 1
 
-    let w=canvas.width/all.length
+    let centerIndex = Math.floor(all.length/2)
+    let w = canvas.width / 20   // фикс ширина
 
     all.forEach((c,i)=>{
 
-        let x=i*w
+        // 🔥 центрируем
+        let x = (i-centerIndex)*w + canvas.width/2
+
         let scale=canvas.height/range
 
         let o=canvas.height-(c.open-min)*scale
@@ -242,28 +231,47 @@ function draw(){
 
         ctx.fillStyle=up?"#00ff88":"#ff3b3b"
 
+        ctx.shadowColor=up?"#00ff88":"#ff3b3b"
+        ctx.shadowBlur=10
+
         ctx.fillRect(
-            x+w*0.25,
+            x+w*0.2,
             Math.min(o,cl),
-            w*0.5,
+            w*0.6,
             Math.abs(o-cl)||2
         )
+
+        ctx.shadowBlur=0
     })
+
+    // линия входа
+    let entryY=canvas.height-((entry-min)/range)*canvas.height
+
+    ctx.strokeStyle="#00e0ff"
+    ctx.setLineDash([6,6])
+
+    ctx.beginPath()
+    ctx.moveTo(0,entryY)
+    ctx.lineTo(canvas.width,entryY)
+    ctx.stroke()
+
+    ctx.setLineDash([])
 }
 
-// ===== START TRADE
-function startTrade(){
-
-    generate()
-
-    entry = price
-    timeLeft = active.time
-
-    running = true
-    lastTime = performance.now()
-
-    requestAnimationFrame(loop)
+// ===== BACK
+function back(){
+    alert("тут можно вернуть к сигналам")
 }
+
+// ===== INIT
+document.getElementById("pair").innerText =
+    active.pair + " | " + active.direction
+
+generate()
+entry = price
+last = performance.now()
+
+requestAnimationFrame(loop)
 
 </script>
 
