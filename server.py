@@ -1,42 +1,36 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.staticfiles import StaticFiles
-import asyncio
-import random
-import time
-import json
+import asyncio, random, time, json
 
 app = FastAPI()
 
-# 📁 Отдаём index.html
-app.mount("/", StaticFiles(directory=".", html=True), name="static")
-
-# 📡 клиенты WebSocket
 clients = set()
 
-# 💹 рынок
 price = 1.1000
-current_candle = None
-candle_start = time.time()
 candles = []
+current_candle = None
+candle_start = int(time.time())
 
-# 🎲 генерация цены
+# генерация цены
 def tick():
     global price
     price += random.uniform(-0.0002, 0.0002)
     return round(price, 5)
 
-# 🕯 новая свеча
-def new_candle(p):
-    return {
+# создаём стартовые свечи С ВРЕМЕНЕМ
+now = int(time.time()) - 600
+for i in range(60):
+    p = tick()
+    candles.append({
+        "time": now + i * 10,
         "open": p,
         "high": p,
         "low": p,
         "close": p
-    }
+    })
 
-# 📡 WebSocket
 @app.websocket("/ws")
-async def websocket_endpoint(ws: WebSocket):
+async def ws(ws: WebSocket):
     await ws.accept()
     clients.add(ws)
 
@@ -45,21 +39,31 @@ async def websocket_endpoint(ws: WebSocket):
     try:
         while True:
             p = tick()
-            now = time.time()
+            now = int(time.time())
 
-            # создаём свечу
             if current_candle is None:
-                current_candle = new_candle(p)
+                current_candle = {
+                    "time": now,
+                    "open": p,
+                    "high": p,
+                    "low": p,
+                    "close": p
+                }
                 candle_start = now
 
             current_candle["high"] = max(current_candle["high"], p)
             current_candle["low"] = min(current_candle["low"], p)
             current_candle["close"] = p
 
-            # каждые 10 секунд новая свеча
             if now - candle_start >= 10:
                 candles.append(current_candle)
-                current_candle = new_candle(p)
+                current_candle = {
+                    "time": now,
+                    "open": p,
+                    "high": p,
+                    "low": p,
+                    "close": p
+                }
                 candle_start = now
 
             data = {
@@ -67,7 +71,6 @@ async def websocket_endpoint(ws: WebSocket):
                 "candles": candles[-60:]
             }
 
-            # отправка всем
             dead = []
             for c in clients:
                 try:
@@ -82,3 +85,5 @@ async def websocket_endpoint(ws: WebSocket):
 
     except:
         clients.remove(ws)
+
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
