@@ -23,7 +23,6 @@ body{
     height:85%;
     background:#0f172a;
     border-radius:20px;
-    overflow:hidden;
     display:flex;
     flex-direction:column;
 }
@@ -67,46 +66,38 @@ body{
 
 <script>
 
+// создаём график
 const chart = LightweightCharts.createChart(document.getElementById('chart'), {
     layout: { background: { color: '#0f172a' }, textColor: '#aaa' },
     grid: { vertLines: { color: '#1f2937' }, horzLines: { color: '#1f2937' } },
-    timeScale: { timeVisible: true, secondsVisible: true },
+    crosshair: { mode: 0 }
 })
 
 const candleSeries = chart.addCandlestickSeries()
 
-// 🔥 ВАЖНО: база времени
-let baseTime = Math.floor(Date.now() / 1000)
-
-// 🔌 WS
+// WebSocket
 const ws = new WebSocket(
     (location.protocol === "https:" ? "wss://" : "ws://") +
     location.host + "/ws"
 )
 
-ws.onmessage = (e)=>{
+ws.onopen = ()=>{
+    console.log("WS OK")
+}
 
+ws.onmessage = (e)=>{
     const data = JSON.parse(e.data)
 
     document.getElementById("price").innerText = data.price
 
-    if(!data.candles || data.candles.length === 0) return
+    if(!data.candles) return
 
-    // 🔥 ДЕЛАЕМ НОРМАЛЬНЫЕ ВРЕМЕНА
-    let time = baseTime - data.candles.length * 10
+    // 🔥 тут уже правильный формат с time
+    candleSeries.setData(data.candles)
+}
 
-    const formatted = data.candles.map(c=>{
-        time += 10
-        return {
-            time: time,
-            open: c.open,
-            high: c.high,
-            low: c.low,
-            close: c.close
-        }
-    })
-
-    candleSeries.setData(formatted)
+ws.onerror = (e)=>{
+    console.log("WS ERROR", e)
 }
 
 </script>
