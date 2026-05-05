@@ -17,7 +17,7 @@ def tick():
     price += random.uniform(-0.0002, 0.0002)
     return round(price, 5)
 
-# создаём стартовые свечи С ВРЕМЕНЕМ
+# стартовые свечи
 now = int(time.time()) - 600
 for i in range(60):
     p = tick()
