@@ -12,60 +12,75 @@ body{
     font-family:Arial;
 }
 
+/* ===== MAIN (СПИСОК) */
+#main{
+    padding:20px;
+}
+
+.title{
+    font-size:22px;
+    margin-bottom:10px;
+}
+
+.signal{
+    background:#0f172a;
+    border:1px solid #1f2937;
+    padding:15px;
+    border-radius:14px;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.signal:hover{
+    transform:scale(1.03);
+    box-shadow:0 0 20px rgba(56,189,248,0.3);
+}
+
 /* ===== FLOAT WINDOWS */
 .window{
     position:fixed;
     left:10px;
     right:10px;
-    border-radius:20px;
-    backdrop-filter:blur(10px);
+    border-radius:18px;
     border:1px solid rgba(56,189,248,0.2);
-    box-shadow:0 0 25px rgba(56,189,248,0.15);
+    box-shadow:0 0 25px rgba(56,189,248,0.2);
+    backdrop-filter:blur(10px);
 }
 
-/* ===== CHART WINDOW */
+/* график */
 #chartWindow{
     top:10px;
     height:50vh;
 
     background:
     linear-gradient(#020617,#020617),
-    repeating-linear-gradient(
-        0deg,
+    repeating-linear-gradient(0deg,
         rgba(255,255,255,0.05) 0px,
         rgba(255,255,255,0.05) 1px,
         transparent 1px,
-        transparent 40px
-    ),
-    repeating-linear-gradient(
-        90deg,
+        transparent 40px),
+    repeating-linear-gradient(90deg,
         rgba(255,255,255,0.05) 0px,
         rgba(255,255,255,0.05) 1px,
         transparent 1px,
-        transparent 40px
-    );
+        transparent 40px);
 }
 
-/* ===== INFO WINDOW */
+/* инфо */
 #infoWindow{
     bottom:10px;
     height:40vh;
     padding:15px;
-
-    background:linear-gradient(145deg,#020617,#020617);
+    background:#020617;
 }
 
-/* glow при активности */
-.window:hover{
-    box-shadow:0 0 35px rgba(56,189,248,0.3);
-}
-
-/* ===== BUTTON */
+/* кнопка назад */
 .back{
-    display:inline-block;
-    padding:10px 16px;
-    border-radius:12px;
+    padding:10px 14px;
+    border-radius:10px;
     background:#111827;
+    display:inline-block;
     cursor:pointer;
     margin-bottom:10px;
     transition:.2s;
@@ -76,30 +91,33 @@ body{
     box-shadow:0 0 15px rgba(56,189,248,0.4);
 }
 
-/* ===== COLORS */
-.green{ color:#00ff88 }
-.red{ color:#ff3b3b }
+.green{color:#00ff88}
+.red{color:#ff3b3b}
 
-/* ===== CANVAS */
 canvas{
     width:100%;
     height:100%;
 }
-
 </style>
 </head>
 
 <body>
 
-<!-- ===== CHART -->
-<div id="chartWindow" class="window">
+<!-- ===== СПИСОК -->
+<div id="main">
+    <div class="title">Signals</div>
+    <div id="signals"></div>
+</div>
+
+<!-- ===== ГРАФИК -->
+<div id="chartWindow" class="window" style="display:none">
     <canvas id="chart"></canvas>
 </div>
 
-<!-- ===== INFO -->
-<div id="infoWindow" class="window">
+<!-- ===== ИНФО -->
+<div id="infoWindow" class="window" style="display:none">
 
-    <div class="back" onclick="back()">← Назад</div>
+    <div class="back" onclick="goBack()">← Назад</div>
 
     <div id="pair"></div>
     <div id="timer"></div>
@@ -109,15 +127,63 @@ canvas{
 
 <script>
 
-// ===== DATA
-let active = {pair:"EUR/USD", direction:"BUY", time:30}
+// ===== SIGNALS
+let signals = [
+    {pair:"EUR/USD", direction:"BUY", time:30},
+    {pair:"GBP/USD", direction:"SELL", time:30},
+    {pair:"USD/JPY", direction:"BUY", time:30},
+]
 
-// ===== CANVAS
+// ===== RENDER
+function renderSignals(){
+    let box = document.getElementById("signals")
+    box.innerHTML=""
+
+    signals.forEach((s,i)=>{
+        let c = s.direction==="BUY" ? "#00ff88" : "#ff3b3b"
+
+        box.innerHTML += `
+        <div class="signal" onclick="openTrade(${i})">
+            <b>${s.pair}</b><br>
+            <span style="color:${c}">${s.direction}</span>
+        </div>`
+    })
+}
+
+renderSignals()
+
+// ===== NAV
+let active=null
+
+function openTrade(i){
+
+    active = signals[i]
+
+    document.getElementById("main").style.display="none"
+    document.getElementById("chartWindow").style.display="block"
+    document.getElementById("infoWindow").style.display="block"
+
+    document.getElementById("pair").innerText =
+        active.pair + " | " + active.direction
+
+    start()
+}
+
+function goBack(){
+
+    running = false
+
+    document.getElementById("chartWindow").style.display="none"
+    document.getElementById("infoWindow").style.display="none"
+    document.getElementById("main").style.display="block"
+}
+
+// ===== GRAPH
 const canvas = document.getElementById("chart")
 const ctx = canvas.getContext("2d")
 
 canvas.width = window.innerWidth
-canvas.height = window.innerHeight*0.5
+canvas.height = window.innerHeight * 0.5
 
 let candles=[]
 let current=null
@@ -128,7 +194,6 @@ function newCandle(p){
     return {open:p,high:p,low:p,close:p}
 }
 
-// ===== GENERATE HISTORY
 function generate(){
     candles=[]
     price=100
@@ -147,39 +212,37 @@ function generate(){
 }
 
 // ===== LOOP
-let running=true
+let running=false
 let last=0
-let candleTimer=0
-let timeLeft=active.time
+let timer=0
+let timeLeft=0
 
 function loop(t){
 
     if(!running) return
 
-    let dt=t-last
+    let dt = t-last
     last=t
-    candleTimer+=dt
+    timer+=dt
 
-    // движение цены
     price += (Math.random()-0.5)*0.2
 
     current.high=Math.max(current.high,price)
     current.low=Math.min(current.low,price)
     current.close=price
 
-    // новая свеча
-    if(candleTimer>2000){
+    if(timer>2000){
         candles.push(current)
         if(candles.length>100) candles.shift()
         current=newCandle(price)
-        candleTimer=0
+        timer=0
     }
 
     draw()
 
-    // инфо
     timeLeft -= dt/1000
-    let profit = price - entry
+
+    let profit = price-entry
 
     document.getElementById("timer").innerText =
         "Time: "+Math.max(0,Math.floor(timeLeft))
@@ -193,24 +256,23 @@ function loop(t){
     requestAnimationFrame(loop)
 }
 
-// ===== DRAW (ЦЕНТР)
+// ===== DRAW (центр)
 function draw(){
 
     ctx.clearRect(0,0,canvas.width,canvas.height)
 
-    let all=[...candles,current].filter(Boolean)
+    let all=[...candles,current]
 
     let max=Math.max(...all.map(c=>c.high))
     let min=Math.min(...all.map(c=>c.low))
     let range=max-min || 1
 
-    let centerIndex = Math.floor(all.length/2)
-    let w = canvas.width / 20   // фикс ширина
+    let center = Math.floor(all.length/2)
+    let w = canvas.width/20
 
     all.forEach((c,i)=>{
 
-        // 🔥 центрируем
-        let x = (i-centerIndex)*w + canvas.width/2
+        let x = (i-center)*w + canvas.width/2
 
         let scale=canvas.height/range
 
@@ -243,35 +305,20 @@ function draw(){
 
         ctx.shadowBlur=0
     })
-
-    // линия входа
-    let entryY=canvas.height-((entry-min)/range)*canvas.height
-
-    ctx.strokeStyle="#00e0ff"
-    ctx.setLineDash([6,6])
-
-    ctx.beginPath()
-    ctx.moveTo(0,entryY)
-    ctx.lineTo(canvas.width,entryY)
-    ctx.stroke()
-
-    ctx.setLineDash([])
 }
 
-// ===== BACK
-function back(){
-    alert("тут можно вернуть к сигналам")
+// ===== START
+function start(){
+
+    generate()
+    entry=price
+    timeLeft=active.time
+
+    running=true
+    last=performance.now()
+
+    requestAnimationFrame(loop)
 }
-
-// ===== INIT
-document.getElementById("pair").innerText =
-    active.pair + " | " + active.direction
-
-generate()
-entry = price
-last = performance.now()
-
-requestAnimationFrame(loop)
 
 </script>
 
