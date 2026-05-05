@@ -29,7 +29,7 @@ body{
     color:#38bdf8;
 }
 
-/* ===== SIGNAL BUTTON */
+/* ===== SIGNAL */
 .signal{
     position:relative;
     overflow:hidden;
@@ -98,13 +98,30 @@ body{
     padding:15px;
 }
 
+/* ===== BACK BUTTON */
 .back{
-    background:#111827;
-    padding:10px;
-    border-radius:10px;
-    cursor:pointer;
     display:inline-block;
-    margin-bottom:10px;
+    padding:10px 16px;
+    border-radius:12px;
+
+    background:linear-gradient(145deg,#111827,#020617);
+    border:1px solid #1f2937;
+
+    cursor:pointer;
+    margin-bottom:12px;
+
+    transition:0.2s;
+}
+
+.back:hover{
+    transform:scale(1.05);
+    border-color:#38bdf8;
+    box-shadow:0 0 15px rgba(56,189,248,0.3);
+}
+
+.back:active{
+    transform:scale(0.95);
+    box-shadow:0 0 20px rgba(56,189,248,0.5) inset;
 }
 
 .green{ color:#22c55e }
@@ -175,13 +192,12 @@ let signals = [
 
 let history = []
 
-// ===== RENDER SIGNALS
+// ===== RENDER
 function renderSignals(){
     let box = document.getElementById("signals")
     box.innerHTML = ""
 
     signals.forEach((s,i)=>{
-
         let color = s.direction === "BUY" ? "#22c55e" : "#ef4444"
 
         box.innerHTML += `
@@ -193,7 +209,6 @@ function renderSignals(){
     })
 }
 
-// ===== HISTORY
 function renderHistory(){
     let box = document.getElementById("history")
     box.innerHTML = ""
@@ -202,7 +217,7 @@ function renderHistory(){
         box.innerHTML += `
             <div class="history-item">
                 ${h.pair} | ${h.direction} →
-                <span class="${h.result === 'WIN' ? 'green' : 'red'}">
+                <span class="${h.result==='WIN'?'green':'red'}">
                     ${h.result}
                 </span>
             </div>
@@ -210,23 +225,22 @@ function renderHistory(){
     })
 }
 
-// ===== WINRATE
 function updateWinrate(){
     let last = history.slice(-10)
 
-    if(last.length === 0){
-        document.getElementById("wr").innerText = "0%"
+    if(last.length===0){
+        document.getElementById("wr").innerText="0%"
         return
     }
 
     let wins = last.filter(h=>h.result==="WIN").length
     let wr = Math.round((wins/last.length)*100)
 
-    document.getElementById("wr").innerText = wr + "%"
+    document.getElementById("wr").innerText = wr+"%"
 }
 
 // ===== NAV
-let active = null
+let active=null
 
 function openTrade(i){
     active = signals[i]
@@ -234,30 +248,51 @@ function openTrade(i){
     let main = document.getElementById("main")
     let trade = document.getElementById("trade")
 
-    main.style.opacity = "0"
+    main.style.opacity="0"
 
     setTimeout(()=>{
-        main.style.display = "none"
-        trade.style.display = "flex"
-        trade.style.opacity = "0"
+        main.style.display="none"
+        trade.style.display="flex"
+        trade.style.opacity="0"
 
         setTimeout(()=>{
-            trade.style.opacity = "1"
+            trade.style.opacity="1"
         },50)
     },150)
 
     document.getElementById("pair").innerText =
-        active.pair + " | " + active.direction
+        active.pair+" | "+active.direction
 
     document.getElementById("reason").innerText =
-        "Reason: " + active.reason
+        "Reason: "+active.reason
 
     startTrade()
 }
 
 function back(){
-    document.getElementById("trade").style.display = "none"
-    document.getElementById("main").style.display = "block"
+
+    let main = document.getElementById("main")
+    let trade = document.getElementById("trade")
+
+    if(loop) clearInterval(loop)
+
+    trade.style.opacity="0"
+
+    setTimeout(()=>{
+        trade.style.display="none"
+
+        main.style.display="block"
+        main.style.opacity="0"
+
+        renderSignals()
+        renderHistory()
+        updateWinrate()
+
+        setTimeout(()=>{
+            main.style.opacity="1"
+        },50)
+
+    },150)
 }
 
 // ===== GRAPH
@@ -265,71 +300,71 @@ const canvas = document.getElementById("chart")
 const ctx = canvas.getContext("2d")
 
 canvas.width = window.innerWidth
-canvas.height = window.innerHeight * 0.6
+canvas.height = window.innerHeight*0.6
 
-let candles = []
-let current = null
-let price = 100
-let entry = 0
+let candles=[]
+let current=null
+let price=100
+let entry=0
 
 function newCandle(p){
-    return {open:p, high:p, low:p, close:p}
+    return {open:p,high:p,low:p,close:p}
 }
 
 function generateHistory(){
-    candles = []
-    price = 100
+    candles=[]
+    price=100
 
     for(let i=0;i<40;i++){
-        let open = price
-        let close = open + (Math.random()-0.5)*2
-        let high = Math.max(open, close) + Math.random()
-        let low = Math.min(open, close) - Math.random()
+        let open=price
+        let close=open+(Math.random()-0.5)*2
+        let high=Math.max(open,close)+Math.random()
+        let low=Math.min(open,close)-Math.random()
 
-        candles.push({open, high, low, close})
-        price = close
+        candles.push({open,high,low,close})
+        price=close
     }
 
-    current = newCandle(price)
+    current=newCandle(price)
 }
 
 function tick(){
     price += (Math.random()-0.5)*0.6
 
-    current.high = Math.max(current.high, price)
-    current.low = Math.min(current.low, price)
-    current.close = price
+    current.high=Math.max(current.high,price)
+    current.low=Math.min(current.low,price)
+    current.close=price
 }
 
 setInterval(()=>{
     if(!current) return
     candles.push(current)
-    if(candles.length > 60) candles.shift()
-    current = newCandle(price)
+    if(candles.length>60) candles.shift()
+    current=newCandle(price)
 },2000)
 
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height)
 
-    let all = [...candles, current].filter(Boolean)
-    if(all.length < 2) return
+    let all=[...candles,current].filter(Boolean)
+    if(all.length<2) return
 
-    let max = Math.max(...all.map(c=>c.high))
-    let min = Math.min(...all.map(c=>c.low))
+    let max=Math.max(...all.map(c=>c.high))
+    let min=Math.min(...all.map(c=>c.low))
 
-    let range = max - min
-    if(range < 2) range = 2
+    let range=max-min
+    if(range<2) range=2
 
-    let w = canvas.width / all.length
+    let w=canvas.width/all.length
 
     all.forEach((c,i)=>{
-        let x = i*w
-        let scale = canvas.height / range
+        let x=i*w
+        let scale=canvas.height/range
 
-        let o = canvas.height-(c.open-min)*scale
-        let cl = canvas.height-(c.close-min)*scale
-        let hi = canvas.height-(c.high-min)*scale
-        let lo = canvas.height-(c.low-min)*scale
+        let o=canvas.height-(c.open-min)*scale
+        let cl=canvas.height-(c.close-min)*scale
+        let hi=canvas.height-(c.high-min)*scale
+        let lo=canvas.height-(c.low-min)*scale
 
         ctx.strokeStyle="#94a3b8"
         ctx.beginPath()
@@ -349,43 +384,42 @@ function draw(){
 }
 
 // ===== TRADE
-let loop = null
-let timeLeft = 0
+let loop=null
+let timeLeft=0
 
 function startTrade(){
 
     generateHistory()
 
-    entry = price
-    timeLeft = active.time
+    entry=price
+    timeLeft=active.time
 
     if(loop) clearInterval(loop)
 
-    loop = setInterval(()=>{
+    loop=setInterval(()=>{
 
         tick()
         draw()
 
-        let profit = price - entry
+        let profit=price-entry
 
-        document.getElementById("timer").innerText = "Time: " + timeLeft
-        document.getElementById("profit").innerText =
-            "P/L: " + profit.toFixed(2)
+        document.getElementById("timer").innerText="Time: "+timeLeft
+        document.getElementById("profit").innerText="P/L: "+profit.toFixed(2)
 
         document.getElementById("profit").className =
-            profit>=0 ? "green" : "red"
+            profit>=0 ? "green":"red"
 
         timeLeft--
 
         if(timeLeft<=0){
             clearInterval(loop)
 
-            let result = profit >= 0 ? "WIN" : "LOSS"
+            let result = profit>=0 ? "WIN":"LOSS"
 
             history.push({
-                pair: active.pair,
-                direction: active.direction,
-                result: result
+                pair:active.pair,
+                direction:active.direction,
+                result:result
             })
 
             updateWinrate()
