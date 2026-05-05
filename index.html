@@ -4,114 +4,133 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+
 <style>
 body{
     margin:0;
-    background:#020617;
-    color:#fff;
+    background:#0b0f1a;
     font-family:Arial;
+    color:white;
 }
 
-/* график */
-.trade{
+/* 💎 окно как у брокера */
+.trade-box{
     position:fixed;
     top:50%;
     left:50%;
     transform:translate(-50%,-50%);
-    width:90%;
-    height:70%;
+    width:95%;
+    height:85%;
     background:#0f172a;
     border-radius:20px;
+    box-shadow:0 0 60px rgba(0,0,0,0.8);
+    overflow:hidden;
     display:flex;
     flex-direction:column;
 }
 
+/* график */
 #chart{
-    width:100%;
-    height:70%;
+    flex:1;
 }
 
-.info{
-    padding:10px;
+/* панель */
+.panel{
+    height:90px;
+    background:#020617;
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
 }
+
+/* кнопки как трейдинг */
+.btn{
+    padding:14px 30px;
+    border-radius:12px;
+    font-size:18px;
+    cursor:pointer;
+}
+
+.buy{
+    background:#16a34a;
+}
+
+.sell{
+    background:#dc2626;
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="trade">
-    <canvas id="chart"></canvas>
+<div class="trade-box">
+    <div id="chart"></div>
 
-    <div class="info">
-        <div id="price">Price:</div>
-        <div id="status">Connecting...</div>
+    <div class="panel">
+        <div class="btn buy">CALL</div>
+        <div id="price">0.00000</div>
+        <div class="btn sell">PUT</div>
     </div>
 </div>
 
 <script>
 
-const canvas = document.getElementById("chart")
-const ctx = canvas.getContext("2d")
+// 🚀 создаём график как у TradingView
+const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+    layout: {
+        background: { color: '#0f172a' },
+        textColor: '#ccc',
+    },
+    grid: {
+        vertLines: { color: '#1f2937' },
+        horzLines: { color: '#1f2937' },
+    },
+    timeScale: {
+        timeVisible: true,
+        secondsVisible: true,
+    },
+})
 
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight * 0.6
+// свечи
+const candleSeries = chart.addCandlestickSeries()
 
-let candles = []
-let price = 0
-
-// 🔥 WebSocket
-const ws = new WebSocket("ws://127.0.0.1:8000/ws")
-
-ws.onopen = ()=>{
-    document.getElementById("status").innerText = "Connected"
-}
+// 🔌 WebSocket
+const ws = new WebSocket(
+    (location.protocol === "https:" ? "wss://" : "ws://")
+    + location.host + "/ws"
+)
 
 ws.onmessage = (e)=>{
 
     const data = JSON.parse(e.data)
 
-    candles = data.candles
-    price = data.price
+    document.getElementById("price").innerText = data.price
 
-    draw()
-}
+    // преобразуем свечи
+    const formatted = data.candles.map((c,i)=>({
+        time: Math.floor(Date.now()/1000) - (data.candles.length - i)*10,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close
+    }))
 
-function draw(){
+    candleSeries.setData(formatted)
 
-    ctx.clearRect(0,0,canvas.width,canvas.height)
+    // обновляем последнюю
+    if(data.candles.length > 0){
+        const last = data.candles[data.candles.length-1]
 
-    if(candles.length === 0) return
-
-    let w = canvas.width / candles.length
-    let mid = canvas.height/2
-    let scale = 2000
-
-    candles.forEach((c,i)=>{
-
-        let x = i*w
-
-        let o = mid - (c.open-price)*scale
-        let cl = mid - (c.close-price)*scale
-        let h = mid - (c.high-price)*scale
-        let l = mid - (c.low-price)*scale
-
-        ctx.strokeStyle = "#aaa"
-        ctx.beginPath()
-        ctx.moveTo(x+w/2,h)
-        ctx.lineTo(x+w/2,l)
-        ctx.stroke()
-
-        ctx.fillStyle = c.close > c.open ? "#22c55e" : "#ef4444"
-
-        ctx.fillRect(
-            x,
-            Math.min(o,cl),
-            w*0.6,
-            Math.abs(o-cl) || 1
-        )
-    })
-
-    document.getElementById("price").innerText = "Price: " + price
+        candleSeries.update({
+            time: Math.floor(Date.now()/1000),
+            open: last.open,
+            high: last.high,
+            low: last.low,
+            close: last.close
+        })
+    }
 }
 
 </script>
