@@ -1,61 +1,80 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, WebSocket
+from fastapi.staticfiles import StaticFiles
+import asyncio
 import random
 import time
-import asyncio
-import os
+import json
 
 app = FastAPI()
 
-# --- CORS (чтобы фронт работал) ---
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# 👉 чтобы открывать index.html через http://127.0.0.1:8000
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
 
-# --- данные ---
-signals = []
+clients = set()
 
-symbols = ["EUR/USD", "USD/JPY", "GBP/USD", "AUD/USD", "EUR/JPY"]
+price = 1.1000
+current_candle = None
+candle_start = time.time()
+candles = []
 
-# --- генерация сигнала ---
-def generate_signal():
+def tick():
+    global price
+    price += random.uniform(-0.0002, 0.0002)
+    return round(price, 5)
+
+def new_candle(p):
     return {
-        "symbol": random.choice(symbols),
-        "signal": random.choice(["BUY", "SELL"]),
-        "probability": random.randint(70, 95),
-        "time": time.time()
+        "open": p,
+        "high": p,
+        "low": p,
+        "close": p
     }
 
-# --- ОТДАЁМ HTML (ГЛАВНОЕ) ---
-@app.get("/", response_class=HTMLResponse)
-def home():
+@app.websocket("/ws")
+async def websocket_endpoint(ws: WebSocket):
+    await ws.accept()
+    clients.add(ws)
+
+    global current_candle, candle_start
+
     try:
-        with open("index.html", "r", encoding="utf-8") as f:
-            return f.read()
-    except:
-        return "<h1>index.html not found</h1>"
-
-# --- API сигналов ---
-@app.get("/signals")
-def get_signals():
-    return signals[-10:]
-
-# --- генератор сигналов ---
-@app.on_event("startup")
-async def start():
-    async def loop():
         while True:
-            signals.append(generate_signal())
+            p = tick()
+            now = time.time()
 
-            # ограничение
-            if len(signals) > 50:
-                signals.pop(0)
+            if current_candle is None:
+                current_candle = new_candle(p)
+                candle_start = now
 
-            await asyncio.sleep(5)
+            current_candle["high"] = max(current_candle["high"], p)
+            current_candle["low"] = min(current_candle["low"], p)
+            current_candle["close"] = p
 
-    asyncio.create_task(loop())
+            if now - candle_start >= 10:
+                candles.append(current_candle)
+                current_candle = new_candle(p)
+                candle_start = now
+
+            data = {
+                "price": p,
+                "candles": candles[-60:]
+            }
+
+            dead = []
+            for c in clients:
+                try:
+                    await c.send_text(json.dumps(data))
+                except:
+                    dead.append(c)
+
+            for d in dead:
+                clients.remove(d)
+
+            await asyncio.sleep(1)
+
+    except:
+        clients.remove(ws)
+
+@app.get("/")
+def root():
+    return {"status": "running"}
