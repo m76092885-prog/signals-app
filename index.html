@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+<!-- ✅ стабильная версия -->
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
 body{
@@ -66,11 +67,13 @@ body{
 
 <script>
 
+// 🔥 проверка
+console.log("Chart lib:", typeof LightweightCharts)
+
 // создаём график
 const chart = LightweightCharts.createChart(document.getElementById('chart'), {
     layout: { background: { color: '#0f172a' }, textColor: '#aaa' },
-    grid: { vertLines: { color: '#1f2937' }, horzLines: { color: '#1f2937' } },
-    crosshair: { mode: 0 }
+    grid: { vertLines: { color: '#1f2937' }, horzLines: { color: '#1f2937' } }
 })
 
 const candleSeries = chart.addCandlestickSeries()
@@ -90,10 +93,9 @@ ws.onmessage = (e)=>{
 
     document.getElementById("price").innerText = data.price
 
-    if(!data.candles) return
-
-    // 🔥 тут уже правильный формат с time
-    candleSeries.setData(data.candles)
+    if(data.candles){
+        candleSeries.setData(data.candles)
+    }
 }
 
 ws.onerror = (e)=>{
@@ -103,4 +105,5 @@ ws.onerror = (e)=>{
 </script>
 
 </body>
+</html>
 </html>
