@@ -10,11 +10,10 @@
 body{
     margin:0;
     background:#0b0f1a;
-    font-family:Arial;
     color:white;
+    font-family:Arial;
 }
 
-/* 💎 окно как у брокера */
 .trade-box{
     position:fixed;
     top:50%;
@@ -24,41 +23,32 @@ body{
     height:85%;
     background:#0f172a;
     border-radius:20px;
-    box-shadow:0 0 60px rgba(0,0,0,0.8);
     overflow:hidden;
     display:flex;
     flex-direction:column;
 }
 
-/* график */
 #chart{
     flex:1;
 }
 
-/* панель */
 .panel{
-    height:90px;
+    height:80px;
     background:#020617;
     display:flex;
     justify-content:space-around;
     align-items:center;
 }
 
-/* кнопки как трейдинг */
 .btn{
-    padding:14px 30px;
-    border-radius:12px;
-    font-size:18px;
+    padding:12px 30px;
+    border-radius:10px;
     cursor:pointer;
+    font-size:18px;
 }
 
-.buy{
-    background:#16a34a;
-}
-
-.sell{
-    background:#dc2626;
-}
+.buy{ background:#16a34a }
+.sell{ background:#dc2626 }
 
 </style>
 </head>
@@ -70,36 +60,28 @@ body{
 
     <div class="panel">
         <div class="btn buy">CALL</div>
-        <div id="price">0.00000</div>
+        <div id="price">0.0000</div>
         <div class="btn sell">PUT</div>
     </div>
 </div>
 
 <script>
 
-// 🚀 создаём график как у TradingView
 const chart = LightweightCharts.createChart(document.getElementById('chart'), {
-    layout: {
-        background: { color: '#0f172a' },
-        textColor: '#ccc',
-    },
-    grid: {
-        vertLines: { color: '#1f2937' },
-        horzLines: { color: '#1f2937' },
-    },
-    timeScale: {
-        timeVisible: true,
-        secondsVisible: true,
-    },
+    layout: { background: { color: '#0f172a' }, textColor: '#aaa' },
+    grid: { vertLines: { color: '#1f2937' }, horzLines: { color: '#1f2937' } },
+    timeScale: { timeVisible: true, secondsVisible: true },
 })
 
-// свечи
 const candleSeries = chart.addCandlestickSeries()
 
-// 🔌 WebSocket
+// 🔥 ВАЖНО: база времени
+let baseTime = Math.floor(Date.now() / 1000)
+
+// 🔌 WS
 const ws = new WebSocket(
-    (location.protocol === "https:" ? "wss://" : "ws://")
-    + location.host + "/ws"
+    (location.protocol === "https:" ? "wss://" : "ws://") +
+    location.host + "/ws"
 )
 
 ws.onmessage = (e)=>{
@@ -108,29 +90,23 @@ ws.onmessage = (e)=>{
 
     document.getElementById("price").innerText = data.price
 
-    // преобразуем свечи
-    const formatted = data.candles.map((c,i)=>({
-        time: Math.floor(Date.now()/1000) - (data.candles.length - i)*10,
-        open: c.open,
-        high: c.high,
-        low: c.low,
-        close: c.close
-    }))
+    if(!data.candles || data.candles.length === 0) return
+
+    // 🔥 ДЕЛАЕМ НОРМАЛЬНЫЕ ВРЕМЕНА
+    let time = baseTime - data.candles.length * 10
+
+    const formatted = data.candles.map(c=>{
+        time += 10
+        return {
+            time: time,
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close
+        }
+    })
 
     candleSeries.setData(formatted)
-
-    // обновляем последнюю
-    if(data.candles.length > 0){
-        const last = data.candles[data.candles.length-1]
-
-        candleSeries.update({
-            time: Math.floor(Date.now()/1000),
-            open: last.open,
-            high: last.high,
-            low: last.low,
-            close: last.close
-        })
-    }
 }
 
 </script>
