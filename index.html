@@ -12,295 +12,129 @@ body{
     font-family:Arial;
 }
 
-/* ===== MAIN */
-#main{
-    padding:20px;
-    transition:0.2s;
-}
+#main{ padding:20px; transition:.2s; }
+.title{ font-size:24px; margin-bottom:10px; }
+.winrate{ margin-bottom:15px; color:#38bdf8; }
 
-.title{
-    font-size:24px;
-    margin-bottom:10px;
-}
-
-.winrate{
-    margin-bottom:15px;
-    font-size:18px;
-    color:#38bdf8;
-}
-
-/* ===== SIGNAL */
 .signal{
     position:relative;
     overflow:hidden;
-
     background:linear-gradient(145deg,#0f172a,#020617);
     border:1px solid #1f2937;
     padding:16px;
     border-radius:16px;
     margin-bottom:12px;
     cursor:pointer;
-
-    transition: all 0.2s ease;
+    transition:.2s;
 }
 
 .signal:hover{
-    transform: scale(1.03);
-    border-color:#38bdf8;
-    box-shadow:0 0 20px rgba(56,189,248,0.25);
+    transform:scale(1.03);
+    box-shadow:0 0 20px rgba(56,189,248,.25);
 }
 
 .signal:active{
-    transform: scale(0.97);
-    box-shadow:0 0 25px rgba(56,189,248,0.4);
+    transform:scale(.97);
 }
 
-.signal::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    border-radius:16px;
-    opacity:0;
-    transition:0.3s;
-}
-
-.signal:active::after{
-    opacity:1;
-    box-shadow:0 0 30px rgba(56,189,248,0.4) inset;
-}
-
-/* ===== HISTORY */
-.history{
-    margin-top:20px;
-}
-
-.history-item{
-    font-size:14px;
-    margin-bottom:6px;
-    opacity:0.8;
-}
-
-/* ===== TRADE */
 #trade{
     display:none;
     height:100vh;
     flex-direction:column;
-    transition:0.2s;
 }
 
-.chart-box{
-    height:60%;
-    background:#020617;
-}
+.chart-box{ height:60%; }
+.info-box{ padding:15px; }
 
-.info-box{
-    height:40%;
-    padding:15px;
-}
-
-/* ===== BACK */
 .back{
-    display:inline-block;
     padding:10px 16px;
     border-radius:12px;
-
-    background:linear-gradient(145deg,#111827,#020617);
-    border:1px solid #1f2937;
-
+    background:#111827;
+    display:inline-block;
     cursor:pointer;
-    margin-bottom:12px;
-
-    transition:0.2s;
-}
-
-.back:hover{
-    transform:scale(1.05);
-    border-color:#38bdf8;
-    box-shadow:0 0 15px rgba(56,189,248,0.3);
-}
-
-.back:active{
-    transform:scale(0.95);
-    box-shadow:0 0 20px rgba(56,189,248,0.5) inset;
+    margin-bottom:10px;
 }
 
 .green{ color:#00ff88 }
 .red{ color:#ff3b3b }
 
-canvas{
-    width:100%;
-    height:100%;
-}
+canvas{ width:100%; height:100%; }
 
 </style>
 </head>
 
 <body>
 
-<!-- ===== MAIN -->
 <div id="main">
     <div class="title">Signals</div>
-
-    <div class="winrate">
-        Winrate (last 10): <span id="wr">0%</span>
-    </div>
-
+    <div class="winrate">Winrate: <span id="wr">0%</span></div>
     <div id="signals"></div>
-
-    <div class="history">
-        <div class="title">History</div>
-        <div id="history"></div>
-    </div>
 </div>
 
-<!-- ===== TRADE -->
 <div id="trade">
-
     <div class="chart-box">
         <canvas id="chart"></canvas>
     </div>
-
     <div class="info-box">
         <div class="back" onclick="back()">← Назад</div>
-
         <div id="pair"></div>
         <div id="timer"></div>
         <div id="profit"></div>
-        <div id="reason"></div>
     </div>
-
 </div>
 
 <script>
 
-// ===== TELEGRAM FIX
-(function(){
-    function reset(){
-        document.getElementById("main").style.display="block"
-        document.getElementById("trade").style.display="none"
-    }
-    reset()
-    setTimeout(reset,200)
-})()
-
 // ===== DATA
 let signals = [
-    {pair:"EUR/USD", direction:"BUY", reason:"RSI oversold", time:30},
-    {pair:"GBP/USD", direction:"SELL", reason:"Resistance", time:30},
-    {pair:"USD/JPY", direction:"BUY", reason:"Breakout", time:30},
+    {pair:"EUR/USD", direction:"BUY", time:30},
+    {pair:"GBP/USD", direction:"SELL", time:30}
 ]
 
-let history = []
-
-// ===== RENDER
 function renderSignals(){
-    let box=document.getElementById("signals")
-    box.innerHTML=""
+    let box = document.getElementById("signals")
+    box.innerHTML = ""
 
     signals.forEach((s,i)=>{
-        let color=s.direction==="BUY"?"#00ff88":"#ff3b3b"
+        let c = s.direction==="BUY"?"#00ff88":"#ff3b3b"
 
-        box.innerHTML+=`
-            <div class="signal" onclick="openTrade(${i})">
-                <b>${s.pair}</b><br>
-                <span style="color:${color}">${s.direction}</span>
-            </div>
-        `
+        box.innerHTML += `
+        <div class="signal" onclick="openTrade(${i})">
+            ${s.pair}<br>
+            <span style="color:${c}">${s.direction}</span>
+        </div>`
     })
 }
 
-function renderHistory(){
-    let box=document.getElementById("history")
-    box.innerHTML=""
-
-    history.slice().reverse().forEach(h=>{
-        box.innerHTML+=`
-            <div class="history-item">
-                ${h.pair} | ${h.direction} →
-                <span class="${h.result==='WIN'?'green':'red'}">
-                    ${h.result}
-                </span>
-            </div>
-        `
-    })
-}
-
-function updateWinrate(){
-    let last=history.slice(-10)
-
-    if(last.length===0){
-        document.getElementById("wr").innerText="0%"
-        return
-    }
-
-    let wins=last.filter(h=>h.result==="WIN").length
-    let wr=Math.round((wins/last.length)*100)
-
-    document.getElementById("wr").innerText=wr+"%"
-}
+renderSignals()
 
 // ===== NAV
-let active=null
+let active = null
 
 function openTrade(i){
-    active=signals[i]
+    active = signals[i]
 
-    let main=document.getElementById("main")
-    let trade=document.getElementById("trade")
-
-    main.style.opacity="0"
-
-    setTimeout(()=>{
-        main.style.display="none"
-        trade.style.display="flex"
-        trade.style.opacity="0"
-
-        setTimeout(()=>{
-            trade.style.opacity="1"
-        },50)
-    },150)
+    document.getElementById("main").style.display="none"
+    document.getElementById("trade").style.display="flex"
 
     document.getElementById("pair").innerText =
         active.pair+" | "+active.direction
-
-    document.getElementById("reason").innerText =
-        "Reason: "+active.reason
 
     startTrade()
 }
 
 function back(){
-
-    let main=document.getElementById("main")
-    let trade=document.getElementById("trade")
-
-    if(loop) clearInterval(loop)
-
-    trade.style.opacity="0"
-
-    setTimeout(()=>{
-        trade.style.display="none"
-
-        main.style.display="block"
-        main.style.opacity="0"
-
-        renderSignals()
-        renderHistory()
-        updateWinrate()
-
-        setTimeout(()=>{
-            main.style.opacity="1"
-        },50)
-
-    },150)
+    running = false
+    document.getElementById("trade").style.display="none"
+    document.getElementById("main").style.display="block"
 }
 
-// ===== GRAPH
-const canvas=document.getElementById("chart")
-const ctx=canvas.getContext("2d")
+// ===== GRAPH ENGINE (FIXED)
+const canvas = document.getElementById("chart")
+const ctx = canvas.getContext("2d")
 
-canvas.width=window.innerWidth
-canvas.height=window.innerHeight*0.6
+canvas.width = window.innerWidth
+canvas.height = window.innerHeight*0.6
 
 let candles=[]
 let current=null
@@ -311,59 +145,84 @@ function newCandle(p){
     return {open:p,high:p,low:p,close:p}
 }
 
-function generateHistory(){
+function generate(){
     candles=[]
     price=100
 
     for(let i=0;i<40;i++){
-        let open=price
-        let close=open+(Math.random()-0.5)*2
-        let high=Math.max(open,close)+Math.random()
-        let low=Math.min(open,close)-Math.random()
+        let o=price
+        let c=o+(Math.random()-0.5)*2
+        let h=Math.max(o,c)+Math.random()
+        let l=Math.min(o,c)-Math.random()
 
-        candles.push({open,high,low,close})
-        price=close
+        candles.push({open:o,high:h,low:l,close:c})
+        price=c
     }
 
     current=newCandle(price)
 }
 
-function tick(){
-    price += (Math.random()-0.5)*0.6
+// ===== GAME LOOP
+let running=false
+let lastTime=0
+let candleTimer=0
+let timeLeft=0
 
-    current.high=Math.max(current.high,price)
-    current.low=Math.min(current.low,price)
-    current.close=price
+function loop(t){
+
+    if(!running) return
+
+    let dt = t - lastTime
+    lastTime = t
+
+    candleTimer += dt
+
+    // обновление цены
+    price += (Math.random()-0.5)*0.2
+    current.high = Math.max(current.high,price)
+    current.low = Math.min(current.low,price)
+    current.close = price
+
+    // новая свеча каждые 2 сек
+    if(candleTimer > 2000){
+        candles.push(current)
+        if(candles.length>60) candles.shift()
+        current = newCandle(price)
+        candleTimer = 0
+    }
+
+    draw()
+
+    // таймер сделки
+    timeLeft -= dt/1000
+
+    let profit = price - entry
+
+    document.getElementById("timer").innerText =
+        "Time: "+Math.max(0,Math.floor(timeLeft))
+
+    document.getElementById("profit").innerText =
+        "P/L: "+profit.toFixed(2)
+
+    requestAnimationFrame(loop)
 }
 
-setInterval(()=>{
-    if(!current) return
-    candles.push(current)
-    if(candles.length>60) candles.shift()
-    current=newCandle(price)
-},2000)
-
-// 🔥 ЯРКИЙ ГРАФИК
+// ===== DRAW (ЧЁТКИЙ)
 function draw(){
 
     ctx.clearRect(0,0,canvas.width,canvas.height)
 
     let all=[...candles,current].filter(Boolean)
-    if(all.length<2) return
 
     let max=Math.max(...all.map(c=>c.high))
     let min=Math.min(...all.map(c=>c.low))
-
-    let range=max-min
-    if(range<2) range=2
+    let range=max-min || 1
 
     let w=canvas.width/all.length
 
-    ctx.imageSmoothingEnabled=false
-
     all.forEach((c,i)=>{
 
-        let x=Math.floor(i*w)
+        let x=i*w
         let scale=canvas.height/range
 
         let o=canvas.height-(c.open-min)*scale
@@ -373,7 +232,6 @@ function draw(){
 
         let up=c.close>c.open
 
-        // фитиль
         ctx.strokeStyle=up?"#00ff88":"#ff3b3b"
         ctx.lineWidth=2
 
@@ -382,92 +240,30 @@ function draw(){
         ctx.lineTo(x+w/2,lo)
         ctx.stroke()
 
-        // тело
-        let bodyTop=Math.min(o,cl)
-        let bodyHeight=Math.abs(o-cl)
-        if(bodyHeight<2) bodyHeight=2
-
-        ctx.fillStyle=up?"#00ff88":"#ff2d2d"
-
-        // glow
-        ctx.shadowColor=up?"#00ff88":"#ff2d2d"
-        ctx.shadowBlur=10
+        ctx.fillStyle=up?"#00ff88":"#ff3b3b"
 
         ctx.fillRect(
-            x+w*0.2,
-            bodyTop,
-            w*0.6,
-            bodyHeight
+            x+w*0.25,
+            Math.min(o,cl),
+            w*0.5,
+            Math.abs(o-cl)||2
         )
-
-        ctx.shadowBlur=0
     })
-
-    // линия входа
-    let entryY=canvas.height-((entry-min)/range)*canvas.height
-
-    ctx.strokeStyle="#00e0ff"
-    ctx.lineWidth=2
-    ctx.setLineDash([6,6])
-
-    ctx.beginPath()
-    ctx.moveTo(0,entryY)
-    ctx.lineTo(canvas.width,entryY)
-    ctx.stroke()
-
-    ctx.setLineDash([])
 }
 
-// ===== TRADE
-let loop=null
-let timeLeft=0
-
+// ===== START TRADE
 function startTrade(){
 
-    generateHistory()
+    generate()
 
-    entry=price
-    timeLeft=active.time
+    entry = price
+    timeLeft = active.time
 
-    if(loop) clearInterval(loop)
+    running = true
+    lastTime = performance.now()
 
-    loop=setInterval(()=>{
-
-        tick()
-        draw()
-
-        let profit=price-entry
-
-        document.getElementById("timer").innerText="Time: "+timeLeft
-        document.getElementById("profit").innerText="P/L: "+profit.toFixed(2)
-
-        document.getElementById("profit").className =
-            profit>=0?"green":"red"
-
-        timeLeft--
-
-        if(timeLeft<=0){
-            clearInterval(loop)
-
-            let result=profit>=0?"WIN":"LOSS"
-
-            history.push({
-                pair:active.pair,
-                direction:active.direction,
-                result:result
-            })
-
-            updateWinrate()
-            renderHistory()
-        }
-
-    },150)
+    requestAnimationFrame(loop)
 }
-
-// INIT
-renderSignals()
-renderHistory()
-updateWinrate()
 
 </script>
 
