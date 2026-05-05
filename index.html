@@ -12,7 +12,7 @@ body{
     font-family:Arial;
 }
 
-/* ===== MAIN (СПИСОК) */
+/* ===== MAIN SCREEN ===== */
 #main{
     padding:20px;
 }
@@ -37,7 +37,7 @@ body{
     box-shadow:0 0 20px rgba(56,189,248,0.3);
 }
 
-/* ===== FLOAT WINDOWS */
+/* ===== FLOAT WINDOWS ===== */
 .window{
     position:fixed;
     left:10px;
@@ -48,142 +48,158 @@ body{
     backdrop-filter:blur(10px);
 }
 
-/* график */
+/* ===== CHART WINDOW ===== */
 #chartWindow{
     top:10px;
     height:50vh;
 
     background:
     linear-gradient(#020617,#020617),
-    repeating-linear-gradient(0deg,
-        rgba(255,255,255,0.05) 0px,
-        rgba(255,255,255,0.05) 1px,
+    repeating-linear-gradient(
+        0deg,
+        rgba(56,189,248,0.12) 0px,
+        rgba(56,189,248,0.12) 1px,
         transparent 1px,
-        transparent 40px),
-    repeating-linear-gradient(90deg,
-        rgba(255,255,255,0.05) 0px,
-        rgba(255,255,255,0.05) 1px,
+        transparent 35px
+    ),
+    repeating-linear-gradient(
+        90deg,
+        rgba(56,189,248,0.12) 0px,
+        rgba(56,189,248,0.12) 1px,
         transparent 1px,
-        transparent 40px);
+        transparent 35px
+    );
 }
 
-/* инфо */
+/* ===== INFO WINDOW ===== */
 #infoWindow{
     bottom:10px;
     height:40vh;
     padding:15px;
     background:#020617;
+    display:flex;
+    flex-direction:column;
 }
 
-/* кнопка назад */
+.info-content{
+    flex:1;
+}
+
+/* ===== BACK BUTTON ===== */
 .back{
-    padding:10px 14px;
-    border-radius:10px;
+    padding:12px;
+    border-radius:12px;
     background:#111827;
-    display:inline-block;
+    text-align:center;
     cursor:pointer;
-    margin-bottom:10px;
+    margin-top:10px;
     transition:.2s;
 }
 
 .back:hover{
-    transform:scale(1.05);
+    transform:scale(1.03);
     box-shadow:0 0 15px rgba(56,189,248,0.4);
 }
 
 .green{color:#00ff88}
 .red{color:#ff3b3b}
 
+/* ===== CANVAS ===== */
 canvas{
     width:100%;
     height:100%;
+    cursor:grab;
+}
+canvas:active{
+    cursor:grabbing;
 }
 </style>
 </head>
 
 <body>
 
-<!-- ===== СПИСОК -->
+<!-- ===== MAIN ===== -->
 <div id="main">
     <div class="title">Signals</div>
     <div id="signals"></div>
 </div>
 
-<!-- ===== ГРАФИК -->
+<!-- ===== CHART WINDOW ===== -->
 <div id="chartWindow" class="window" style="display:none">
     <canvas id="chart"></canvas>
 </div>
 
-<!-- ===== ИНФО -->
+<!-- ===== INFO WINDOW ===== -->
 <div id="infoWindow" class="window" style="display:none">
 
-    <div class="back" onclick="goBack()">← Назад</div>
+    <div class="info-content">
+        <div id="pair"></div>
+        <div id="timer"></div>
+        <div id="profit"></div>
+    </div>
 
-    <div id="pair"></div>
-    <div id="timer"></div>
-    <div id="profit"></div>
+    <div class="back" onclick="goBack()">← Назад</div>
 
 </div>
 
 <script>
 
-// ===== SIGNALS
+// ===== SIGNALS =====
 let signals = [
     {pair:"EUR/USD", direction:"BUY", time:30},
     {pair:"GBP/USD", direction:"SELL", time:30},
     {pair:"USD/JPY", direction:"BUY", time:30},
 ]
 
-// ===== RENDER
+// ===== RENDER SIGNALS =====
 function renderSignals(){
-    let box = document.getElementById("signals")
+    let box=document.getElementById("signals")
     box.innerHTML=""
 
     signals.forEach((s,i)=>{
-        let c = s.direction==="BUY" ? "#00ff88" : "#ff3b3b"
+        let c=s.direction==="BUY"?"#00ff88":"#ff3b3b"
 
-        box.innerHTML += `
+        box.innerHTML+=`
         <div class="signal" onclick="openTrade(${i})">
             <b>${s.pair}</b><br>
             <span style="color:${c}">${s.direction}</span>
         </div>`
     })
 }
-
 renderSignals()
 
-// ===== NAV
+// ===== NAV =====
 let active=null
 
 function openTrade(i){
-
-    active = signals[i]
+    active=signals[i]
 
     document.getElementById("main").style.display="none"
     document.getElementById("chartWindow").style.display="block"
-    document.getElementById("infoWindow").style.display="block"
+    document.getElementById("infoWindow").style.display="flex"
 
     document.getElementById("pair").innerText =
-        active.pair + " | " + active.direction
+        active.pair+" | "+active.direction
 
     start()
 }
 
 function goBack(){
-
-    running = false
+    running=false
 
     document.getElementById("chartWindow").style.display="none"
     document.getElementById("infoWindow").style.display="none"
     document.getElementById("main").style.display="block"
+
+    offsetX = 0
 }
 
-// ===== GRAPH
-const canvas = document.getElementById("chart")
-const ctx = canvas.getContext("2d")
+// ===== CANVAS =====
+const canvas=document.getElementById("chart")
+const ctx=canvas.getContext("2d")
 
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight * 0.5
+canvas.width=window.innerWidth
+canvas.height=window.innerHeight*0.5
 
 let candles=[]
 let current=null
@@ -198,7 +214,7 @@ function generate(){
     candles=[]
     price=100
 
-    for(let i=0;i<80;i++){
+    for(let i=0;i<100;i++){
         let o=price
         let c=o+(Math.random()-0.5)*2
         let h=Math.max(o,c)+Math.random()
@@ -211,21 +227,38 @@ function generate(){
     current=newCandle(price)
 }
 
-// ===== LOOP
+// ===== DRAG =====
+let dragging=false
+let startX=0
+let offsetX=0
+
+canvas.addEventListener("mousedown",(e)=>{
+    dragging=true
+    startX=e.clientX
+})
+
+window.addEventListener("mouseup",()=>dragging=false)
+
+window.addEventListener("mousemove",(e)=>{
+    if(!dragging) return
+    offsetX += (e.clientX - startX)*0.4
+    startX=e.clientX
+})
+
+// ===== LOOP =====
 let running=false
 let last=0
 let timer=0
 let timeLeft=0
 
 function loop(t){
-
     if(!running) return
 
-    let dt = t-last
+    let dt=t-last
     last=t
     timer+=dt
 
-    price += (Math.random()-0.5)*0.2
+    price += (Math.random()-0.5)*0.25
 
     current.high=Math.max(current.high,price)
     current.low=Math.min(current.low,price)
@@ -233,7 +266,7 @@ function loop(t){
 
     if(timer>2000){
         candles.push(current)
-        if(candles.length>100) candles.shift()
+        if(candles.length>120) candles.shift()
         current=newCandle(price)
         timer=0
     }
@@ -242,21 +275,21 @@ function loop(t){
 
     timeLeft -= dt/1000
 
-    let profit = price-entry
+    let profit=price-entry
 
-    document.getElementById("timer").innerText =
+    document.getElementById("timer").innerText=
         "Time: "+Math.max(0,Math.floor(timeLeft))
 
-    document.getElementById("profit").innerText =
+    document.getElementById("profit").innerText=
         "P/L: "+profit.toFixed(2)
 
-    document.getElementById("profit").className =
-        profit>=0 ? "green" : "red"
+    document.getElementById("profit").className=
+        profit>=0?"green":"red"
 
     requestAnimationFrame(loop)
 }
 
-// ===== DRAW (центр)
+// ===== DRAW =====
 function draw(){
 
     ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -267,12 +300,12 @@ function draw(){
     let min=Math.min(...all.map(c=>c.low))
     let range=max-min || 1
 
-    let center = Math.floor(all.length/2)
-    let w = canvas.width/20
+    let w=canvas.width/25
+    let center=Math.floor(all.length/2)
 
     all.forEach((c,i)=>{
 
-        let x = (i-center)*w + canvas.width/2
+        let x=(i-center)*w + canvas.width/2 + offsetX
 
         let scale=canvas.height/range
 
@@ -307,10 +340,10 @@ function draw(){
     })
 }
 
-// ===== START
+// ===== START =====
 function start(){
-
     generate()
+
     entry=price
     timeLeft=active.time
 
