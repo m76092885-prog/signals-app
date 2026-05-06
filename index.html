@@ -5,47 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+
 body{
     margin:0;
-    font-family:monospace;
     background:#0d1117;
     color:white;
-    overflow:hidden;
+    font-family:monospace;
 }
 
-/* ===== BACKGROUND ===== */
-#bg{
-    position:fixed;
-    width:100%;
-    height:100%;
-    z-index:-1;
-    filter:blur(80px);
-}
-
-/* ===== DASH ===== */
-#dashboard{
-    position:absolute;
-    top:10px;
-    left:10px;
-    font-size:14px;
-    opacity:0.7;
-}
-
-/* ===== CARD ===== */
-.card{
-    width:90%;
-    max-width:400px;
-    margin:auto;
-    margin-top:100px;
+/* ===== SIGNAL LIST ===== */
+#main{
     padding:20px;
+}
 
-    background:rgba(255,255,255,0.05);
-    backdrop-filter:blur(20px);
+.title{
+    font-size:20px;
+    margin-bottom:10px;
+    color:#00ffc3;
+}
 
-    border-radius:20px;
-    border:1px solid rgba(255,255,255,0.1);
+.signal{
+    padding:15px;
+    margin-bottom:10px;
 
-    text-align:center;
+    background:#111;
+    border-radius:12px;
+
+    border:1px solid #1f2937;
+
+    cursor:pointer;
+    transition:.2s;
+}
+
+.signal:hover{
+    transform:scale(1.02);
+    box-shadow:0 0 12px rgba(0,255,200,0.3);
 }
 
 /* ===== WINDOWS ===== */
@@ -53,26 +47,30 @@ body{
     position:fixed;
     left:10px;
     right:10px;
-    border-radius:18px;
-    border:1px solid rgba(56,189,248,0.2);
+    border-radius:16px;
 }
 
 /* ===== CHART ===== */
 #chartWindow{
     top:10px;
     height:50vh;
+
     background:
     linear-gradient(#020617,#020617),
-    repeating-linear-gradient(0deg,
-        rgba(56,189,248,0.05) 0px,
-        rgba(56,189,248,0.05) 1px,
+    repeating-linear-gradient(
+        0deg,
+        rgba(0,255,200,0.05) 0px,
+        rgba(0,255,200,0.05) 1px,
         transparent 1px,
-        transparent 30px),
-    repeating-linear-gradient(90deg,
-        rgba(56,189,248,0.05) 0px,
-        rgba(56,189,248,0.05) 1px,
+        transparent 30px
+    ),
+    repeating-linear-gradient(
+        90deg,
+        rgba(0,255,200,0.05) 0px,
+        rgba(0,255,200,0.05) 1px,
         transparent 1px,
-        transparent 30px);
+        transparent 30px
+    );
 }
 
 /* ===== INFO ===== */
@@ -80,45 +78,52 @@ body{
     bottom:10px;
     height:40vh;
     padding:15px;
+
     background:#020617;
+
     display:flex;
     flex-direction:column;
+
+    border:1px solid rgba(0,255,200,0.2);
 }
 
+/* ===== TEXT ===== */
+.green{color:#00ff88}
+.red{color:#ff3b3b}
+
+/* ===== BACK ===== */
 .back{
-    padding:10px;
+    margin-top:10px;
+    padding:12px;
+    text-align:center;
+
     background:#111;
     border-radius:10px;
-    text-align:center;
+
     cursor:pointer;
+    transition:.2s;
 }
 
-/* ===== COLORS ===== */
-.green{color:#00c853}
-.red{color:#ff1744}
+.back:hover{
+    box-shadow:0 0 10px rgba(0,255,200,0.4);
+}
 
+/* ===== CANVAS ===== */
 canvas{
     width:100%;
     height:100%;
     touch-action:none;
 }
+
 </style>
 </head>
 
 <body>
 
-<div id="bg"></div>
-
-<div id="dashboard">
-Winrate (24h): 82%
-</div>
-
-<!-- SIGNAL CARD -->
-<div id="main" class="card">
-    <div id="pair">EUR/USD</div>
-    <canvas id="gauge"></canvas>
-    <div id="signal">BUY</div>
-    <div class="back" onclick="openTrade()">Open</div>
+<!-- SIGNALS -->
+<div id="main">
+    <div class="title">Signals</div>
+    <div id="signals"></div>
 </div>
 
 <!-- CHART -->
@@ -128,101 +133,71 @@ Winrate (24h): 82%
 
 <!-- INFO -->
 <div id="infoWindow" class="window" style="display:none">
+
+    <div id="pair"></div>
     <div id="timer"></div>
     <div id="profit"></div>
+
     <div class="back" onclick="goBack()">← Назад</div>
+
 </div>
 
 <script>
 
-// ===== SIGNAL
+// ===== DATA
 let signals=[
-    {pair:"EUR/USD",dir:"BUY",power:0.8,time:30},
-    {pair:"BTC/USDT",dir:"SELL",power:0.3,time:30}
+    {pair:"EUR/USD",dir:"BUY",time:30},
+    {pair:"GBP/USD",dir:"SELL",time:30},
+    {pair:"BTC/USDT",dir:"BUY",time:30}
 ]
 
-let i=0
-let active=signals[i]
+// ===== RENDER LIST
+function renderSignals(){
+    signalsEl.innerHTML=""
 
-// ===== RENDER
-function render(){
-    active=signals[i]
-    pair.innerText=active.pair
-    signal.innerText=active.dir
-    drawGauge(active.power)
-    setMood(active.power)
+    signals.forEach((s,i)=>{
+
+        let c=s.dir==="BUY"?"#00ff88":"#ff3b3b"
+
+        signalsEl.innerHTML+=`
+        <div class="signal" onclick="openTrade(${i})">
+            <b>${s.pair}</b><br>
+            <span style="color:${c}">${s.dir}</span>
+        </div>`
+    })
 }
-render()
 
-// ===== NEXT (SWIPE)
-let startX=0
+const signalsEl=document.getElementById("signals")
+renderSignals()
 
-main.addEventListener("touchstart",e=>{
-    startX=e.touches[0].clientX
-})
+// ===== NAV
+let active=null
 
-main.addEventListener("touchend",e=>{
-    let dx=e.changedTouches[0].clientX-startX
-    if(Math.abs(dx)>50){
-        i=(i+1)%signals.length
-        render()
-    }
-})
+function openTrade(i){
 
-// ===== OPEN TRADE
-function openTrade(){
-
-    if(window.Telegram){
-        Telegram.WebApp.HapticFeedback.impactOccurred("medium")
-    }
+    active=signals[i]
 
     main.style.display="none"
     chartWindow.style.display="block"
     infoWindow.style.display="flex"
+
+    pair.innerText=active.pair+" | "+active.dir
 
     start()
 }
 
 function goBack(){
     running=false
+
     chartWindow.style.display="none"
     infoWindow.style.display="none"
+
     main.style.display="block"
+
+    offsetX=0
 }
 
-// ===== GAUGE
-const g=document.getElementById("gauge")
-const gctx=g.getContext("2d")
-g.width=200
-g.height=100
-
-function drawGauge(p){
-    gctx.clearRect(0,0,200,100)
-
-    gctx.beginPath()
-    gctx.arc(100,100,80,Math.PI,0)
-    gctx.strokeStyle="#333"
-    gctx.lineWidth=10
-    gctx.stroke()
-
-    let a=Math.PI+p*Math.PI
-
-    gctx.beginPath()
-    gctx.moveTo(100,100)
-    gctx.lineTo(100+Math.cos(a)*70,100+Math.sin(a)*70)
-    gctx.strokeStyle="#00ffcc"
-    gctx.lineWidth=3
-    gctx.stroke()
-}
-
-// ===== MOOD
-function setMood(p){
-    if(p>0.7) bg.style.background="radial-gradient(#00ff99,#001)"
-    else if(p<0.3) bg.style.background="radial-gradient(#ff0033,#001)"
-    else bg.style.background="radial-gradient(#00ccff,#001)"
-}
-
-// ===== CHART
+// ===== CANVAS
 const canvas=document.getElementById("chart")
 const ctx=canvas.getContext("2d")
 
@@ -238,28 +213,45 @@ function newCandle(p){
     return {open:p,high:p,low:p,close:p}
 }
 
+// ===== INIT DATA
 function generate(){
     candles=[]
     for(let i=0;i<80;i++){
         let o=price
         let c=o+(Math.random()-0.5)*1.5
-        candles.push({open:o,high:Math.max(o,c),low:Math.min(o,c),close:c})
+
+        candles.push({
+            open:o,
+            high:Math.max(o,c),
+            low:Math.min(o,c),
+            close:c
+        })
+
         price=c
     }
+
     current=newCandle(price)
 }
 
 // ===== DRAG
 let dragging=false,startX=0,offsetX=0
 
-canvas.addEventListener("mousedown",e=>{dragging=true;startX=e.clientX})
-canvas.addEventListener("touchstart",e=>{dragging=true;startX=e.touches[0].clientX})
+canvas.addEventListener("mousedown",e=>{
+    dragging=true
+    startX=e.clientX
+})
+
+canvas.addEventListener("touchstart",e=>{
+    dragging=true
+    startX=e.touches[0].clientX
+})
 
 window.addEventListener("mousemove",e=>{
     if(!dragging)return
     offsetX+=(e.clientX-startX)
     startX=e.clientX
 })
+
 window.addEventListener("touchmove",e=>{
     if(!dragging)return
     offsetX+=(e.touches[0].clientX-startX)
@@ -294,11 +286,13 @@ function loop(t){
     draw()
 
     timeLeft-=dt
-    let profit=price-entry
+
+    let profitVal=price-entry
 
     timer.innerText="Time: "+Math.max(0,Math.floor(timeLeft))
-    profitEl.innerText="P/L: "+profit.toFixed(2)
-    profitEl.className=profit>=0?"green":"red"
+    profit.innerText="P/L: "+profitVal.toFixed(2)
+
+    profit.className=profitVal>=0?"green":"red"
 
     requestAnimationFrame(loop)
 }
@@ -354,8 +348,10 @@ function start(){
     generate()
     entry=price
     timeLeft=active.time
+
     running=true
     last=performance.now()
+
     requestAnimationFrame(loop)
 }
 
