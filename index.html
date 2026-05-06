@@ -6,14 +6,15 @@
 
 <style>
 
+/* ===== GLOBAL ===== */
 body{
     margin:0;
-    background:#0d1117;
-    color:white;
+    background: radial-gradient(circle at top, #0b0f1a, #05070d);
+    color:#e0e6ff;
     font-family:monospace;
 }
 
-/* ===== SIGNAL LIST ===== */
+/* ===== SIGNAL SCREEN ===== */
 #main{
     padding:20px;
 }
@@ -21,17 +22,18 @@ body{
 .title{
     font-size:20px;
     margin-bottom:10px;
-    color:#00ffc3;
+    color:#ff4dff;
+    text-shadow:0 0 8px #ff4dff;
 }
 
 .signal{
     padding:15px;
     margin-bottom:10px;
 
-    background:#111;
+    background:rgba(20,20,40,0.6);
     border-radius:12px;
 
-    border:1px solid #1f2937;
+    border:1px solid rgba(255,0,255,0.2);
 
     cursor:pointer;
     transition:.2s;
@@ -39,7 +41,7 @@ body{
 
 .signal:hover{
     transform:scale(1.02);
-    box-shadow:0 0 12px rgba(0,255,200,0.3);
+    box-shadow:0 0 15px rgba(255,0,255,0.4);
 }
 
 /* ===== WINDOWS ===== */
@@ -56,18 +58,18 @@ body{
     height:50vh;
 
     background:
-    linear-gradient(#020617,#020617),
+    linear-gradient(#05070d,#05070d),
     repeating-linear-gradient(
         0deg,
-        rgba(0,255,200,0.05) 0px,
-        rgba(0,255,200,0.05) 1px,
+        rgba(0,200,255,0.06) 0px,
+        rgba(0,200,255,0.06) 1px,
         transparent 1px,
         transparent 30px
     ),
     repeating-linear-gradient(
         90deg,
-        rgba(0,255,200,0.05) 0px,
-        rgba(0,255,200,0.05) 1px,
+        rgba(0,200,255,0.06) 0px,
+        rgba(0,200,255,0.06) 1px,
         transparent 1px,
         transparent 30px
     );
@@ -79,19 +81,28 @@ body{
     height:40vh;
     padding:15px;
 
-    background:#020617;
+    background:rgba(10,10,30,0.9);
 
     display:flex;
     flex-direction:column;
 
-    border:1px solid rgba(0,255,200,0.2);
+    border:1px solid rgba(255,0,255,0.2);
+
+    box-shadow:0 0 20px rgba(255,0,255,0.15);
 }
 
 /* ===== TEXT ===== */
-.green{color:#00ff88}
-.red{color:#ff3b3b}
+.green{
+    color:#ff4dff;
+    text-shadow:0 0 6px #ff4dff;
+}
 
-/* ===== BACK ===== */
+.red{
+    color:#ff2a6d;
+    text-shadow:0 0 6px #ff2a6d;
+}
+
+/* ===== BACK BUTTON ===== */
 .back{
     margin-top:10px;
     padding:12px;
@@ -102,10 +113,12 @@ body{
 
     cursor:pointer;
     transition:.2s;
+
+    border:1px solid rgba(255,0,255,0.3);
 }
 
 .back:hover{
-    box-shadow:0 0 10px rgba(0,255,200,0.4);
+    box-shadow:0 0 15px rgba(255,0,255,0.6);
 }
 
 /* ===== CANVAS ===== */
@@ -120,18 +133,18 @@ canvas{
 
 <body>
 
-<!-- SIGNALS -->
+<!-- ===== SIGNALS ===== -->
 <div id="main">
     <div class="title">Signals</div>
     <div id="signals"></div>
 </div>
 
-<!-- CHART -->
+<!-- ===== CHART ===== -->
 <div id="chartWindow" class="window" style="display:none">
     <canvas id="chart"></canvas>
 </div>
 
-<!-- INFO -->
+<!-- ===== INFO ===== -->
 <div id="infoWindow" class="window" style="display:none">
 
     <div id="pair"></div>
@@ -144,20 +157,22 @@ canvas{
 
 <script>
 
-// ===== DATA
+// ===== SIGNAL DATA
 let signals=[
     {pair:"EUR/USD",dir:"BUY",time:30},
     {pair:"GBP/USD",dir:"SELL",time:30},
     {pair:"BTC/USDT",dir:"BUY",time:30}
 ]
 
-// ===== RENDER LIST
+// ===== RENDER SIGNALS
+const signalsEl=document.getElementById("signals")
+
 function renderSignals(){
     signalsEl.innerHTML=""
 
     signals.forEach((s,i)=>{
 
-        let c=s.dir==="BUY"?"#00ff88":"#ff3b3b"
+        let c=s.dir==="BUY"?"#ff4dff":"#ff2a6d"
 
         signalsEl.innerHTML+=`
         <div class="signal" onclick="openTrade(${i})">
@@ -166,11 +181,9 @@ function renderSignals(){
         </div>`
     })
 }
-
-const signalsEl=document.getElementById("signals")
 renderSignals()
 
-// ===== NAV
+// ===== NAVIGATION
 let active=null
 
 function openTrade(i){
@@ -191,7 +204,6 @@ function goBack(){
 
     chartWindow.style.display="none"
     infoWindow.style.display="none"
-
     main.style.display="block"
 
     offsetX=0
@@ -213,7 +225,7 @@ function newCandle(p){
     return {open:p,high:p,low:p,close:p}
 }
 
-// ===== INIT DATA
+// ===== GENERATE HISTORY
 function generate(){
     candles=[]
     for(let i=0;i<80;i++){
@@ -271,12 +283,14 @@ function loop(t){
     let dt=(t-last)/1000
     last=t
 
+    // плавная цена
     price+=(Math.random()-0.5)*0.4*dt*60
 
     current.high=Math.max(current.high,price)
     current.low=Math.min(current.low,price)
     current.close=price
 
+    // новая свеча
     if(Math.floor(t/2000)!==Math.floor((t-16)/2000)){
         candles.push(current)
         if(candles.length>120)candles.shift()
@@ -324,7 +338,8 @@ function draw(){
 
         let up=c.close>c.open
 
-        ctx.strokeStyle=up?"#00e676":"#ff5252"
+        // фитиль
+        ctx.strokeStyle=up?"#00c8ff":"#ff2a6d"
         ctx.lineWidth=1
 
         ctx.beginPath()
@@ -332,7 +347,8 @@ function draw(){
         ctx.lineTo(x+w/2,lo)
         ctx.stroke()
 
-        ctx.fillStyle=up?"#00c853":"#ff1744"
+        // тело
+        ctx.fillStyle=up?"#ff4dff":"#ff2a6d"
 
         ctx.fillRect(
             x+w*0.25,
