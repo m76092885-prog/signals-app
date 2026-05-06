@@ -5,333 +5,207 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+
 body{
     margin:0;
-    background:#05070d;
+    font-family:monospace;
+    background:#0d1117;
     color:white;
-    font-family:Arial;
+    overflow:hidden;
+    transition:0.4s;
 }
 
-/* ===== SIGNAL SCREEN ===== */
-#main{ padding:20px; }
+/* ===== BACKGROUND GRADIENT ===== */
+#bg{
+    position:fixed;
+    width:100%;
+    height:100%;
+    z-index:-1;
+    filter:blur(80px);
+}
 
-.title{
+/* ===== GLASS CARD ===== */
+.card{
+    width:90%;
+    max-width:400px;
+    margin:auto;
+    margin-top:100px;
+    padding:20px;
+
+    background:rgba(255,255,255,0.05);
+    backdrop-filter:blur(20px);
+
+    border-radius:20px;
+    border:1px solid rgba(255,255,255,0.1);
+
+    box-shadow:0 0 30px rgba(0,255,200,0.1);
+
+    text-align:center;
+    touch-action:none;
+}
+
+/* ===== PAIR ===== */
+.pair{
     font-size:22px;
     margin-bottom:10px;
 }
 
-.signal{
-    background:#0f172a;
-    border:1px solid #1f2937;
-    padding:15px;
-    border-radius:14px;
-    margin-bottom:10px;
-    cursor:pointer;
-    transition:.2s;
-}
-
-.signal:hover{
-    transform:scale(1.03);
-    box-shadow:0 0 12px rgba(56,189,248,0.3);
-}
-
-/* ===== WINDOWS ===== */
-.window{
-    position:fixed;
-    left:10px;
-    right:10px;
-    border-radius:18px;
-    border:1px solid rgba(56,189,248,0.15);
-    box-shadow:0 0 20px rgba(56,189,248,0.12);
-}
-
-/* ===== CHART ===== */
-#chartWindow{
-    top:10px;
-    height:50vh;
-
-    background:
-    linear-gradient(#020617,#020617),
-    repeating-linear-gradient(0deg,
-        rgba(56,189,248,0.06) 0px,
-        rgba(56,189,248,0.06) 1px,
-        transparent 1px,
-        transparent 30px),
-    repeating-linear-gradient(90deg,
-        rgba(56,189,248,0.06) 0px,
-        rgba(56,189,248,0.06) 1px,
-        transparent 1px,
-        transparent 30px);
-}
-
-/* ===== INFO ===== */
-#infoWindow{
-    bottom:10px;
-    height:40vh;
-    padding:15px;
-    background:#020617;
-    display:flex;
-    flex-direction:column;
-}
-
-.info{
-    flex:1;
-}
-
-/* ===== BACK ===== */
-.back{
-    padding:12px;
-    background:#111827;
+/* ===== BUTTON ===== */
+.btn{
+    margin-top:10px;
+    padding:10px;
     border-radius:10px;
-    text-align:center;
+    background:#111;
     cursor:pointer;
-    transition:.2s;
 }
 
-.back:hover{
-    transform:scale(1.03);
+/* ===== GAUGE ===== */
+#gauge{
+    width:200px;
+    height:100px;
+    margin:auto;
 }
-
-/* ===== COLORS ===== */
-.green{color:#00c853}
-.red{color:#ff1744}
 
 canvas{
     width:100%;
-    height:100%;
-    touch-action:none;
 }
+
+/* ===== DASH ===== */
+#dashboard{
+    position:absolute;
+    top:10px;
+    left:10px;
+    font-size:14px;
+    opacity:0.7;
+}
+
 </style>
 </head>
 
 <body>
 
-<!-- SIGNALS -->
-<div id="main">
-    <div class="title">Signals</div>
-    <div id="signals"></div>
+<div id="bg"></div>
+
+<div id="dashboard">
+Winrate (24h): <span id="wr">78%</span>
 </div>
 
-<!-- CHART -->
-<div id="chartWindow" class="window" style="display:none">
-    <canvas id="chart"></canvas>
-</div>
+<div id="card" class="card">
 
-<!-- INFO -->
-<div id="infoWindow" class="window" style="display:none">
+    <div class="pair" id="pair">EUR/USD</div>
 
-    <div class="info">
-        <div id="pair"></div>
-        <div id="timer"></div>
-        <div id="profit"></div>
-    </div>
+    <canvas id="gauge"></canvas>
 
-    <div class="back" onclick="goBack()">← Назад</div>
+    <div id="signal">BUY</div>
+
+    <div class="btn" onclick="nextSignal()">Next</div>
+
 </div>
 
 <script>
 
-// ===== SIGNALS
-let signals = [
-    {pair:"EUR/USD", direction:"BUY", time:30},
-    {pair:"GBP/USD", direction:"SELL", time:30},
+// ===== DATA
+let signals=[
+    {pair:"EUR/USD",dir:"BUY",power:0.8},
+    {pair:"BTC/USDT",dir:"SELL",power:0.3},
+    {pair:"GBP/USD",dir:"BUY",power:0.6}
 ]
 
+let i=0
+
 // ===== RENDER
-function renderSignals(){
-    let box=document.getElementById("signals")
-    box.innerHTML=""
+function nextSignal(){
 
-    signals.forEach((s,i)=>{
-        let c=s.direction==="BUY"?"#00c853":"#ff1744"
-
-        box.innerHTML+=`
-        <div class="signal" onclick="openTrade(${i})">
-            <b>${s.pair}</b><br>
-            <span style="color:${c}">${s.direction}</span>
-        </div>`
-    })
-}
-renderSignals()
-
-// ===== NAV
-let active=null
-
-function openTrade(i){
-    active=signals[i]
-
-    main.style.display="none"
-    chartWindow.style.display="block"
-    infoWindow.style.display="flex"
-
-    pair.innerText = active.pair+" | "+active.direction
-
-    start()
-}
-
-function goBack(){
-    running=false
-    chartWindow.style.display="none"
-    infoWindow.style.display="none"
-    main.style.display="block"
-    offsetX=0
-}
-
-// ===== CANVAS
-const canvas=document.getElementById("chart")
-const ctx=canvas.getContext("2d")
-
-canvas.width=window.innerWidth
-canvas.height=window.innerHeight*0.5
-
-let candles=[]
-let current=null
-let price=100
-let entry=0
-
-function newCandle(p){
-    return {open:p,high:p,low:p,close:p}
-}
-
-// ===== HISTORY
-function generate(){
-    candles=[]
-    for(let i=0;i<80;i++){
-        let o=price
-        let c=o+(Math.random()-0.5)*1.5
-        let h=Math.max(o,c)
-        let l=Math.min(o,c)
-
-        candles.push({open:o,high:h,low:l,close:c})
-        price=c
+    if(window.Telegram){
+        Telegram.WebApp.HapticFeedback.impactOccurred("medium")
     }
-    current=newCandle(price)
+
+    i++
+    if(i>=signals.length) i=0
+
+    render()
 }
 
-// ===== DRAG
-let dragging=false
+function render(){
+
+    let s=signals[i]
+
+    pair.innerText=s.pair
+    signal.innerText=s.dir
+
+    drawGauge(s.power)
+
+    setMood(s.power)
+}
+
+render()
+
+// ===== GAUGE (СПИДОМЕТР)
+const g= document.getElementById("gauge")
+const gctx = g.getContext("2d")
+
+g.width=200
+g.height=100
+
+function drawGauge(power){
+
+    gctx.clearRect(0,0,200,100)
+
+    // дуга
+    gctx.beginPath()
+    gctx.arc(100,100,80,Math.PI,0)
+    gctx.strokeStyle="#333"
+    gctx.lineWidth=10
+    gctx.stroke()
+
+    // значение
+    let angle = Math.PI + power*Math.PI
+
+    // стрелка
+    let x=100 + Math.cos(angle)*70
+    let y=100 + Math.sin(angle)*70
+
+    gctx.beginPath()
+    gctx.moveTo(100,100)
+    gctx.lineTo(x,y)
+    gctx.strokeStyle="#00ffcc"
+    gctx.lineWidth=3
+    gctx.stroke()
+}
+
+// ===== MOOD
+function setMood(power){
+
+    let bg=document.getElementById("bg")
+
+    if(power>0.7){
+        bg.style.background="radial-gradient(#00ff99,#001)"
+    }
+    else if(power<0.3){
+        bg.style.background="radial-gradient(#ff0033,#001)"
+    }
+    else{
+        bg.style.background="radial-gradient(#00ccff,#001)"
+    }
+}
+
+// ===== SWIPE (TINDER)
 let startX=0
-let offsetX=0
 
-function startDrag(x){
-    dragging=true
-    startX=x
-}
+card.addEventListener("touchstart",e=>{
+    startX=e.touches[0].clientX
+})
 
-function moveDrag(x){
-    if(!dragging) return
-    offsetX += (x-startX)
-    startX=x
-}
+card.addEventListener("touchend",e=>{
+    let dx=e.changedTouches[0].clientX - startX
 
-canvas.addEventListener("mousedown",e=>startDrag(e.clientX))
-canvas.addEventListener("touchstart",e=>startDrag(e.touches[0].clientX))
-
-window.addEventListener("mousemove",e=>moveDrag(e.clientX))
-window.addEventListener("touchmove",e=>moveDrag(e.touches[0].clientX))
-
-window.addEventListener("mouseup",()=>dragging=false)
-window.addEventListener("touchend",()=>dragging=false)
-
-// ===== LOOP
-let running=false
-let last=0
-let timeLeft=0
-
-function loop(t){
-
-    if(!running) return
-
-    let dt=(t-last)/1000
-    last=t
-
-    // плавная цена
-    price += (Math.random()-0.5)*0.4*dt*60
-
-    current.high=Math.max(current.high,price)
-    current.low=Math.min(current.low,price)
-    current.close=price
-
-    // новая свеча
-    if(Math.floor(t/2000)!==Math.floor((t-16)/2000)){
-        candles.push(current)
-        if(candles.length>120) candles.shift()
-        current=newCandle(price)
+    if(dx>50){
+        nextSignal()
     }
-
-    draw()
-
-    timeLeft -= dt
-
-    let profit=price-entry
-
-    timer.innerText="Time: "+Math.max(0,Math.floor(timeLeft))
-    profit.innerText="P/L: "+profit.toFixed(2)
-    profit.className=profit>=0?"green":"red"
-
-    requestAnimationFrame(loop)
-}
-
-// ===== DRAW (ЧЁТКИЙ)
-function draw(){
-
-    ctx.clearRect(0,0,canvas.width,canvas.height)
-
-    let all=[...candles,current]
-
-    let max=Math.max(...all.map(c=>c.high))
-    let min=Math.min(...all.map(c=>c.low))
-    let range=max-min || 1
-
-    let w=canvas.width/30
-    let center=Math.floor(all.length/2)
-
-    all.forEach((c,i)=>{
-
-        let x=(i-center)*w + canvas.width/2 + offsetX
-
-        let scale=canvas.height/range
-
-        let o=canvas.height-(c.open-min)*scale
-        let cl=canvas.height-(c.close-min)*scale
-        let hi=canvas.height-(c.high-min)*scale
-        let lo=canvas.height-(c.low-min)*scale
-
-        let up=c.close>c.open
-
-        let bodyColor=up?"#00c853":"#ff1744"
-        let wickColor=up?"#00e676":"#ff5252"
-
-        // фитиль
-        ctx.strokeStyle=wickColor
-        ctx.lineWidth=1
-        ctx.beginPath()
-        ctx.moveTo(x+w/2,hi)
-        ctx.lineTo(x+w/2,lo)
-        ctx.stroke()
-
-        // тело
-        ctx.fillStyle=bodyColor
-        ctx.fillRect(
-            x+w*0.25,
-            Math.min(o,cl),
-            w*0.5,
-            Math.max(2,Math.abs(o-cl))
-        )
-    })
-}
-
-// ===== START
-function start(){
-    generate()
-    entry=price
-    timeLeft=active.time
-
-    running=true
-    last=performance.now()
-
-    requestAnimationFrame(loop)
-}
+    if(dx<-50){
+        nextSignal()
+    }
+})
 
 </script>
 
