@@ -12,8 +12,13 @@ body{
     font-family:Arial;
 }
 
-/* ===== MAIN ===== */
+/* ===== SIGNAL SCREEN ===== */
 #main{ padding:20px; }
+
+.title{
+    font-size:22px;
+    margin-bottom:10px;
+}
 
 .signal{
     background:#0f172a;
@@ -27,7 +32,7 @@ body{
 
 .signal:hover{
     transform:scale(1.03);
-    box-shadow:0 0 15px rgba(56,189,248,0.3);
+    box-shadow:0 0 12px rgba(56,189,248,0.3);
 }
 
 /* ===== WINDOWS ===== */
@@ -36,28 +41,30 @@ body{
     left:10px;
     right:10px;
     border-radius:18px;
-    border:1px solid rgba(56,189,248,0.2);
-    box-shadow:0 0 20px rgba(56,189,248,0.15);
+    border:1px solid rgba(56,189,248,0.15);
+    box-shadow:0 0 20px rgba(56,189,248,0.12);
 }
 
-/* сетка */
+/* ===== CHART ===== */
 #chartWindow{
     top:10px;
     height:50vh;
+
     background:
     linear-gradient(#020617,#020617),
     repeating-linear-gradient(0deg,
-        rgba(56,189,248,0.08) 0px,
-        rgba(56,189,248,0.08) 1px,
+        rgba(56,189,248,0.06) 0px,
+        rgba(56,189,248,0.06) 1px,
         transparent 1px,
         transparent 30px),
     repeating-linear-gradient(90deg,
-        rgba(56,189,248,0.08) 0px,
-        rgba(56,189,248,0.08) 1px,
+        rgba(56,189,248,0.06) 0px,
+        rgba(56,189,248,0.06) 1px,
         transparent 1px,
         transparent 30px);
 }
 
+/* ===== INFO ===== */
 #infoWindow{
     bottom:10px;
     height:40vh;
@@ -67,62 +74,80 @@ body{
     flex-direction:column;
 }
 
-.back{
-    padding:12px;
-    border-radius:10px;
-    background:#111827;
-    text-align:center;
-    margin-top:10px;
-    cursor:pointer;
+.info{
+    flex:1;
 }
 
-/* свечи */
-.green{color:#00ff88}
-.red{color:#ff3b3b}
+/* ===== BACK ===== */
+.back{
+    padding:12px;
+    background:#111827;
+    border-radius:10px;
+    text-align:center;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.back:hover{
+    transform:scale(1.03);
+}
+
+/* ===== COLORS ===== */
+.green{color:#00c853}
+.red{color:#ff1744}
 
 canvas{
     width:100%;
     height:100%;
     touch-action:none;
 }
-
 </style>
 </head>
 
 <body>
 
+<!-- SIGNALS -->
 <div id="main">
+    <div class="title">Signals</div>
     <div id="signals"></div>
 </div>
 
+<!-- CHART -->
 <div id="chartWindow" class="window" style="display:none">
     <canvas id="chart"></canvas>
 </div>
 
+<!-- INFO -->
 <div id="infoWindow" class="window" style="display:none">
-    <div id="pair"></div>
-    <div id="timer"></div>
-    <div id="profit"></div>
+
+    <div class="info">
+        <div id="pair"></div>
+        <div id="timer"></div>
+        <div id="profit"></div>
+    </div>
+
     <div class="back" onclick="goBack()">← Назад</div>
 </div>
 
 <script>
 
 // ===== SIGNALS
-let signals=[
-    {pair:"EUR/USD",direction:"BUY",time:30},
-    {pair:"GBP/USD",direction:"SELL",time:30}
+let signals = [
+    {pair:"EUR/USD", direction:"BUY", time:30},
+    {pair:"GBP/USD", direction:"SELL", time:30},
 ]
 
+// ===== RENDER
 function renderSignals(){
     let box=document.getElementById("signals")
     box.innerHTML=""
 
     signals.forEach((s,i)=>{
-        let c=s.direction==="BUY"?"#00ff88":"#ff3b3b"
+        let c=s.direction==="BUY"?"#00c853":"#ff1744"
+
         box.innerHTML+=`
         <div class="signal" onclick="openTrade(${i})">
-            ${s.pair}<br>
+            <b>${s.pair}</b><br>
             <span style="color:${c}">${s.direction}</span>
         </div>`
     })
@@ -139,7 +164,7 @@ function openTrade(i){
     chartWindow.style.display="block"
     infoWindow.style.display="flex"
 
-    pair.innerText=active.pair+" | "+active.direction
+    pair.innerText = active.pair+" | "+active.direction
 
     start()
 }
@@ -176,13 +201,14 @@ function generate(){
         let c=o+(Math.random()-0.5)*1.5
         let h=Math.max(o,c)
         let l=Math.min(o,c)
+
         candles.push({open:o,high:h,low:l,close:c})
         price=c
     }
     current=newCandle(price)
 }
 
-// ===== DRAG (MOUSE + TOUCH)
+// ===== DRAG
 let dragging=false
 let startX=0
 let offsetX=0
@@ -207,25 +233,26 @@ window.addEventListener("touchmove",e=>moveDrag(e.touches[0].clientX))
 window.addEventListener("mouseup",()=>dragging=false)
 window.addEventListener("touchend",()=>dragging=false)
 
-// ===== LOOP (ПЛАВНЫЙ)
+// ===== LOOP
 let running=false
 let last=0
 let timeLeft=0
 
 function loop(t){
+
     if(!running) return
 
     let dt=(t-last)/1000
     last=t
 
-    // 🔥 плавное движение
-    price += (Math.random()-0.5)*0.3*dt*60
+    // плавная цена
+    price += (Math.random()-0.5)*0.4*dt*60
 
     current.high=Math.max(current.high,price)
     current.low=Math.min(current.low,price)
     current.close=price
 
-    // новая свеча раз в 2 сек
+    // новая свеча
     if(Math.floor(t/2000)!==Math.floor((t-16)/2000)){
         candles.push(current)
         if(candles.length>120) candles.shift()
@@ -239,13 +266,13 @@ function loop(t){
     let profit=price-entry
 
     timer.innerText="Time: "+Math.max(0,Math.floor(timeLeft))
-    profitEl.innerText="P/L: "+profit.toFixed(2)
-    profitEl.className=profit>=0?"green":"red"
+    profit.innerText="P/L: "+profit.toFixed(2)
+    profit.className=profit>=0?"green":"red"
 
     requestAnimationFrame(loop)
 }
 
-// ===== DRAW (ЧЁТКИЙ БЕЗ МЫЛА)
+// ===== DRAW (ЧЁТКИЙ)
 function draw(){
 
     ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -272,17 +299,19 @@ function draw(){
 
         let up=c.close>c.open
 
+        let bodyColor=up?"#00c853":"#ff1744"
+        let wickColor=up?"#00e676":"#ff5252"
+
         // фитиль
-        ctx.strokeStyle=up?"#00ff88":"#ff3b3b"
-        ctx.lineWidth=1.5
+        ctx.strokeStyle=wickColor
+        ctx.lineWidth=1
         ctx.beginPath()
         ctx.moveTo(x+w/2,hi)
         ctx.lineTo(x+w/2,lo)
         ctx.stroke()
 
-        // тело (чёткое)
-        ctx.fillStyle=up?"#00c853":"#ff1744"
-
+        // тело
+        ctx.fillStyle=bodyColor
         ctx.fillRect(
             x+w*0.25,
             Math.min(o,cl),
@@ -295,59 +324,6 @@ function draw(){
 // ===== START
 function start(){
     generate()
-    entry=price
-    timeLeft=active.time
-
-    running=true
-    last=performance.now()
-
-    requestAnimationFrame(loop)
-}
-
-</script>
-
-</body>
-</html>
-
-        let x=(i-center)*w + canvas.width/2 + offsetX
-
-        let scale=canvas.height/range
-
-        let o=canvas.height-(c.open-min)*scale
-        let cl=canvas.height-(c.close-min)*scale
-        let hi=canvas.height-(c.high-min)*scale
-        let lo=canvas.height-(c.low-min)*scale
-
-        let up=c.close>c.open
-
-        ctx.strokeStyle=up?"#00ff88":"#ff3b3b"
-        ctx.lineWidth=2
-
-        ctx.beginPath()
-        ctx.moveTo(x+w/2,hi)
-        ctx.lineTo(x+w/2,lo)
-        ctx.stroke()
-
-        ctx.fillStyle=up?"#00ff88":"#ff3b3b"
-
-        ctx.shadowColor=up?"#00ff88":"#ff3b3b"
-        ctx.shadowBlur=10
-
-        ctx.fillRect(
-            x+w*0.2,
-            Math.min(o,cl),
-            w*0.6,
-            Math.abs(o-cl)||2
-        )
-
-        ctx.shadowBlur=0
-    })
-}
-
-// ===== START =====
-function start(){
-    generate()
-
     entry=price
     timeLeft=active.time
 
