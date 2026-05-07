@@ -1,39 +1,56 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>Cyber Signals</title>
+
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
 
 *{
-    box-sizing:border-box;
     margin:0;
     padding:0;
-    -webkit-tap-highlight-color:transparent;
+    box-sizing:border-box;
 }
 
 body{
-    overflow:hidden;
-    font-family:monospace;
-    background:#070b14;
+
+    background:
+    radial-gradient(circle at top,
+    #111827,
+    #05070d);
+
     color:white;
+
+    font-family:monospace;
+
+    overflow:hidden;
 }
 
 /* ===== MAIN ===== */
 
 #main{
+
     width:100%;
     height:100vh;
+
     overflow-y:auto;
+
     padding:20px;
 }
 
 .title{
-    font-size:26px;
+
     color:#ff4dff;
+
+    font-size:26px;
+
     margin-bottom:20px;
 
     text-shadow:
@@ -45,7 +62,7 @@ body{
 .signal{
 
     background:
-    rgba(20,20,40,0.8);
+    rgba(20,20,40,0.75);
 
     border:
     1px solid rgba(255,0,255,0.2);
@@ -56,7 +73,7 @@ body{
 
     margin-bottom:14px;
 
-    transition:.2s;
+    transition:0.2s;
 
     cursor:pointer;
 }
@@ -77,11 +94,19 @@ body{
     color:#ff2a6d;
 }
 
-/* ===== CHART WINDOW ===== */
+/* ===== CHART ===== */
 
-#chartWindow{
+#tradeScreen{
 
     display:none;
+
+    width:100%;
+    height:100vh;
+}
+
+/* ===== CHART WINDOW ===== */
+
+#chartBox{
 
     position:fixed;
 
@@ -95,34 +120,18 @@ body{
 
     overflow:hidden;
 
-    background:
-    linear-gradient(#05070d,#05070d),
-
-    repeating-linear-gradient(
-        0deg,
-        rgba(0,200,255,0.05) 0px,
-        rgba(0,200,255,0.05) 1px,
-        transparent 1px,
-        transparent 30px
-    ),
-
-    repeating-linear-gradient(
-        90deg,
-        rgba(0,200,255,0.05) 0px,
-        rgba(0,200,255,0.05) 1px,
-        transparent 1px,
-        transparent 30px
-    );
+    background:#05070d;
 
     border:
     1px solid rgba(255,0,255,0.2);
+
+    box-shadow:
+    0 0 25px rgba(255,0,255,0.15);
 }
 
 /* ===== INFO ===== */
 
-#infoWindow{
-
-    display:none;
+#infoBox{
 
     position:fixed;
 
@@ -145,7 +154,7 @@ body{
 
 .infoTitle{
 
-    font-size:22px;
+    font-size:24px;
 
     color:#00c8ff;
 
@@ -153,7 +162,7 @@ body{
 }
 
 .info{
-    margin-top:8px;
+    margin-top:10px;
     font-size:18px;
 }
 
@@ -175,23 +184,15 @@ body{
 
     border-radius:14px;
 
+    text-align:center;
+
+    cursor:pointer;
+
     background:
     rgba(20,20,40,0.8);
 
     border:
     1px solid rgba(255,0,255,0.2);
-
-    text-align:center;
-
-    cursor:pointer;
-}
-
-/* ===== CANVAS ===== */
-
-canvas{
-    display:block;
-    width:100%;
-    height:100%;
 }
 
 </style>
@@ -199,7 +200,7 @@ canvas{
 
 <body>
 
-<!-- ===== MAIN ===== -->
+<!-- ===== SIGNALS ===== -->
 
 <div id="main">
 
@@ -207,432 +208,277 @@ canvas{
         CYBER SIGNALS
     </div>
 
-    <div id="signals"></div>
-
-</div>
-
-<!-- ===== CHART ===== -->
-
-<div id="chartWindow">
-
-    <canvas id="chart"></canvas>
-
-</div>
-
-<!-- ===== INFO ===== -->
-
-<div id="infoWindow">
-
     <div
-    id="pair"
-    class="infoTitle"
-    ></div>
-
-    <div
-    id="direction"
-    class="info"
-    ></div>
-
-    <div
-    id="priceText"
-    class="info"
-    ></div>
-
-    <div
-    id="status"
-    class="info"
-    ></div>
-
-    <div
-    class="back"
-    onclick="goBack()"
+    class="signal"
+    onclick="openTrade('BTCUSDT','BUY')"
     >
-        ← BACK
+        <div>BTC/USDT</div>
+        <div class="buy">BUY</div>
+    </div>
+
+    <div
+    class="signal"
+    onclick="openTrade('ETHUSDT','SELL')"
+    >
+        <div>ETH/USDT</div>
+        <div class="sell">SELL</div>
+    </div>
+
+    <div
+    class="signal"
+    onclick="openTrade('EURUSD','BUY')"
+    >
+        <div>EUR/USD</div>
+        <div class="buy">BUY</div>
+    </div>
+
+</div>
+
+<!-- ===== TRADE SCREEN ===== -->
+
+<div id="tradeScreen">
+
+    <div id="chartBox"></div>
+
+    <div id="infoBox">
+
+        <div
+        id="pair"
+        class="infoTitle"
+        ></div>
+
+        <div
+        id="signalText"
+        class="info"
+        ></div>
+
+        <div
+        id="priceText"
+        class="info"
+        ></div>
+
+        <div
+        id="statusText"
+        class="info"
+        ></div>
+
+        <div
+        class="back"
+        onclick="goBack()"
+        >
+            ← BACK
+        </div>
+
     </div>
 
 </div>
 
 <script>
 
-// ===== ELEMENTS =====
+// ===== UI =====
 
 const main=
 document.getElementById("main")
 
-const chartWindow=
-document.getElementById("chartWindow")
+const tradeScreen=
+document.getElementById("tradeScreen")
 
-const infoWindow=
-document.getElementById("infoWindow")
-
-const pair=
+const pairEl=
 document.getElementById("pair")
 
-const direction=
-document.getElementById("direction")
+const signalText=
+document.getElementById("signalText")
 
 const priceText=
 document.getElementById("priceText")
 
-const status=
-document.getElementById("status")
+const statusText=
+document.getElementById("statusText")
 
-// ===== SIGNALS =====
+// ===== CHART =====
 
-const signals=[
-
-    {
-        pair:"BTC/USDT",
-        dir:"BUY"
-    },
-
-    {
-        pair:"ETH/USDT",
-        dir:"SELL"
-    },
-
-    {
-        pair:"EUR/USD",
-        dir:"BUY"
-    }
-]
-
-// ===== RENDER =====
-
-const signalsEl=
-document.getElementById("signals")
-
-signals.forEach((s,i)=>{
-
-    const cls=
-    s.dir==="BUY"
-    ? "buy"
-    : "sell"
-
-    signalsEl.innerHTML+=`
-
-    <div
-    class="signal"
-    onclick="openTrade(${i})"
-    >
-
-        <div style="font-size:20px">
-            ${s.pair}
-        </div>
-
-        <div class="${cls}">
-            ${s.dir}
-        </div>
-
-    </div>
-    `
-})
+let chart
+let candleSeries
+let ws
 
 // ===== OPEN =====
 
-let active=null
-
-function openTrade(i){
-
-    active=signals[i]
-
-    pair.innerText=
-    active.pair
-
-    direction.innerHTML=
-    `
-    Signal:
-    <span class="${
-        active.dir==="BUY"
-        ? "buy"
-        : "sell"
-    }">
-        ${active.dir}
-    </span>
-    `
+function openTrade(symbol,dir){
 
     main.style.display="none"
 
-    chartWindow.style.display="block"
+    tradeScreen.style.display="block"
 
-    infoWindow.style.display="block"
+    pairEl.innerText=symbol
 
-    resizeCanvas()
+    signalText.innerHTML=
+    `
+    Signal:
+    <span class="${
+        dir==="BUY"
+        ? "buy"
+        : "sell"
+    }">
+        ${dir}
+    </span>
+    `
 
-    startChart()
+    createChart()
+
+    connect(symbol)
 }
 
 // ===== BACK =====
 
 function goBack(){
 
-    running=false
-
-    chartWindow.style.display="none"
-
-    infoWindow.style.display="none"
+    tradeScreen.style.display="none"
 
     main.style.display="block"
-}
 
-// ===== CANVAS =====
+    if(ws){
+        ws.close()
+    }
 
-const canvas=
-document.getElementById("chart")
-
-const ctx=
-canvas.getContext("2d")
-
-function resizeCanvas(){
-
-    canvas.width=
-    chartWindow.clientWidth
-
-    canvas.height=
-    chartWindow.clientHeight
-}
-
-window.addEventListener(
-    "resize",
-    resizeCanvas
-)
-
-// ===== MARKET =====
-
-let candles=[]
-
-let current=null
-
-let price=100
-
-function newCandle(p){
-
-    return{
-        open:p,
-        high:p,
-        low:p,
-        close:p
+    if(chart){
+        chart.remove()
     }
 }
 
-// ===== HISTORY =====
+// ===== CREATE CHART =====
 
-function generate(){
+function createChart(){
 
-    candles=[]
+    document.getElementById(
+        "chartBox"
+    ).innerHTML=""
 
-    let p=100
+    chart=
+    LightweightCharts.createChart(
 
-    for(let i=0;i<80;i++){
+        document.getElementById(
+            "chartBox"
+        ),
 
-        let open=p
+        {
 
-        let close=
-        open+
-        (Math.random()-0.5)*2
+            width:
+            document.getElementById(
+                "chartBox"
+            ).clientWidth,
 
-        candles.push({
+            height:
+            document.getElementById(
+                "chartBox"
+            ).clientHeight,
 
-            open,
+            layout:{
 
-            high:
-            Math.max(open,close),
+                background:{
+                    color:"#05070d"
+                },
 
-            low:
-            Math.min(open,close),
+                textColor:"#888"
+            },
 
-            close
-        })
+            grid:{
 
-        p=close
-    }
+                vertLines:{
+                    color:"rgba(0,200,255,0.05)"
+                },
 
-    price=p
+                horzLines:{
+                    color:"rgba(0,200,255,0.05)"
+                }
+            },
 
-    current=
-    newCandle(price)
-}
+            crosshair:{
+                mode:1
+            },
 
-// ===== LOOP =====
+            rightPriceScale:{
+                borderColor:"#222"
+            },
 
-let running=false
-
-function updatePrice(){
-
-    let move=
-    (Math.random()-0.5)*0.4
-
-    price+=move
-
-    current.high=
-    Math.max(current.high,price)
-
-    current.low=
-    Math.min(current.low,price)
-
-    current.close=price
-}
-
-// ===== NEW CANDLE =====
-
-setInterval(()=>{
-
-    if(!running)return
-
-    candles.push(current)
-
-    if(candles.length>100){
-
-        candles.shift()
-    }
-
-    current=
-    newCandle(price)
-
-},2000)
-
-// ===== DRAW =====
-
-function draw(){
-
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
+            timeScale:{
+                borderColor:"#222"
+            }
+        }
     )
 
-    const all=[
-        ...candles,
-        current
-    ]
+    candleSeries=
+    chart.addCandlestickSeries({
 
-    const max=Math.max(
-        ...all.map(c=>c.high)
-    )
+        upColor:"#ff4dff",
 
-    const min=Math.min(
-        ...all.map(c=>c.low)
-    )
+        downColor:"#ff2a6d",
 
-    const range=max-min || 1
+        borderVisible:false,
 
-    const w=14
+        wickUpColor:"#00c8ff",
 
-    all.forEach((c,i)=>{
-
-        const x=
-        i*w+20
-
-        const scale=
-        canvas.height/range
-
-        const o=
-        canvas.height-
-        (c.open-min)*scale
-
-        const cl=
-        canvas.height-
-        (c.close-min)*scale
-
-        const hi=
-        canvas.height-
-        (c.high-min)*scale
-
-        const lo=
-        canvas.height-
-        (c.low-min)*scale
-
-        const up=
-        c.close>=c.open
-
-        // wick
-
-        ctx.strokeStyle=
-        up
-        ? "#00c8ff"
-        : "#ff2a6d"
-
-        ctx.lineWidth=1.2
-
-        ctx.beginPath()
-
-        ctx.moveTo(x+w/2,hi)
-
-        ctx.lineTo(x+w/2,lo)
-
-        ctx.stroke()
-
-        // body
-
-        ctx.fillStyle=
-        up
-        ? "#ff4dff"
-        : "#ff2a6d"
-
-        ctx.fillRect(
-
-            x+w*0.2,
-
-            Math.min(o,cl),
-
-            w*0.6,
-
-            Math.max(
-                3,
-                Math.abs(o-cl)
-            )
-        )
+        wickDownColor:"#ff2a6d"
     })
 }
 
-// ===== ANIMATION =====
+// ===== REALTIME =====
 
-function animate(){
+function connect(symbol){
 
-    if(!running)return
+    // BINANCE WS
 
-    updatePrice()
+    ws=new WebSocket(
 
-    priceText.innerHTML=
-    `
-    Price:
-    <span class="green">
-        ${price.toFixed(2)}
-    </span>
-    `
+    `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_1m`
 
-    const pnl=
-    (price-100).toFixed(2)
-
-    status.innerHTML=
-    `
-    P/L:
-    <span class="${
-        pnl>=0
-        ? "green"
-        : "red"
-    }">
-        ${pnl}
-    </span>
-    `
-
-    draw()
-
-    requestAnimationFrame(
-        animate
     )
-}
 
-// ===== START =====
+    ws.onmessage=(event)=>{
 
-function startChart(){
+        const data=
+        JSON.parse(event.data)
 
-    generate()
+        const k=data.k
 
-    running=true
+        candleSeries.update({
 
-    animate()
+            time:k.t/1000,
+
+            open:parseFloat(k.o),
+
+            high:parseFloat(k.h),
+
+            low:parseFloat(k.l),
+
+            close:parseFloat(k.c)
+        })
+
+        priceText.innerHTML=
+        `
+        Price:
+        <span class="green">
+            ${k.c}
+        </span>
+        `
+
+        let pnl=
+        (
+            parseFloat(k.c)-
+            parseFloat(k.o)
+        ).toFixed(2)
+
+        statusText.innerHTML=
+        `
+        Candle:
+        <span class="${
+            pnl>=0
+            ? "green"
+            : "red"
+        }">
+            ${pnl}
+        </span>
+        `
+    }
 }
 
 </script>
