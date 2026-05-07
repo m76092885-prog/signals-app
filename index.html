@@ -53,13 +53,13 @@ body{
 
     color:#ff4dff;
 
-    font-size:28px;
+    font-size:30px;
 
     margin-bottom:20px;
 
     text-shadow:
     0 0 10px #ff4dff,
-    0 0 25px #ff4dff;
+    0 0 30px #ff4dff;
 }
 
 /* ===== SIGNAL ===== */
@@ -232,7 +232,7 @@ body{
     0 0 10px #ff2a6d;
 }
 
-/* ===== BACK ===== */
+/* ===== BUTTON ===== */
 
 .back{
 
@@ -278,7 +278,7 @@ body{
 
     <div
     class="signal"
-    onclick="openTrade('btcusdt','BUY')"
+    onclick="openTrade('BTCUSDT','BUY')"
     >
         <div class="signalPair">
             BTC/USDT
@@ -291,7 +291,7 @@ body{
 
     <div
     class="signal"
-    onclick="openTrade('ethusdt','SELL')"
+    onclick="openTrade('ETHUSDT','SELL')"
     >
         <div class="signalPair">
             ETH/USDT
@@ -304,7 +304,7 @@ body{
 
     <div
     class="signal"
-    onclick="openTrade('bnbusdt','BUY')"
+    onclick="openTrade('BNBUSDT','BUY')"
     >
         <div class="signalPair">
             BNB/USDT
@@ -358,7 +358,7 @@ body{
 
 <script>
 
-// ===== UI =====
+// ===== ELEMENTS =====
 
 const main=
 document.getElementById("main")
@@ -381,9 +381,7 @@ document.getElementById("statusText")
 // ===== CHART =====
 
 let chart=null
-
 let candleSeries=null
-
 let ws=null
 
 // ===== OPEN =====
@@ -394,8 +392,7 @@ function openTrade(symbol,dir){
 
     tradeScreen.style.display="block"
 
-    pairEl.innerText=
-    symbol.toUpperCase()
+    pairEl.innerText=symbol
 
     signalText.innerHTML=
     `
@@ -411,7 +408,7 @@ function openTrade(symbol,dir){
 
     createChart()
 
-    connectBinance(symbol)
+    connectBybit(symbol)
 }
 
 // ===== BACK =====
@@ -442,9 +439,7 @@ function goBack(){
 function createChart(){
 
     const chartBox=
-    document.getElementById(
-        "chartBox"
-    )
+    document.getElementById("chartBox")
 
     chartBox.innerHTML=""
 
@@ -489,7 +484,6 @@ function createChart(){
 
             timeScale:{
                 borderColor:"#222",
-
                 timeVisible:true
             },
 
@@ -498,8 +492,6 @@ function createChart(){
             }
         }
     )
-
-    // ===== FIXED NEW API =====
 
     candleSeries=
     chart.addSeries(
@@ -523,51 +515,63 @@ function createChart(){
 
 // ===== REALTIME =====
 
-function connectBinance(symbol){
+function connectBybit(symbol){
 
     ws=new WebSocket(
-
-    `wss://stream.binance.com:9443/ws/${symbol}@kline_1m`
-
+    "wss://stream.bybit.com/v5/public/linear"
     )
+
+    ws.onopen=()=>{
+
+        ws.send(JSON.stringify({
+
+            op:"subscribe",
+
+            args:[
+                `kline.1.${symbol}`
+            ]
+        }))
+    }
 
     ws.onmessage=(event)=>{
 
         const msg=
         JSON.parse(event.data)
 
-        const k=msg.k
+        if(!msg.data)return
+
+        const k=msg.data[0]
 
         candleSeries.update({
 
             time:
-            Math.floor(k.t/1000),
+            Math.floor(k.start/1000),
 
             open:
-            parseFloat(k.o),
+            parseFloat(k.open),
 
             high:
-            parseFloat(k.h),
+            parseFloat(k.high),
 
             low:
-            parseFloat(k.l),
+            parseFloat(k.low),
 
             close:
-            parseFloat(k.c)
+            parseFloat(k.close)
         })
 
         priceText.innerHTML=
         `
         Price:
         <span class="green">
-            ${k.c}
+            ${k.close}
         </span>
         `
 
         const move=
         (
-            parseFloat(k.c)-
-            parseFloat(k.o)
+            parseFloat(k.close)-
+            parseFloat(k.open)
         ).toFixed(2)
 
         statusText.innerHTML=
