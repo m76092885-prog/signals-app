@@ -127,9 +127,9 @@ body{
     height:100vh;
 }
 
-/* ===== CHART ===== */
+/* ===== CHART WINDOW ===== */
 
-#chartBox{
+#chartWrapper{
 
     position:fixed;
 
@@ -139,7 +139,7 @@ body{
 
     height:52vh;
 
-    border-radius:20px;
+    border-radius:22px;
 
     overflow:hidden;
 
@@ -167,6 +167,25 @@ body{
 
     box-shadow:
     0 0 25px rgba(255,0,255,0.15);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+}
+
+/* ===== CHART ===== */
+
+#chartBox{
+
+    width:92%;
+
+    height:88%;
+
+    border-radius:16px;
+
+    overflow:hidden;
 }
 
 /* ===== INFO ===== */
@@ -181,7 +200,7 @@ body{
 
     height:40vh;
 
-    border-radius:20px;
+    border-radius:22px;
 
     padding:20px;
 
@@ -236,7 +255,7 @@ body{
 
 .back{
 
-    margin-top:22px;
+    margin-top:24px;
 
     padding:14px;
 
@@ -268,7 +287,7 @@ body{
 
 <body>
 
-<!-- ===== MAIN ===== -->
+<!-- ===== SIGNALS ===== -->
 
 <div id="main">
 
@@ -281,7 +300,7 @@ body{
     onclick="openTrade('BTCUSDT','BUY')"
     >
         <div class="signalPair">
-            BTC/USDT
+            BTC / USDT
         </div>
 
         <div class="buy">
@@ -294,7 +313,7 @@ body{
     onclick="openTrade('ETHUSDT','SELL')"
     >
         <div class="signalPair">
-            ETH/USDT
+            ETH / USDT
         </div>
 
         <div class="sell">
@@ -307,7 +326,7 @@ body{
     onclick="openTrade('BNBUSDT','BUY')"
     >
         <div class="signalPair">
-            BNB/USDT
+            BNB / USDT
         </div>
 
         <div class="buy">
@@ -317,11 +336,15 @@ body{
 
 </div>
 
-<!-- ===== TRADE SCREEN ===== -->
+<!-- ===== TRADE ===== -->
 
 <div id="tradeScreen">
 
-    <div id="chartBox"></div>
+    <div id="chartWrapper">
+
+        <div id="chartBox"></div>
+
+    </div>
 
     <div id="infoBox">
 
@@ -483,8 +506,14 @@ function createChart(){
             },
 
             timeScale:{
+
                 borderColor:"#222",
-                timeVisible:true
+
+                timeVisible:true,
+
+                rightOffset:25,
+
+                barSpacing:12
             },
 
             crosshair:{
@@ -511,6 +540,8 @@ function createChart(){
             borderVisible:false
         }
     )
+
+    chart.timeScale().fitContent()
 }
 
 // ===== REALTIME =====
@@ -559,6 +590,8 @@ function connectBybit(symbol){
             close:
             parseFloat(k.close)
         })
+
+        chart.timeScale().scrollToRealtime()
 
         priceText.innerHTML=
         `
