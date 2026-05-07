@@ -1,62 +1,138 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Cyber Signals</title>
+
 <style>
+
+/* ===== GLOBAL ===== */
+
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
 
 body{
     margin:0;
-    background:#070b14;
-    color:white;
+    overflow:hidden;
+
     font-family:monospace;
+
+    background:
+    radial-gradient(circle at top,
+    #111827 0%,
+    #05070d 60%,
+    #020308 100%);
+
+    color:white;
 }
 
-/* ===== SIGNALS ===== */
+/* ===== MAIN ===== */
+
 #main{
+    width:100%;
+    height:100vh;
+
+    overflow-y:auto;
+
     padding:20px;
 }
 
+/* ===== TITLE ===== */
+
 .title{
+
+    font-size:24px;
+    font-weight:bold;
+
     color:#ff4dff;
-    font-size:22px;
-    margin-bottom:10px;
+
+    margin-bottom:20px;
+
+    text-shadow:
+    0 0 10px #ff4dff,
+    0 0 20px #ff4dff;
 }
 
+/* ===== SIGNAL CARD ===== */
+
 .signal{
-    padding:15px;
-    margin-bottom:10px;
 
-    background:#111827;
-    border-radius:12px;
+    background:
+    rgba(20,20,40,0.75);
 
-    border:1px solid rgba(255,0,255,0.2);
+    border:
+    1px solid rgba(255,0,255,0.2);
+
+    border-radius:16px;
+
+    padding:18px;
+
+    margin-bottom:14px;
+
+    backdrop-filter:blur(12px);
+
+    transition:0.25s;
 
     cursor:pointer;
-    transition:.2s;
+
+    box-shadow:
+    0 0 15px rgba(0,0,0,0.4);
 }
 
 .signal:hover{
+
     transform:scale(1.02);
-    box-shadow:0 0 15px rgba(255,0,255,0.4);
+
+    box-shadow:
+    0 0 20px rgba(255,0,255,0.35),
+    0 0 40px rgba(0,200,255,0.1);
+}
+
+.signalPair{
+    font-size:20px;
+    margin-bottom:8px;
+}
+
+.buy{
+    color:#ff4dff;
+
+    text-shadow:
+    0 0 10px #ff4dff;
+}
+
+.sell{
+    color:#ff2a6d;
+
+    text-shadow:
+    0 0 10px #ff2a6d;
 }
 
 /* ===== WINDOWS ===== */
+
 .window{
     position:fixed;
     left:10px;
     right:10px;
-    border-radius:16px;
+
+    border-radius:18px;
+
+    overflow:hidden;
 }
 
 /* ===== CHART ===== */
+
 #chartWindow{
+
     top:10px;
-    height:50vh;
+    height:52vh;
 
     background:
     linear-gradient(#05070d,#05070d),
+
     repeating-linear-gradient(
         0deg,
         rgba(0,200,255,0.05) 0px,
@@ -64,6 +140,7 @@ body{
         transparent 1px,
         transparent 30px
     ),
+
     repeating-linear-gradient(
         90deg,
         rgba(0,200,255,0.05) 0px,
@@ -71,45 +148,108 @@ body{
         transparent 1px,
         transparent 30px
     );
+
+    border:
+    1px solid rgba(255,0,255,0.2);
+
+    box-shadow:
+    0 0 25px rgba(255,0,255,0.12);
 }
 
 /* ===== INFO ===== */
-#infoWindow{
-    bottom:10px;
-    height:40vh;
-    padding:15px;
 
-    background:#0b1020;
+#infoWindow{
+
+    bottom:10px;
+    height:42vh;
+
+    padding:18px;
+
+    background:
+    rgba(10,10,30,0.95);
+
+    border:
+    1px solid rgba(255,0,255,0.2);
+
+    backdrop-filter:blur(20px);
 
     display:flex;
     flex-direction:column;
 
-    border:1px solid rgba(255,0,255,0.2);
+    box-shadow:
+    0 0 25px rgba(255,0,255,0.15);
 }
 
-/* ===== TEXT ===== */
-.green{
+/* ===== INFO TEXT ===== */
+
+.infoTitle{
+
+    font-size:22px;
+
+    margin-bottom:10px;
+
     color:#00c8ff;
+
+    text-shadow:
+    0 0 10px #00c8ff;
+}
+
+.info{
+
+    margin-top:8px;
+
+    font-size:18px;
+}
+
+.green{
+
+    color:#00c8ff;
+
+    text-shadow:
+    0 0 10px #00c8ff;
 }
 
 .red{
+
     color:#ff2a6d;
+
+    text-shadow:
+    0 0 10px #ff2a6d;
 }
 
 /* ===== BUTTON ===== */
-.back{
-    margin-top:10px;
-    padding:12px;
 
-    background:#111;
-    border-radius:10px;
+.back{
+
+    margin-top:auto;
+
+    padding:14px;
 
     text-align:center;
 
+    border-radius:14px;
+
+    background:
+    rgba(20,20,40,0.8);
+
+    border:
+    1px solid rgba(255,0,255,0.25);
+
     cursor:pointer;
+
+    transition:0.25s;
+}
+
+.back:hover{
+
+    transform:scale(1.02);
+
+    box-shadow:
+    0 0 20px rgba(255,0,255,0.45);
 }
 
 /* ===== CANVAS ===== */
+
 canvas{
     width:100%;
     height:100%;
@@ -121,187 +261,498 @@ canvas{
 
 <body>
 
-<!-- SIGNALS -->
+<!-- ===== MAIN ===== -->
+
 <div id="main">
-    <div class="title">Signals</div>
 
-    <div class="signal" onclick="openTrade('BTC/USDT','BUY')">
-        BTC/USDT<br>
-        <span style="color:#ff4dff">BUY</span>
+    <div class="title">
+        CYBER SIGNALS
     </div>
 
-    <div class="signal" onclick="openTrade('ETH/USDT','SELL')">
-        ETH/USDT<br>
-        <span style="color:#ff2a6d">SELL</span>
-    </div>
+    <div id="signals"></div>
+
 </div>
 
-<!-- CHART -->
-<div id="chartWindow" class="window" style="display:none">
+<!-- ===== CHART ===== -->
+
+<div
+id="chartWindow"
+class="window"
+style="display:none"
+>
     <canvas id="chart"></canvas>
 </div>
 
-<!-- INFO -->
-<div id="infoWindow" class="window" style="display:none">
+<!-- ===== INFO ===== -->
 
-    <div id="pair"></div>
-    <div id="priceText"></div>
+<div
+id="infoWindow"
+class="window"
+style="display:none"
+>
 
-    <div class="back" onclick="goBack()">← Назад</div>
+    <div
+    id="pair"
+    class="infoTitle"
+    ></div>
+
+    <div
+    id="direction"
+    class="info"
+    ></div>
+
+    <div
+    id="priceText"
+    class="info"
+    ></div>
+
+    <div
+    id="status"
+    class="info"
+    ></div>
+
+    <div
+    class="back"
+    onclick="goBack()"
+    >
+        ← BACK
+    </div>
 
 </div>
 
 <script>
 
-// ===== WS
-let socket = new WebSocket("ws://127.0.0.1:8000/ws")
+// ===== SIGNALS =====
 
-// ===== UI
-let activePair=""
-let activeDir=""
+const signals=[
 
-function openTrade(pairName,dir){
+    {
+        pair:"BTC/USDT",
+        dir:"BUY"
+    },
 
-    activePair=pairName
-    activeDir=dir
+    {
+        pair:"ETH/USDT",
+        dir:"SELL"
+    },
 
-    pair.innerText=pairName+" | "+dir
+    {
+        pair:"EUR/USD",
+        dir:"BUY"
+    },
+
+    {
+        pair:"GBP/USD",
+        dir:"SELL"
+    }
+]
+
+// ===== RENDER =====
+
+const signalsEl=
+document.getElementById("signals")
+
+signals.forEach((s,i)=>{
+
+    const cls=
+    s.dir==="BUY"
+    ? "buy"
+    : "sell"
+
+    signalsEl.innerHTML+=`
+
+    <div
+    class="signal"
+    onclick="openTrade(${i})"
+    >
+
+        <div class="signalPair">
+            ${s.pair}
+        </div>
+
+        <div class="${cls}">
+            ${s.dir}
+        </div>
+
+    </div>
+    `
+})
+
+// ===== NAV =====
+
+let active=null
+
+function openTrade(i){
+
+    active=signals[i]
+
+    pair.innerText=
+    active.pair
+
+    direction.innerHTML=
+    `
+    Signal:
+    <span class="${
+        active.dir==="BUY"
+        ? "buy"
+        : "sell"
+    }">
+        ${active.dir}
+    </span>
+    `
 
     main.style.display="none"
+
     chartWindow.style.display="block"
+
     infoWindow.style.display="flex"
+
+    resizeCanvas()
+
+    startChart()
 }
 
 function goBack(){
 
+    running=false
+
     chartWindow.style.display="none"
+
     infoWindow.style.display="none"
 
     main.style.display="block"
+
+    offsetX=0
 }
 
-// ===== CANVAS
-const canvas=document.getElementById("chart")
-const ctx=canvas.getContext("2d")
+// ===== CANVAS =====
 
-canvas.width=window.innerWidth
-canvas.height=window.innerHeight*0.5
+const canvas=
+document.getElementById("chart")
+
+const ctx=
+canvas.getContext("2d")
+
+function resizeCanvas(){
+
+    canvas.width=
+    chartWindow.clientWidth
+
+    canvas.height=
+    chartWindow.clientHeight
+}
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
+)
+
+// ===== MARKET =====
 
 let candles=[]
 let current=null
 let price=100
 
 function newCandle(p){
-    return {open:p,high:p,low:p,close:p}
+
+    return{
+        open:p,
+        high:p,
+        low:p,
+        close:p
+    }
 }
 
-for(let i=0;i<80;i++){
-    candles.push(newCandle(price))
+// ===== HISTORY =====
+
+function generateHistory(){
+
+    candles=[]
+
+    let p=100
+
+    for(let i=0;i<90;i++){
+
+        let open=p
+
+        let close=
+        open+
+        (Math.random()-0.5)*2
+
+        candles.push({
+
+            open,
+
+            high:
+            Math.max(open,close),
+
+            low:
+            Math.min(open,close),
+
+            close
+        })
+
+        p=close
+    }
+
+    price=p
+
+    current=
+    newCandle(price)
 }
 
-current=newCandle(price)
+// ===== DRAG =====
 
-// ===== REALTIME
-socket.onmessage=(event)=>{
+let dragging=false
 
-    let data=JSON.parse(event.data)
+let startX=0
 
-    price=data.price
+let offsetX=0
 
-    current.high=Math.max(current.high,price)
-    current.low=Math.min(current.low,price)
+canvas.addEventListener(
+"mousedown",
+e=>{
+
+    dragging=true
+
+    startX=e.clientX
+})
+
+canvas.addEventListener(
+"touchstart",
+e=>{
+
+    dragging=true
+
+    startX=
+    e.touches[0].clientX
+})
+
+window.addEventListener(
+"mousemove",
+e=>{
+
+    if(!dragging)return
+
+    offsetX+=
+    e.clientX-startX
+
+    startX=e.clientX
+})
+
+window.addEventListener(
+"touchmove",
+e=>{
+
+    if(!dragging)return
+
+    offsetX+=
+    e.touches[0].clientX-startX
+
+    startX=
+    e.touches[0].clientX
+})
+
+window.addEventListener(
+"mouseup",
+()=>dragging=false
+)
+
+window.addEventListener(
+"touchend",
+()=>dragging=false
+)
+
+// ===== LOOP =====
+
+let running=false
+
+function updateMarket(){
+
+    let move=
+    (Math.random()-0.5)*0.35
+
+    price+=move
+
+    current.high=
+    Math.max(current.high,price)
+
+    current.low=
+    Math.min(current.low,price)
+
     current.close=price
-
-    priceText.innerText="Price: "+price
-
-    draw()
 }
 
-// ===== NEW CANDLE
+// ===== NEW CANDLE =====
+
 setInterval(()=>{
+
+    if(!running)return
 
     candles.push(current)
 
     if(candles.length>120){
+
         candles.shift()
     }
 
-    current=newCandle(price)
+    current=
+    newCandle(price)
 
 },2000)
 
-// ===== DRAG
-let dragging=false,startX=0,offsetX=0
+// ===== DRAW =====
 
-canvas.addEventListener("mousedown",e=>{
-    dragging=true
-    startX=e.clientX
-})
-
-canvas.addEventListener("touchstart",e=>{
-    dragging=true
-    startX=e.touches[0].clientX
-})
-
-window.addEventListener("mousemove",e=>{
-    if(!dragging)return
-    offsetX+=(e.clientX-startX)
-    startX=e.clientX
-})
-
-window.addEventListener("touchmove",e=>{
-    if(!dragging)return
-    offsetX+=(e.touches[0].clientX-startX)
-    startX=e.touches[0].clientX
-})
-
-window.addEventListener("mouseup",()=>dragging=false)
-window.addEventListener("touchend",()=>dragging=false)
-
-// ===== DRAW
 function draw(){
 
-    ctx.clearRect(0,0,canvas.width,canvas.height)
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    )
 
-    let all=[...candles,current]
+    const all=[
+        ...candles,
+        current
+    ]
 
-    let max=Math.max(...all.map(c=>c.high))
-    let min=Math.min(...all.map(c=>c.low))
-    let range=max-min||1
+    const max=Math.max(
+        ...all.map(c=>c.high)
+    )
 
-    let w=canvas.width/30
-    let center=Math.floor(all.length/2)
+    const min=Math.min(
+        ...all.map(c=>c.low)
+    )
+
+    const range=max-min || 1
+
+    const w=16
+
+    const center=
+    Math.floor(all.length/2)
 
     all.forEach((c,i)=>{
 
-        let x=(i-center)*w + canvas.width/2 + offsetX
+        const x=
+        (i-center)*w+
+        canvas.width/2+
+        offsetX
 
-        let scale=canvas.height/range
+        const scale=
+        canvas.height/range
 
-        let o=canvas.height-(c.open-min)*scale
-        let cl=canvas.height-(c.close-min)*scale
-        let hi=canvas.height-(c.high-min)*scale
-        let lo=canvas.height-(c.low-min)*scale
+        const o=
+        canvas.height-
+        (c.open-min)*scale
 
-        let up=c.close>c.open
+        const cl=
+        canvas.height-
+        (c.close-min)*scale
 
-        ctx.strokeStyle=up?"#00c8ff":"#ff2a6d"
-        ctx.lineWidth=1
+        const hi=
+        canvas.height-
+        (c.high-min)*scale
+
+        const lo=
+        canvas.height-
+        (c.low-min)*scale
+
+        const up=
+        c.close>=c.open
+
+        // WICK
+
+        ctx.strokeStyle=
+        up
+        ? "#00c8ff"
+        : "#ff2a6d"
+
+        ctx.lineWidth=1.4
 
         ctx.beginPath()
+
         ctx.moveTo(x+w/2,hi)
+
         ctx.lineTo(x+w/2,lo)
+
         ctx.stroke()
 
-        ctx.fillStyle=up?"#ff4dff":"#ff2a6d"
+        // BODY
+
+        ctx.fillStyle=
+        up
+        ? "#ff4dff"
+        : "#ff2a6d"
+
+        const bodyH=
+        Math.max(
+            3,
+            Math.abs(o-cl)
+        )
 
         ctx.fillRect(
-            x+w*0.25,
+
+            x+w*0.2,
+
             Math.min(o,cl),
-            w*0.5,
-            Math.max(2,Math.abs(o-cl))
+
+            w*0.6,
+
+            bodyH
         )
     })
+}
+
+// ===== ANIMATION =====
+
+function animate(){
+
+    if(!running)return
+
+    updateMarket()
+
+    priceText.innerHTML=
+    `
+    Price:
+    <span class="green">
+        ${price.toFixed(2)}
+    </span>
+    `
+
+    const pnl=
+    (price-100).toFixed(2)
+
+    status.innerHTML=
+    `
+    P/L:
+    <span class="${
+        pnl>=0
+        ? "green"
+        : "red"
+    }">
+        ${pnl}
+    </span>
+    `
+
+    draw()
+
+    requestAnimationFrame(
+        animate
+    )
+}
+
+// ===== START =====
+
+function startChart(){
+
+    generateHistory()
+
+    running=true
+
+    draw()
+
+    animate()
 }
 
 </script>
