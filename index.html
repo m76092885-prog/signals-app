@@ -17,14 +17,16 @@ content="width=device-width, initial-scale=1.0">
     margin:0;
     padding:0;
     box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
 }
 
 body{
 
     background:
     radial-gradient(circle at top,
-    #111827,
-    #05070d);
+    #111827 0%,
+    #05070d 60%,
+    #020308 100%);
 
     color:white;
 
@@ -45,16 +47,19 @@ body{
     padding:20px;
 }
 
+/* ===== TITLE ===== */
+
 .title{
 
     color:#ff4dff;
 
-    font-size:26px;
+    font-size:28px;
 
     margin-bottom:20px;
 
     text-shadow:
-    0 0 10px #ff4dff;
+    0 0 10px #ff4dff,
+    0 0 25px #ff4dff;
 }
 
 /* ===== SIGNAL ===== */
@@ -62,20 +67,22 @@ body{
 .signal{
 
     background:
-    rgba(20,20,40,0.75);
+    rgba(20,20,40,0.78);
 
     border:
     1px solid rgba(255,0,255,0.2);
 
-    border-radius:16px;
+    border-radius:18px;
 
     padding:18px;
 
     margin-bottom:14px;
 
-    transition:0.2s;
+    transition:0.22s;
 
     cursor:pointer;
+
+    backdrop-filter:blur(12px);
 }
 
 .signal:hover{
@@ -83,18 +90,34 @@ body{
     transform:scale(1.02);
 
     box-shadow:
-    0 0 20px rgba(255,0,255,0.3);
+    0 0 20px rgba(255,0,255,0.35),
+    0 0 40px rgba(0,200,255,0.08);
+}
+
+.signalPair{
+
+    font-size:20px;
+
+    margin-bottom:8px;
 }
 
 .buy{
+
     color:#ff4dff;
+
+    text-shadow:
+    0 0 10px #ff4dff;
 }
 
 .sell{
+
     color:#ff2a6d;
+
+    text-shadow:
+    0 0 10px #ff2a6d;
 }
 
-/* ===== CHART ===== */
+/* ===== TRADE SCREEN ===== */
 
 #tradeScreen{
 
@@ -104,7 +127,7 @@ body{
     height:100vh;
 }
 
-/* ===== CHART WINDOW ===== */
+/* ===== CHART ===== */
 
 #chartBox{
 
@@ -116,11 +139,28 @@ body{
 
     height:52vh;
 
-    border-radius:18px;
+    border-radius:20px;
 
     overflow:hidden;
 
-    background:#05070d;
+    background:
+    linear-gradient(#05070d,#05070d),
+
+    repeating-linear-gradient(
+        0deg,
+        rgba(0,200,255,0.05) 0px,
+        rgba(0,200,255,0.05) 1px,
+        transparent 1px,
+        transparent 32px
+    ),
+
+    repeating-linear-gradient(
+        90deg,
+        rgba(0,200,255,0.05) 0px,
+        rgba(0,200,255,0.05) 1px,
+        transparent 1px,
+        transparent 32px
+    );
 
     border:
     1px solid rgba(255,0,255,0.2);
@@ -141,7 +181,7 @@ body{
 
     height:40vh;
 
-    border-radius:18px;
+    border-radius:20px;
 
     padding:20px;
 
@@ -150,49 +190,77 @@ body{
 
     border:
     1px solid rgba(255,0,255,0.2);
+
+    backdrop-filter:blur(15px);
+
+    box-shadow:
+    0 0 25px rgba(255,0,255,0.12);
 }
 
 .infoTitle{
 
     font-size:24px;
 
+    margin-bottom:12px;
+
     color:#00c8ff;
 
-    margin-bottom:12px;
+    text-shadow:
+    0 0 10px #00c8ff;
 }
 
 .info{
+
     margin-top:10px;
+
     font-size:18px;
 }
 
 .green{
+
     color:#00c8ff;
+
+    text-shadow:
+    0 0 10px #00c8ff;
 }
 
 .red{
+
     color:#ff2a6d;
+
+    text-shadow:
+    0 0 10px #ff2a6d;
 }
 
-/* ===== BUTTON ===== */
+/* ===== BACK ===== */
 
 .back{
 
-    margin-top:20px;
+    margin-top:22px;
 
     padding:14px;
 
-    border-radius:14px;
-
     text-align:center;
 
-    cursor:pointer;
+    border-radius:14px;
 
     background:
     rgba(20,20,40,0.8);
 
     border:
     1px solid rgba(255,0,255,0.2);
+
+    cursor:pointer;
+
+    transition:0.22s;
+}
+
+.back:hover{
+
+    transform:scale(1.02);
+
+    box-shadow:
+    0 0 20px rgba(255,0,255,0.4);
 }
 
 </style>
@@ -200,7 +268,7 @@ body{
 
 <body>
 
-<!-- ===== SIGNALS ===== -->
+<!-- ===== MAIN ===== -->
 
 <div id="main">
 
@@ -210,26 +278,41 @@ body{
 
     <div
     class="signal"
-    onclick="openTrade('BTCUSDT','BUY')"
+    onclick="openTrade('btcusdt','BUY')"
     >
-        <div>BTC/USDT</div>
-        <div class="buy">BUY</div>
+        <div class="signalPair">
+            BTC/USDT
+        </div>
+
+        <div class="buy">
+            BUY
+        </div>
     </div>
 
     <div
     class="signal"
-    onclick="openTrade('ETHUSDT','SELL')"
+    onclick="openTrade('ethusdt','SELL')"
     >
-        <div>ETH/USDT</div>
-        <div class="sell">SELL</div>
+        <div class="signalPair">
+            ETH/USDT
+        </div>
+
+        <div class="sell">
+            SELL
+        </div>
     </div>
 
     <div
     class="signal"
-    onclick="openTrade('EURUSD','BUY')"
+    onclick="openTrade('bnbusdt','BUY')"
     >
-        <div>EUR/USD</div>
-        <div class="buy">BUY</div>
+        <div class="signalPair">
+            BNB/USDT
+        </div>
+
+        <div class="buy">
+            BUY
+        </div>
     </div>
 
 </div>
@@ -297,9 +380,11 @@ document.getElementById("statusText")
 
 // ===== CHART =====
 
-let chart
-let candleSeries
-let ws
+let chart=null
+
+let candleSeries=null
+
+let ws=null
 
 // ===== OPEN =====
 
@@ -309,7 +394,8 @@ function openTrade(symbol,dir){
 
     tradeScreen.style.display="block"
 
-    pairEl.innerText=symbol
+    pairEl.innerText=
+    symbol.toUpperCase()
 
     signalText.innerHTML=
     `
@@ -325,7 +411,7 @@ function openTrade(symbol,dir){
 
     createChart()
 
-    connect(symbol)
+    connectBinance(symbol)
 }
 
 // ===== BACK =====
@@ -337,11 +423,17 @@ function goBack(){
     main.style.display="block"
 
     if(ws){
+
         ws.close()
+
+        ws=null
     }
 
     if(chart){
+
         chart.remove()
+
+        chart=null
     }
 }
 
@@ -349,28 +441,25 @@ function goBack(){
 
 function createChart(){
 
+    const chartBox=
     document.getElementById(
         "chartBox"
-    ).innerHTML=""
+    )
+
+    chartBox.innerHTML=""
 
     chart=
     LightweightCharts.createChart(
 
-        document.getElementById(
-            "chartBox"
-        ),
+        chartBox,
 
         {
 
             width:
-            document.getElementById(
-                "chartBox"
-            ).clientWidth,
+            chartBox.clientWidth,
 
             height:
-            document.getElementById(
-                "chartBox"
-            ).clientHeight,
+            chartBox.clientHeight,
 
             layout:{
 
@@ -378,22 +467,20 @@ function createChart(){
                     color:"#05070d"
                 },
 
-                textColor:"#888"
+                textColor:"#777"
             },
 
             grid:{
 
                 vertLines:{
-                    color:"rgba(0,200,255,0.05)"
+                    color:
+                    "rgba(0,200,255,0.05)"
                 },
 
                 horzLines:{
-                    color:"rgba(0,200,255,0.05)"
+                    color:
+                    "rgba(0,200,255,0.05)"
                 }
-            },
-
-            crosshair:{
-                mode:1
             },
 
             rightPriceScale:{
@@ -401,56 +488,72 @@ function createChart(){
             },
 
             timeScale:{
-                borderColor:"#222"
+                borderColor:"#222",
+
+                timeVisible:true
+            },
+
+            crosshair:{
+                mode:1
             }
         }
     )
 
+    // ===== FIXED NEW API =====
+
     candleSeries=
-    chart.addCandlestickSeries({
+    chart.addSeries(
 
-        upColor:"#ff4dff",
+        LightweightCharts.CandlestickSeries,
 
-        downColor:"#ff2a6d",
+        {
 
-        borderVisible:false,
+            upColor:"#ff4dff",
 
-        wickUpColor:"#00c8ff",
+            downColor:"#ff2a6d",
 
-        wickDownColor:"#ff2a6d"
-    })
+            wickUpColor:"#00c8ff",
+
+            wickDownColor:"#ff2a6d",
+
+            borderVisible:false
+        }
+    )
 }
 
 // ===== REALTIME =====
 
-function connect(symbol){
-
-    // BINANCE WS
+function connectBinance(symbol){
 
     ws=new WebSocket(
 
-    `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_1m`
+    `wss://stream.binance.com:9443/ws/${symbol}@kline_1m`
 
     )
 
     ws.onmessage=(event)=>{
 
-        const data=
+        const msg=
         JSON.parse(event.data)
 
-        const k=data.k
+        const k=msg.k
 
         candleSeries.update({
 
-            time:k.t/1000,
+            time:
+            Math.floor(k.t/1000),
 
-            open:parseFloat(k.o),
+            open:
+            parseFloat(k.o),
 
-            high:parseFloat(k.h),
+            high:
+            parseFloat(k.h),
 
-            low:parseFloat(k.l),
+            low:
+            parseFloat(k.l),
 
-            close:parseFloat(k.c)
+            close:
+            parseFloat(k.c)
         })
 
         priceText.innerHTML=
@@ -461,7 +564,7 @@ function connect(symbol){
         </span>
         `
 
-        let pnl=
+        const move=
         (
             parseFloat(k.c)-
             parseFloat(k.o)
@@ -471,15 +574,49 @@ function connect(symbol){
         `
         Candle:
         <span class="${
-            pnl>=0
+            move>=0
             ? "green"
             : "red"
         }">
-            ${pnl}
+            ${move}
+        </span>
+        `
+    }
+
+    ws.onerror=()=>{
+
+        statusText.innerHTML=
+        `
+        <span class="red">
+            WebSocket Error
         </span>
         `
     }
 }
+
+// ===== RESIZE =====
+
+window.addEventListener(
+    "resize",
+    ()=>{
+
+        if(chart){
+
+            chart.applyOptions({
+
+                width:
+                document.getElementById(
+                    "chartBox"
+                ).clientWidth,
+
+                height:
+                document.getElementById(
+                    "chartBox"
+                ).clientHeight
+            })
+        }
+    }
+)
 
 </script>
 
