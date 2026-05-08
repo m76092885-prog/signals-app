@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
 
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 
 <meta name="viewport"
-content="width=device-width, initial-scale=1.0"/>
+content="width=device-width, initial-scale=1.0">
 
 <title>CYBER AI SIGNALS</title>
 
@@ -44,10 +45,6 @@ body{
     z-index:-2;
 }
 
-/* ========================================== */
-/* GRID */
-/* ========================================== */
-
 .grid{
 
     position:fixed;
@@ -61,9 +58,9 @@ body{
 
     background-size:40px 40px;
 
-    z-index:-1;
+    opacity:0.15;
 
-    opacity:0.2;
+    z-index:-1;
 }
 
 /* ========================================== */
@@ -106,9 +103,9 @@ body{
 
 .signal{
 
-    background:#0b1224cc;
+    background:#0b1224dd;
 
-    border:1px solid #00f0ff55;
+    border:1px solid #00f0ff44;
 
     border-radius:20px;
 
@@ -127,7 +124,7 @@ body{
     transform:translateY(-4px);
 
     box-shadow:
-    0 0 25px #00f0ff66;
+    0 0 30px #00f0ff55;
 }
 
 .buy{
@@ -137,7 +134,7 @@ body{
 
 .sell{
 
-    border-left:5px solid #ff3b5c;
+    border-left:5px solid #ff3355;
 }
 
 /* ========================================== */
@@ -220,13 +217,6 @@ body{
     backdrop-filter:blur(10px);
 }
 
-.modal h2{
-
-    margin-top:0;
-
-    color:#00f0ff;
-}
-
 .close{
 
     margin-top:20px;
@@ -239,9 +229,9 @@ body{
 
     border-radius:15px;
 
-    background:#ff005522;
+    background:#ff003322;
 
-    color:#ff0055;
+    color:#ff0033;
 
     font-weight:bold;
 }
@@ -342,8 +332,18 @@ body{
 
 <script>
 
+/* ========================================== */
+/* API */
+/* ========================================== */
+
 const API =
 "https://signals-ai-backend.onrender.com/signals";
+
+/* ========================================== */
+/* SAVED SIGNALS */
+/* ========================================== */
+
+let savedSignals = {};
 
 /* ========================================== */
 /* LOAD SIGNALS */
@@ -353,16 +353,25 @@ async function loadSignals(){
 
     try{
 
-        const res = await fetch(API);
+        const response =
+        await fetch(API);
 
-        const data = await res.json();
+        const data =
+        await response.json();
 
         const container =
         document.getElementById("signals");
 
-        container.innerHTML = "";
-
         data.forEach(signal => {
+
+            const id =
+            signal.pair + signal.time;
+
+            if(savedSignals[id]){
+                return;
+            }
+
+            savedSignals[id] = true;
 
             const card =
             document.createElement("div");
@@ -374,7 +383,8 @@ async function loadSignals(){
                 : "sell"
             }`;
 
-            let levelClass = "levelB";
+            let levelClass =
+            "levelB";
 
             if(signal.level === "A"){
                 levelClass = "levelA";
@@ -414,6 +424,7 @@ async function loadSignals(){
                 <button class="btn">
                     OPEN DETAILS
                 </button>
+
             `;
 
             card.onclick = () => {
@@ -421,13 +432,13 @@ async function loadSignals(){
                 openModal(signal);
             };
 
-            container.appendChild(card);
+            container.prepend(card);
 
         });
 
-    }catch(err){
+    }catch(error){
 
-        console.log(err);
+        console.log(error);
     }
 }
 
