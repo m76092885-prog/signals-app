@@ -1,7 +1,5 @@
 fastapi
 uvicorn
-websockets
+requests
 pandas
-numpy
 ta
-python-dotenv
