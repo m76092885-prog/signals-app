@@ -1,4 +1,3 @@
-```python id="8p8tbd"
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -29,4 +28,3 @@ async def signals():
             "sellers": 18
         }
     ]
-```
