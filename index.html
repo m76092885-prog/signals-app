@@ -1,338 +1,72 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Cyber Signals AI</title>
-
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>AI SIGNALS</title>
 
 <style>
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial;
-}
-
 body{
-
-    background:
-    linear-gradient(
-        135deg,
-        #050816,
-        #0d1025,
-        #13071c
-    );
-
-    min-height:100vh;
+    background:#0f172a;
     color:white;
-    overflow:hidden;
-}
-
-/* ===== BG ===== */
-
-.bg{
-
-    position:fixed;
-    inset:0;
-
-    background:
-    radial-gradient(
-        circle at top left,
-        rgba(0,255,255,.15),
-        transparent 30%
-    ),
-
-    radial-gradient(
-        circle at bottom right,
-        rgba(255,0,255,.15),
-        transparent 30%
-    );
-
-    filter:blur(80px);
-
-    animation:bgmove 10s linear infinite;
-}
-
-@keyframes bgmove{
-
-    0%{
-        transform:translate(0,0);
-    }
-
-    50%{
-        transform:translate(-20px,20px);
-    }
-
-    100%{
-        transform:translate(0,0);
-    }
-}
-
-/* ===== PAGE ===== */
-
-.page{
-
-    position:absolute;
-    inset:0;
-
-    display:flex;
-    flex-direction:column;
-
+    font-family:Arial;
+    margin:0;
     padding:20px;
-
-    overflow:auto;
 }
 
-/* ===== TITLE ===== */
-
-.title{
-
-    font-size:34px;
-    font-weight:900;
-
+h1{
+    text-align:center;
     margin-bottom:20px;
-
-    color:#ff4dff;
-
-    text-shadow:
-    0 0 15px #ff00ff,
-    0 0 30px #00ffff;
 }
 
-/* ===== SIGNALS ===== */
-
-#signalsContainer{
-
+#signals{
     display:flex;
     flex-direction:column;
-    gap:16px;
+    gap:15px;
 }
 
-/* ===== CARD ===== */
-
-.signal-card{
-
-    background:
-    rgba(255,255,255,.05);
-
-    border:
-    1px solid rgba(255,255,255,.08);
-
-    border-radius:28px;
-
-    padding:18px;
-
-    backdrop-filter:blur(20px);
-
-    box-shadow:
-    0 0 30px rgba(0,255,255,.15);
-
-    transition:.25s;
-
-    cursor:pointer;
-}
-
-.signal-card:active{
-
-    transform:scale(.97);
-
-    box-shadow:
-    0 0 40px #00ffff;
-}
-
-/* ===== ROWS ===== */
-
-.pair-row,
-.score-row,
-.pressure-row{
-
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-
-    margin-bottom:12px;
-}
-
-/* ===== TEXT ===== */
-
-.pair-name{
-
-    font-size:26px;
-    font-weight:800;
-}
-
-.signal-type{
-
-    padding:8px 16px;
-
-    border-radius:20px;
-
-    font-weight:800;
+.card{
+    background:#1e293b;
+    border-radius:15px;
+    padding:15px;
+    box-shadow:0 0 10px rgba(0,0,0,0.4);
 }
 
 .buy{
-
-    background:#00ff88;
-    color:black;
-
-    box-shadow:
-    0 0 20px #00ff88;
+    border-left:6px solid #22c55e;
 }
 
 .sell{
-
-    background:#ff3b6b;
-    color:white;
-
-    box-shadow:
-    0 0 20px #ff3b6b;
+    border-left:6px solid #ef4444;
 }
 
-.score-box,
-.expiration-box{
-
-    background:
-    rgba(255,255,255,.08);
-
-    padding:8px 16px;
-
-    border-radius:18px;
-
-    font-weight:700;
+.levelA{
+    color:#22c55e;
+    font-weight:bold;
 }
 
-/* ===== PRESSURE ===== */
-
-.buyers{
-
-    color:#00ff88;
+.levelB{
+    color:#facc15;
+    font-weight:bold;
 }
 
-.sellers{
-
-    color:#ff4d6d;
+.levelAplus{
+    color:#38bdf8;
+    font-weight:bold;
 }
 
-/* ===== TRADE PAGE ===== */
-
-#tradePage{
-
-    display:none;
-}
-
-.trade-box{
-
-    flex:1;
-
-    background:
-    rgba(255,255,255,.05);
-
-    border-radius:32px;
-
-    border:
-    1px solid rgba(255,255,255,.08);
-
-    padding:20px;
-
-    backdrop-filter:blur(25px);
-
-    box-shadow:
-    0 0 40px rgba(255,0,255,.2);
-
+.row{
     display:flex;
-    flex-direction:column;
+    justify-content:space-between;
+    margin-top:8px;
 }
 
-/* ===== GRAPH ===== */
-
-.graph{
-
-    flex:1;
-
-    border-radius:24px;
-
-    background:
-    linear-gradient(
-        rgba(255,255,255,.04) 1px,
-        transparent 1px
-    ),
-    linear-gradient(
-        90deg,
-        rgba(255,255,255,.04) 1px,
-        transparent 1px
-    );
-
-    background-size:30px 30px;
-
-    background-color:#060b16;
-
-    position:relative;
-
-    overflow:hidden;
-
-    margin-bottom:20px;
-}
-
-/* ===== FAKE CANDLES ===== */
-
-.candle{
-
-    position:absolute;
-    bottom:50%;
-
-    width:8px;
-
-    border-radius:10px;
-}
-
-/* ===== DETAILS ===== */
-
-.details{
-
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-
+.loading{
+    text-align:center;
+    margin-top:50px;
     font-size:20px;
-}
-
-/* ===== BACK ===== */
-
-.back-btn{
-
-    margin-top:20px;
-
-    padding:16px;
-
-    border:none;
-
-    border-radius:22px;
-
-    font-size:18px;
-    font-weight:800;
-
-    background:
-    linear-gradient(
-        90deg,
-        #00ffff,
-        #ff00ff
-    );
-
-    color:white;
-
-    box-shadow:
-    0 0 30px rgba(255,0,255,.4);
-
-    cursor:pointer;
-}
-
-.back-btn:active{
-
-    transform:scale(.96);
 }
 
 </style>
@@ -340,274 +74,149 @@ body{
 
 <body>
 
-<div class="bg"></div>
+<h1>😈 AI SIGNALS</h1>
 
-<!-- ===== SIGNALS PAGE ===== -->
-
-<div class="page" id="signalsPage">
-
-    <div class="title">
-        CYBER SIGNALS AI
+<div id="signals">
+    <div class="loading">
+        Loading AI signals...
     </div>
-
-    <div id="signalsContainer"></div>
-
-</div>
-
-<!-- ===== TRADE PAGE ===== -->
-
-<div class="page" id="tradePage">
-
-    <div class="trade-box">
-
-        <div class="graph" id="graph"></div>
-
-        <div class="details">
-
-            <div>
-                Pair:
-                <span id="tradePair"></span>
-            </div>
-
-            <div>
-                Signal:
-                <span id="tradeSignal"></span>
-            </div>
-
-            <div>
-                Confidence:
-                <span id="tradeScore"></span>
-            </div>
-
-            <div>
-                Expiration:
-                <span id="tradeExpiration"></span>
-            </div>
-
-            <div>
-                Buyers:
-                <span id="tradeBuyers"></span>
-            </div>
-
-            <div>
-                Sellers:
-                <span id="tradeSellers"></span>
-            </div>
-
-        </div>
-
-        <button
-        class="back-btn"
-        onclick="backToSignals()">
-
-            ← BACK
-
-        </button>
-
-    </div>
-
 </div>
 
 <script>
 
-// ===== API =====
-
-const API_URL = "https://signals-ai-backend.onrender.com/signals";
-
-// ===== SIGNALS =====
-
-let signals = [];
-
-// ===== ELEMENTS =====
-
-const signalsContainer =
-document.getElementById("signalsContainer");
-
-// ===== LOAD =====
+const API_URL =
+"https://signals-ai-backend.onrender.com/signals";
 
 async function loadSignals(){
 
     try{
 
-        const response =
-        await fetch(API_URL);
+        const response = await fetch(API_URL);
 
-        signals =
-        await response.json();
+        const data = await response.json();
 
-        renderSignals();
+        const container =
+        document.getElementById("signals");
 
-    }catch(err){
+        container.innerHTML = "";
 
-        console.log(err);
-    }
-}
+        if(data.length === 0){
 
-// ===== RENDER =====
+            container.innerHTML = `
+                <div class="loading">
+                    No signals now...
+                </div>
+            `;
 
-function renderSignals(){
+            return;
+        }
 
-    signalsContainer.innerHTML="";
+        data.forEach(signal => {
 
-    signals.forEach(signal=>{
+            let levelClass = "levelB";
 
-        const card =
-        document.createElement("div");
+            if(signal.level === "A"){
+                levelClass = "levelA";
+            }
 
-        card.className =
-        "signal-card";
+            if(signal.level === "A+"){
+                levelClass = "levelAplus";
+            }
 
-        const isBuy =
-        signal.signal==="BUY";
+            const card = document.createElement("div");
 
-        card.innerHTML=`
+            card.className =
+                `card ${
+                    signal.signal === "BUY"
+                    ? "buy"
+                    : "sell"
+                }`;
 
-        <div class="pair-row">
+            card.innerHTML = `
 
-            <div class="pair-name">
-                ${signal.pair}
+                <h2>
+                    ${signal.pair}
+                </h2>
+
+                <div class="row">
+                    <span>Signal:</span>
+                    <span>
+                        ${signal.signal}
+                    </span>
+                </div>
+
+                <div class="row">
+                    <span>Level:</span>
+                    <span class="${levelClass}">
+                        ${signal.level}
+                    </span>
+                </div>
+
+                <div class="row">
+                    <span>Score:</span>
+                    <span>
+                        ${signal.score}%
+                    </span>
+                </div>
+
+                <div class="row">
+                    <span>Expiration:</span>
+                    <span>
+                        ${signal.expiration}
+                    </span>
+                </div>
+
+                <div class="row">
+                    <span>Buyers:</span>
+                    <span>
+                        ${signal.buyers}%
+                    </span>
+                </div>
+
+                <div class="row">
+                    <span>Sellers:</span>
+                    <span>
+                        ${signal.sellers}%
+                    </span>
+                </div>
+
+                <div class="row">
+                    <span>ADX:</span>
+                    <span>
+                        ${signal.adx}
+                    </span>
+                </div>
+
+                <div class="row">
+                    <span>RSI:</span>
+                    <span>
+                        ${signal.rsi}
+                    </span>
+                </div>
+
+            `;
+
+            container.appendChild(card);
+
+        });
+
+    }catch(error){
+
+        console.log(error);
+
+        document.getElementById("signals").innerHTML = `
+            <div class="loading">
+                Backend offline...
             </div>
-
-            <div class="
-            signal-type
-            ${isBuy?"buy":"sell"}
-            ">
-                ${signal.signal}
-            </div>
-
-        </div>
-
-        <div class="score-row">
-
-            <div class="score-box">
-                ${signal.score}%
-            </div>
-
-            <div class="expiration-box">
-                ${signal.expiration}
-            </div>
-
-        </div>
-
-        <div class="pressure-row">
-
-            <div class="buyers">
-                🟢 ${signal.buyers}%
-            </div>
-
-            <div class="sellers">
-                🔴 ${signal.sellers}%
-            </div>
-
-        </div>
-
         `;
 
-        card.onclick=()=>{
-
-            openTrade(signal);
-        };
-
-        signalsContainer.appendChild(card);
-    });
-}
-
-// ===== OPEN TRADE =====
-
-function openTrade(signal){
-
-    document.getElementById(
-    "signalsPage").style.display="none";
-
-    document.getElementById(
-    "tradePage").style.display="flex";
-
-    document.getElementById(
-    "tradePair").innerText=
-    signal.pair;
-
-    document.getElementById(
-    "tradeSignal").innerText=
-    signal.signal;
-
-    document.getElementById(
-    "tradeScore").innerText=
-    signal.score+"%";
-
-    document.getElementById(
-    "tradeExpiration").innerText=
-    signal.expiration;
-
-    document.getElementById(
-    "tradeBuyers").innerText=
-    signal.buyers+"%";
-
-    document.getElementById(
-    "tradeSellers").innerText=
-    signal.sellers+"%";
-
-    generateGraph();
-}
-
-// ===== BACK =====
-
-function backToSignals(){
-
-    document.getElementById(
-    "tradePage").style.display="none";
-
-    document.getElementById(
-    "signalsPage").style.display="flex";
-}
-
-// ===== GRAPH =====
-
-function generateGraph(){
-
-    const graph =
-    document.getElementById("graph");
-
-    graph.innerHTML="";
-
-    for(let i=0;i<40;i++){
-
-        const candle =
-        document.createElement("div");
-
-        candle.className=
-        "candle";
-
-        const up =
-        Math.random()>.5;
-
-        const height =
-        40+Math.random()*120;
-
-        candle.style.left=
-        i*10+"px";
-
-        candle.style.height=
-        height+"px";
-
-        candle.style.background=
-        up
-        ?"#00ff88"
-        :"#ff3b6b";
-
-        candle.style.boxShadow=
-        up
-        ?"0 0 15px #00ff88"
-        :"0 0 15px #ff3b6b";
-
-        graph.appendChild(candle);
     }
-}
 
-// ===== START =====
+}
 
 loadSignals();
 
-setInterval(loadSignals,5000);
+setInterval(loadSignals, 10000);
 
 </script>
 
