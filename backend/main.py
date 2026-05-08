@@ -5,6 +5,9 @@ import requests
 import pandas as pd
 import ta
 import random
+import json
+
+from datetime import datetime
 
 # ==========================================
 # API KEY
@@ -39,6 +42,25 @@ pairs = [
     "USD/CAD",
     "EUR/JPY",
 ]
+
+# ==========================================
+# SAVE SIGNAL HISTORY
+# ==========================================
+
+def save_signal(signal_data):
+
+    try:
+
+        with open("history.json", "r") as f:
+            history = json.load(f)
+
+    except:
+        history = []
+
+    history.append(signal_data)
+
+    with open("history.json", "w") as f:
+        json.dump(history, f, indent=2)
 
 # ==========================================
 # GET MARKET DATA
@@ -317,7 +339,7 @@ def analyze_pair(pair):
     # RESULT
     # ==========================================
 
-    return {
+    result = {
 
         "pair": pair.replace("/", ""),
 
@@ -335,8 +357,14 @@ def analyze_pair(pair):
 
         "adx": round(adx_last, 1),
 
-        "rsi": round(rsi_last, 1)
+        "rsi": round(rsi_last, 1),
+
+        "time": str(datetime.now())
     }
+
+    save_signal(result)
+
+    return result
 
 # ==========================================
 # ROOT
@@ -347,7 +375,7 @@ async def root():
 
     return {
         "status": "ONLINE",
-        "engine": "CYBER SIGNAL AI V2"
+        "engine": "CYBER SIGNAL AI V3"
     }
 
 # ==========================================
@@ -372,3 +400,20 @@ async def signals():
             results.append(signal)
 
     return results[:4]
+
+# ==========================================
+# HISTORY
+# ==========================================
+
+@app.get("/history")
+async def history():
+
+    try:
+
+        with open("history.json", "r") as f:
+            history = json.load(f)
+
+        return history[-50:]
+
+    except:
+        return []
