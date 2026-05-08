@@ -1,3 +1,5 @@
+import asyncio
+
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -16,9 +18,9 @@ from telegram.ext import (
 
 TOKEN = "8355508722:AAEgH0tfnjxh7G1ke_gGsmt7TdwvZNkw8uk"
 
-# ===== YOUR RENDER SITE =====
+# ===== NEW WEBAPP =====
 
-WEBAPP_URL = "https://signals-app-1-kbm1.onrender.com/?v=7000"
+WEBAPP_URL = "https://signals-app-1-kbm1.onrender.com/?v=999999"
 
 # ===== START =====
 
@@ -49,27 +51,17 @@ async def start(
 
         text=(
             "🔥 CYBER SIGNALS\n\n"
-            "Realtime Trading Interface\n"
-            "Live Charts • Buy/Sell Signals"
+            "Realtime Trading Interface"
         ),
 
         reply_markup=reply_markup
     )
 
-# ===== MAIN =====
+# ===== POST INIT =====
 
-def main():
+async def post_init(app):
 
-    app = (
-        Application
-        .builder()
-        .token(TOKEN)
-        .build()
-    )
-
-    # ===== MENU BUTTON =====
-
-    app.bot.set_chat_menu_button(
+    await app.bot.set_chat_menu_button(
 
         menu_button=MenuButtonWebApp(
 
@@ -81,7 +73,19 @@ def main():
         )
     )
 
-    # ===== COMMANDS =====
+    print("MENU BUTTON UPDATED")
+
+# ===== MAIN =====
+
+def main():
+
+    app = (
+        Application
+        .builder()
+        .token(TOKEN)
+        .post_init(post_init)
+        .build()
+    )
 
     app.add_handler(
         CommandHandler(
@@ -92,11 +96,9 @@ def main():
 
     print("BOT STARTED")
 
-    # ===== RUN =====
-
     app.run_polling()
 
-# ===== START APP =====
+# ===== RUN =====
 
 if __name__ == "__main__":
     main()
