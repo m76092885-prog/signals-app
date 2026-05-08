@@ -6,11 +6,15 @@ import pandas as pd
 import ta
 import random
 
-# ===== API KEY =====
+# =========================
+# API KEY
+# =========================
 
 API_KEY = "44e14a6e8f7c4360885483d51e2f4523"
 
-# ===== APP =====
+# =========================
+# APP
+# =========================
 
 app = FastAPI()
 
@@ -22,7 +26,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ===== PAIRS =====
+# =========================
+# FOREX PAIRS
+# =========================
 
 pairs = [
     "EUR/USD",
@@ -31,10 +37,12 @@ pairs = [
     "GBP/JPY",
     "AUD/USD",
     "USD/CAD",
-    "EUR/JPY"
+    "EUR/JPY",
 ]
 
-# ===== GET FOREX DATA =====
+# =========================
+# GET MARKET DATA
+# =========================
 
 def get_data(pair):
 
@@ -57,14 +65,16 @@ def get_data(pair):
 
     df = df.iloc[::-1]
 
+    df["open"] = df["open"].astype(float)
     df["close"] = df["close"].astype(float)
     df["high"] = df["high"].astype(float)
     df["low"] = df["low"].astype(float)
-    df["open"] = df["open"].astype(float)
 
     return df
 
-# ===== ANALYZE =====
+# =========================
+# ANALYZE PAIR
+# =========================
 
 def analyze_pair(pair):
 
@@ -73,7 +83,9 @@ def analyze_pair(pair):
     if df is None:
         return None
 
-    # ===== INDICATORS =====
+    # =========================
+    # INDICATORS
+    # =========================
 
     ema50 = ta.trend.EMAIndicator(
         close=df["close"],
@@ -105,10 +117,11 @@ def analyze_pair(pair):
 
     minus_di = adx.adx_neg()
 
-    # ===== LAST VALUES =====
+    # =========================
+    # LAST VALUES
+    # =========================
 
     price = df["close"].iloc[-1]
-
     ema = ema50.iloc[-1]
 
     rsi_last = rsi.iloc[-1]
@@ -118,10 +131,11 @@ def analyze_pair(pair):
     adx_last = adx_value.iloc[-1]
 
     plus = plus_di.iloc[-1]
-
     minus = minus_di.iloc[-1]
 
-    # ===== CANDLE CONFIRMATION =====
+    # =========================
+    # CANDLE CONFIRMATION
+    # =========================
 
     candle1 = df.iloc[-1]
     candle2 = df.iloc[-2]
@@ -136,19 +150,21 @@ def analyze_pair(pair):
         and candle2["close"] < candle2["open"]
     )
 
-    # ===== SCORE =====
+    # =========================
+    # SCORE SYSTEM
+    # =========================
 
     buy_score = 0
     sell_score = 0
 
-    # ===== EMA TREND =====
+    # EMA TREND
 
     if price > ema:
         buy_score += 25
     else:
         sell_score += 25
 
-    # ===== ADX =====
+    # ADX STRENGTH
 
     if adx_last > 25:
 
@@ -157,7 +173,7 @@ def analyze_pair(pair):
         else:
             sell_score += 20
 
-    # ===== RSI =====
+    # RSI
 
     if rsi_last < 30:
         buy_score += 15
@@ -165,7 +181,7 @@ def analyze_pair(pair):
     if rsi_last > 70:
         sell_score += 15
 
-    # ===== STOCH =====
+    # STOCHASTIC
 
     if stoch_last < 20:
         buy_score += 15
@@ -173,7 +189,7 @@ def analyze_pair(pair):
     if stoch_last > 80:
         sell_score += 15
 
-    # ===== CANDLES =====
+    # CANDLES
 
     if bullish:
         buy_score += 10
@@ -181,7 +197,7 @@ def analyze_pair(pair):
     if bearish:
         sell_score += 10
 
-    # ===== LIQUIDITY =====
+    # LIQUIDITY
 
     buyers = random.randint(45, 95)
     sellers = 100 - buyers
@@ -191,7 +207,9 @@ def analyze_pair(pair):
     else:
         sell_score += 10
 
-    # ===== FINAL =====
+    # =========================
+    # FINAL SIGNAL
+    # =========================
 
     if buy_score > sell_score:
 
@@ -203,26 +221,41 @@ def analyze_pair(pair):
         signal = "SELL"
         score = sell_score
 
-    # ===== FILTER =====
+    # =========================
+    # FILTER
+    # =========================
 
-    if score < 70:
+    if score < 55:
         return None
 
-    # ===== EXPIRATION =====
+    # =========================
+    # EXPIRATION
+    # =========================
 
     if adx_last > 40:
 
-        expiration = random.choice(["5m", "7m"])
+        expiration = random.choice([
+            "5m",
+            "7m"
+        ])
 
     elif adx_last > 25:
 
-        expiration = random.choice(["2m", "3m"])
+        expiration = random.choice([
+            "2m",
+            "3m"
+        ])
 
     else:
 
-        expiration = random.choice(["7m", "10m"])
+        expiration = random.choice([
+            "7m",
+            "10m"
+        ])
 
-    # ===== LEVEL =====
+    # =========================
+    # LEVELS
+    # =========================
 
     if score >= 90:
         level = "A+"
@@ -232,6 +265,10 @@ def analyze_pair(pair):
 
     else:
         level = "B"
+
+    # =========================
+    # RESULT
+    # =========================
 
     return {
 
@@ -250,26 +287,31 @@ def analyze_pair(pair):
         "level": level
     }
 
-# ===== ROOT =====
+# =========================
+# ROOT
+# =========================
 
 @app.get("/")
 async def root():
 
     return {
-
         "status": "ONLINE",
-
         "engine": "CYBER SIGNAL AI V1"
     }
 
-# ===== SIGNALS =====
+# =========================
+# SIGNALS
+# =========================
 
 @app.get("/signals")
 async def signals():
 
     results = []
 
-    shuffled = random.sample(pairs, len(pairs))
+    shuffled = random.sample(
+        pairs,
+        len(pairs)
+    )
 
     for pair in shuffled:
 
