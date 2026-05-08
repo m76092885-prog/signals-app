@@ -18,10 +18,6 @@ from datetime import datetime
 
 load_dotenv()
 
-# ==========================================
-# API KEYS
-# ==========================================
-
 API_KEY = "44e14a6e8f7c4360885483d51e2f4523"
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -42,7 +38,7 @@ app.add_middleware(
 )
 
 # ==========================================
-# FOREX PAIRS
+# PAIRS
 # ==========================================
 
 pairs = [
@@ -56,7 +52,7 @@ pairs = [
 ]
 
 # ==========================================
-# SAVE SIGNAL HISTORY
+# SAVE SIGNAL
 # ==========================================
 
 def save_signal(signal_data):
@@ -64,14 +60,17 @@ def save_signal(signal_data):
     try:
 
         with open("history.json", "r") as f:
+
             history = json.load(f)
 
     except:
+
         history = []
 
     history.append(signal_data)
 
     with open("history.json", "w") as f:
+
         json.dump(history, f, indent=2)
 
 # ==========================================
@@ -83,18 +82,21 @@ def save_result(result_data):
     try:
 
         with open("results.json", "r") as f:
+
             results = json.load(f)
 
     except:
+
         results = []
 
     results.append(result_data)
 
     with open("results.json", "w") as f:
+
         json.dump(results, f, indent=2)
 
 # ==========================================
-# SEND TELEGRAM MESSAGE
+# TELEGRAM
 # ==========================================
 
 def send_telegram_signal(signal):
@@ -141,7 +143,7 @@ RSI: {signal['rsi']}
         print("TELEGRAM ERROR:", e)
 
 # ==========================================
-# GET MARKET DATA
+# GET DATA
 # ==========================================
 
 def get_data(pair):
@@ -159,6 +161,7 @@ def get_data(pair):
     values = response.get("values")
 
     if not values:
+
         return None
 
     df = pd.DataFrame(values)
@@ -173,7 +176,7 @@ def get_data(pair):
     return df
 
 # ==========================================
-# AUTO RESULT CHECKER
+# RESULT CHECKER
 # ==========================================
 
 async def check_signal_result(signal_data, entry_price):
@@ -235,7 +238,7 @@ async def check_signal_result(signal_data, entry_price):
     save_result(result_data)
 
 # ==========================================
-# ANALYZE PAIR
+# ANALYZE
 # ==========================================
 
 def analyze_pair(pair):
@@ -384,8 +387,29 @@ def analyze_pair(pair):
         signal = "SELL"
         score = sell_score
 
+    # ==========================================
+    # SNIPER FILTER
+    # ==========================================
+
+    if signal == "BUY":
+
+        if rsi_last > 75:
+            return None
+
+    if signal == "SELL":
+
+        if rsi_last < 25:
+            return None
+
+    if adx_last < 18:
+        return None
+
     if score < 55:
         return None
+
+    # ==========================================
+    # EXPIRATION
+    # ==========================================
 
     volatility = abs(
         candle1["close"] - candle1["open"]
@@ -411,6 +435,10 @@ def analyze_pair(pair):
             "7m",
             "10m"
         ])
+
+    # ==========================================
+    # LEVEL
+    # ==========================================
 
     if score >= 90:
         level = "A+"
@@ -446,7 +474,7 @@ def analyze_pair(pair):
 
     save_signal(result)
 
-    if result["score"] >= 80:
+    if result["score"] >= 55:
 
         send_telegram_signal(result)
 
@@ -467,8 +495,10 @@ def analyze_pair(pair):
 async def root():
 
     return {
+
         "status": "ONLINE",
-        "engine": "CYBER SIGNAL AI V6"
+
+        "engine": "CYBER AI V7"
     }
 
 # ==========================================
@@ -492,6 +522,24 @@ async def signals():
         if signal:
             results.append(signal)
 
+    # ==========================================
+    # CACHE SIGNALS
+    # ==========================================
+
+    if len(results) == 0:
+
+        try:
+
+            with open("history.json", "r") as f:
+
+                history = json.load(f)
+
+            return history[-4:]
+
+        except:
+
+            return []
+
     return results[:4]
 
 # ==========================================
@@ -504,11 +552,13 @@ async def history():
     try:
 
         with open("history.json", "r") as f:
+
             history = json.load(f)
 
         return history[-50:]
 
     except:
+
         return []
 
 # ==========================================
@@ -521,11 +571,13 @@ async def results():
     try:
 
         with open("results.json", "r") as f:
+
             results = json.load(f)
 
         return results[-50:]
 
     except:
+
         return []
 
 # ==========================================
@@ -538,9 +590,11 @@ async def analytics():
     try:
 
         with open("results.json", "r") as f:
+
             results = json.load(f)
 
     except:
+
         results = []
 
     total = len(results)
@@ -564,42 +618,6 @@ async def analytics():
             1
         )
 
-    pair_stats = {}
-
-    for r in results:
-
-        pair = r["pair"]
-
-        if pair not in pair_stats:
-
-            pair_stats[pair] = {
-                "wins": 0,
-                "losses": 0
-            }
-
-        if r["result"] == "WIN":
-            pair_stats[pair]["wins"] += 1
-        else:
-            pair_stats[pair]["losses"] += 1
-
-    expiration_stats = {}
-
-    for r in results:
-
-        exp = r["expiration"]
-
-        if exp not in expiration_stats:
-
-            expiration_stats[exp] = {
-                "wins": 0,
-                "losses": 0
-            }
-
-        if r["result"] == "WIN":
-            expiration_stats[exp]["wins"] += 1
-        else:
-            expiration_stats[exp]["losses"] += 1
-
     return {
 
         "total_signals": total,
@@ -608,9 +626,5 @@ async def analytics():
 
         "losses": losses,
 
-        "winrate": winrate,
-
-        "pair_stats": pair_stats,
-
-        "expiration_stats": expiration_stats
+        "winrate": winrate
     }
