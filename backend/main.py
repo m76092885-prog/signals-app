@@ -446,7 +446,7 @@ async def root():
 
     return {
         "status": "ONLINE",
-        "engine": "CYBER SIGNAL AI V4"
+        "engine": "CYBER SIGNAL AI V5"
     }
 
 # ==========================================
@@ -505,3 +505,98 @@ async def results():
 
     except:
         return []
+
+# ==========================================
+# ANALYTICS
+# ==========================================
+
+@app.get("/analytics")
+async def analytics():
+
+    try:
+
+        with open("results.json", "r") as f:
+            results = json.load(f)
+
+    except:
+        results = []
+
+    total = len(results)
+
+    wins = len([
+        r for r in results
+        if r["result"] == "WIN"
+    ])
+
+    losses = len([
+        r for r in results
+        if r["result"] == "LOSS"
+    ])
+
+    winrate = 0
+
+    if total > 0:
+
+        winrate = round(
+            (wins / total) * 100,
+            1
+        )
+
+    # ==========================================
+    # PAIR STATS
+    # ==========================================
+
+    pair_stats = {}
+
+    for r in results:
+
+        pair = r["pair"]
+
+        if pair not in pair_stats:
+
+            pair_stats[pair] = {
+                "wins": 0,
+                "losses": 0
+            }
+
+        if r["result"] == "WIN":
+            pair_stats[pair]["wins"] += 1
+        else:
+            pair_stats[pair]["losses"] += 1
+
+    # ==========================================
+    # EXPIRATION STATS
+    # ==========================================
+
+    expiration_stats = {}
+
+    for r in results:
+
+        exp = r["expiration"]
+
+        if exp not in expiration_stats:
+
+            expiration_stats[exp] = {
+                "wins": 0,
+                "losses": 0
+            }
+
+        if r["result"] == "WIN":
+            expiration_stats[exp]["wins"] += 1
+        else:
+            expiration_stats[exp]["losses"] += 1
+
+    return {
+
+        "total_signals": total,
+
+        "wins": wins,
+
+        "losses": losses,
+
+        "winrate": winrate,
+
+        "pair_stats": pair_stats,
+
+        "expiration_stats": expiration_stats
+    }
