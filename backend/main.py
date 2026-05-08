@@ -6,6 +6,7 @@ import pandas as pd
 import ta
 import random
 import json
+import asyncio
 
 from datetime import datetime
 
@@ -63,6 +64,25 @@ def save_signal(signal_data):
         json.dump(history, f, indent=2)
 
 # ==========================================
+# SAVE RESULT
+# ==========================================
+
+def save_result(result_data):
+
+    try:
+
+        with open("results.json", "r") as f:
+            results = json.load(f)
+
+    except:
+        results = []
+
+    results.append(result_data)
+
+    with open("results.json", "w") as f:
+        json.dump(results, f, indent=2)
+
+# ==========================================
 # GET MARKET DATA
 # ==========================================
 
@@ -93,6 +113,68 @@ def get_data(pair):
     df["low"] = df["low"].astype(float)
 
     return df
+
+# ==========================================
+# AUTO RESULT CHECKER
+# ==========================================
+
+async def check_signal_result(signal_data, entry_price):
+
+    expiration = signal_data["expiration"]
+
+    minutes = int(
+        expiration.replace("m", "")
+    )
+
+    await asyncio.sleep(minutes * 60)
+
+    pair = signal_data["pair"]
+
+    formatted_pair = (
+        pair[:3] + "/" + pair[3:]
+    )
+
+    df = get_data(formatted_pair)
+
+    if df is None:
+        return
+
+    current_price = df["close"].iloc[-1]
+
+    signal = signal_data["signal"]
+
+    result = "LOSS"
+
+    if signal == "BUY":
+
+        if current_price > entry_price:
+            result = "WIN"
+
+    else:
+
+        if current_price < entry_price:
+            result = "WIN"
+
+    result_data = {
+
+        "pair": pair,
+
+        "signal": signal,
+
+        "score": signal_data["score"],
+
+        "expiration": expiration,
+
+        "entry_price": entry_price,
+
+        "close_price": current_price,
+
+        "result": result,
+
+        "time": str(datetime.now())
+    }
+
+    save_result(result_data)
 
 # ==========================================
 # ANALYZE PAIR
@@ -190,8 +272,6 @@ def analyze_pair(pair):
         else:
             red += 1
 
-    # BUY PRESSURE
-
     if green > red:
 
         buyers = 50 + (green * 8)
@@ -201,8 +281,6 @@ def analyze_pair(pair):
         if plus > minus:
             buyers += 10
 
-    # SELL PRESSURE
-
     else:
 
         buyers = 50 - (red * 8)
@@ -211,8 +289,6 @@ def analyze_pair(pair):
 
         if minus > plus:
             buyers -= 10
-
-    # LIMITS
 
     buyers = max(5, min(95, buyers))
 
@@ -225,14 +301,10 @@ def analyze_pair(pair):
     buy_score = 0
     sell_score = 0
 
-    # EMA TREND
-
     if price > ema:
         buy_score += 25
     else:
         sell_score += 25
-
-    # ADX STRENGTH
 
     if adx_last > 25:
 
@@ -241,15 +313,11 @@ def analyze_pair(pair):
         else:
             sell_score += 20
 
-    # RSI
-
     if rsi_last < 30:
         buy_score += 15
 
     if rsi_last > 70:
         sell_score += 15
-
-    # STOCHASTIC
 
     if stoch_last < 20:
         buy_score += 15
@@ -257,15 +325,11 @@ def analyze_pair(pair):
     if stoch_last > 80:
         sell_score += 15
 
-    # CANDLES
-
     if bullish:
         buy_score += 10
 
     if bearish:
         sell_score += 10
-
-    # LIQUIDITY
 
     if buyers > sellers:
         buy_score += 10
@@ -364,6 +428,13 @@ def analyze_pair(pair):
 
     save_signal(result)
 
+    asyncio.create_task(
+        check_signal_result(
+            result,
+            price
+        )
+    )
+
     return result
 
 # ==========================================
@@ -375,7 +446,7 @@ async def root():
 
     return {
         "status": "ONLINE",
-        "engine": "CYBER SIGNAL AI V3"
+        "engine": "CYBER SIGNAL AI V4"
     }
 
 # ==========================================
@@ -414,6 +485,23 @@ async def history():
             history = json.load(f)
 
         return history[-50:]
+
+    except:
+        return []
+
+# ==========================================
+# RESULTS
+# ==========================================
+
+@app.get("/results")
+async def results():
+
+    try:
+
+        with open("results.json", "r") as f:
+            results = json.load(f)
+
+        return results[-50:]
 
     except:
         return []
