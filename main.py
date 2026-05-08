@@ -7,7 +7,7 @@ import ta
 
 # ===== API KEY =====
 
-API_KEY = "PASTE_YOUR_API_KEY"
+API_KEY = "44e14a6e8f7c4360885483d51e2f4523"
 
 # ===== APP =====
 
