@@ -25,7 +25,6 @@ app.add_middleware(
 # ===== PAIRS =====
 
 pairs = [
-
     "EUR/USD",
     "GBP/USD",
     "USD/JPY",
@@ -124,19 +123,18 @@ def analyze_pair(pair):
 
     # ===== CANDLE CONFIRMATION =====
 
-    candle1 =
-    df.iloc[-1]
+    candle1 = df.iloc[-1]
+    candle2 = df.iloc[-2]
 
-    candle2 =
-    df.iloc[-2]
+    bullish = (
+        candle1["close"] > candle1["open"]
+        and candle2["close"] > candle2["open"]
+    )
 
-    bullish =
-    candle1["close"] > candle1["open"] and \
-    candle2["close"] > candle2["open"]
-
-    bearish =
-    candle1["close"] < candle1["open"] and \
-    candle2["close"] < candle2["open"]
+    bearish = (
+        candle1["close"] < candle1["open"]
+        and candle2["close"] < candle2["open"]
+    )
 
     # ===== SCORE =====
 
@@ -185,11 +183,8 @@ def analyze_pair(pair):
 
     # ===== LIQUIDITY =====
 
-    buyers =
-    random.randint(45,95)
-
-    sellers =
-    100 - buyers
+    buyers = random.randint(45, 95)
+    sellers = 100 - buyers
 
     if buyers > sellers:
         buy_score += 10
@@ -217,18 +212,15 @@ def analyze_pair(pair):
 
     if adx_last > 40:
 
-        expiration =
-        random.choice(["5m","7m"])
+        expiration = random.choice(["5m", "7m"])
 
     elif adx_last > 25:
 
-        expiration =
-        random.choice(["2m","3m"])
+        expiration = random.choice(["2m", "3m"])
 
     else:
 
-        expiration =
-        random.choice(["7m","10m"])
+        expiration = random.choice(["7m", "10m"])
 
     # ===== LEVEL =====
 
@@ -243,26 +235,19 @@ def analyze_pair(pair):
 
     return {
 
-        "pair":
-        pair.replace("/", ""),
+        "pair": pair.replace("/", ""),
 
-        "signal":
-        signal,
+        "signal": signal,
 
-        "score":
-        score,
+        "score": score,
 
-        "expiration":
-        expiration,
+        "expiration": expiration,
 
-        "buyers":
-        buyers,
+        "buyers": buyers,
 
-        "sellers":
-        sellers,
+        "sellers": sellers,
 
-        "level":
-        level
+        "level": level
     }
 
 # ===== ROOT =====
@@ -272,11 +257,9 @@ async def root():
 
     return {
 
-        "status":
-        "ONLINE",
+        "status": "ONLINE",
 
-        "engine":
-        "CYBER SIGNAL AI V1"
+        "engine": "CYBER SIGNAL AI V1"
     }
 
 # ===== SIGNALS =====
@@ -286,16 +269,11 @@ async def signals():
 
     results = []
 
-    shuffled =
-    random.sample(
-        pairs,
-        len(pairs)
-    )
+    shuffled = random.sample(pairs, len(pairs))
 
     for pair in shuffled:
 
-        signal =
-        analyze_pair(pair)
+        signal = analyze_pair(pair)
 
         if signal:
             results.append(signal)
