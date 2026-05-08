@@ -1,4 +1,3 @@
-```python
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,7 +7,7 @@ import ta
 
 # ===== API KEY =====
 
-API_KEY = "44e14a6e8f7c4360885483d51e2f4523"
+API_KEY = "PASTE_YOUR_API_KEY"
 
 # ===== APP =====
 
@@ -267,4 +266,4 @@ async def signals():
                 results.append(signal)
 
     return results
-```
+
