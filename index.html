@@ -7,7 +7,7 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>Cyber Signals</title>
+<title>CYBER SIGNALS</title>
 
 <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 
@@ -22,17 +22,17 @@ content="width=device-width, initial-scale=1.0">
 
 body{
 
-    background:
-    radial-gradient(circle at top,
-    #111827 0%,
-    #05070d 60%,
-    #020308 100%);
-
-    color:white;
-
     font-family:monospace;
 
     overflow:hidden;
+
+    color:white;
+
+    background:
+    radial-gradient(circle at top,
+    #1b1030 0%,
+    #090913 50%,
+    #030308 100%);
 }
 
 /* ===== MAIN ===== */
@@ -51,15 +51,64 @@ body{
 
 .title{
 
+    font-size:32px;
+
+    font-weight:bold;
+
+    margin-bottom:24px;
+
     color:#ff4dff;
-
-    font-size:30px;
-
-    margin-bottom:20px;
 
     text-shadow:
     0 0 10px #ff4dff,
     0 0 30px #ff4dff;
+}
+
+/* ===== STATS ===== */
+
+.stats{
+
+    display:flex;
+
+    gap:12px;
+
+    margin-bottom:20px;
+}
+
+.card{
+
+    flex:1;
+
+    background:
+    rgba(20,20,40,0.72);
+
+    border:
+    1px solid rgba(255,0,255,0.18);
+
+    border-radius:18px;
+
+    padding:16px;
+
+    backdrop-filter:blur(14px);
+
+    box-shadow:
+    0 0 25px rgba(255,0,255,0.08);
+}
+
+.cardTitle{
+
+    color:#7dd3fc;
+
+    margin-bottom:10px;
+
+    font-size:14px;
+}
+
+.cardValue{
+
+    font-size:24px;
+
+    color:#fff;
 }
 
 /* ===== SIGNAL ===== */
@@ -67,22 +116,30 @@ body{
 .signal{
 
     background:
-    rgba(20,20,40,0.78);
+    rgba(20,20,40,0.72);
 
     border:
-    1px solid rgba(255,0,255,0.2);
+    1px solid rgba(255,0,255,0.18);
 
-    border-radius:18px;
+    border-radius:20px;
 
     padding:18px;
 
-    margin-bottom:14px;
+    margin-bottom:16px;
 
     transition:0.22s;
 
+    backdrop-filter:blur(14px);
+
     cursor:pointer;
 
-    backdrop-filter:blur(12px);
+    box-shadow:
+    0 0 20px rgba(255,0,255,0.06);
+}
+
+.signal:active{
+
+    transform:scale(0.98);
 }
 
 .signal:hover{
@@ -90,36 +147,44 @@ body{
     transform:scale(1.02);
 
     box-shadow:
-    0 0 20px rgba(255,0,255,0.35),
-    0 0 40px rgba(0,200,255,0.08);
+    0 0 30px rgba(255,0,255,0.2);
 }
 
-.signalPair{
+.pair{
 
-    font-size:20px;
+    font-size:22px;
 
     margin-bottom:8px;
 }
 
 .buy{
 
-    color:#ff4dff;
+    color:#00d0ff;
 
     text-shadow:
-    0 0 10px #ff4dff;
+    0 0 12px #00d0ff;
 }
 
 .sell{
 
-    color:#ff2a6d;
+    color:#ff4d8d;
 
     text-shadow:
-    0 0 10px #ff2a6d;
+    0 0 12px #ff4d8d;
+}
+
+.small{
+
+    color:#9ca3af;
+
+    margin-top:6px;
+
+    font-size:13px;
 }
 
 /* ===== TRADE SCREEN ===== */
 
-#tradeScreen{
+#trade{
 
     display:none;
 
@@ -129,21 +194,22 @@ body{
 
 /* ===== CHART WINDOW ===== */
 
-#chartWrapper{
+#chartWrap{
 
     position:fixed;
 
-    top:10px;
-    left:10px;
-    right:10px;
+    top:12px;
+    left:12px;
+    right:12px;
 
     height:52vh;
 
-    border-radius:22px;
+    border-radius:24px;
 
     overflow:hidden;
 
     background:
+
     linear-gradient(#05070d,#05070d),
 
     repeating-linear-gradient(
@@ -151,7 +217,7 @@ body{
         rgba(0,200,255,0.05) 0px,
         rgba(0,200,255,0.05) 1px,
         transparent 1px,
-        transparent 32px
+        transparent 34px
     ),
 
     repeating-linear-gradient(
@@ -159,76 +225,70 @@ body{
         rgba(0,200,255,0.05) 0px,
         rgba(0,200,255,0.05) 1px,
         transparent 1px,
-        transparent 32px
+        transparent 34px
     );
 
     border:
-    1px solid rgba(255,0,255,0.2);
+    1px solid rgba(255,0,255,0.18);
 
     box-shadow:
-    0 0 25px rgba(255,0,255,0.15);
+    0 0 40px rgba(255,0,255,0.12);
 
     display:flex;
 
-    align-items:center;
-
     justify-content:center;
+
+    align-items:center;
 }
 
-/* ===== CHART ===== */
-
-#chartBox{
+#chart{
 
     width:92%;
 
     height:88%;
-
-    border-radius:16px;
-
-    overflow:hidden;
 }
 
 /* ===== INFO ===== */
 
-#infoBox{
+#info{
 
     position:fixed;
 
-    bottom:10px;
-    left:10px;
-    right:10px;
+    bottom:12px;
+    left:12px;
+    right:12px;
 
     height:40vh;
 
-    border-radius:22px;
+    border-radius:24px;
 
     padding:20px;
 
     background:
-    rgba(10,10,30,0.95);
+    rgba(15,15,30,0.92);
 
     border:
-    1px solid rgba(255,0,255,0.2);
+    1px solid rgba(255,0,255,0.18);
 
-    backdrop-filter:blur(15px);
+    backdrop-filter:blur(16px);
 
     box-shadow:
-    0 0 25px rgba(255,0,255,0.12);
+    0 0 40px rgba(255,0,255,0.08);
 }
 
 .infoTitle{
 
-    font-size:24px;
+    font-size:26px;
 
-    margin-bottom:12px;
+    margin-bottom:14px;
 
-    color:#00c8ff;
+    color:#00d0ff;
 
     text-shadow:
-    0 0 10px #00c8ff;
+    0 0 12px #00d0ff;
 }
 
-.info{
+.line{
 
     margin-top:10px;
 
@@ -237,21 +297,15 @@ body{
 
 .green{
 
-    color:#00c8ff;
-
-    text-shadow:
-    0 0 10px #00c8ff;
+    color:#00d0ff;
 }
 
 .red{
 
-    color:#ff2a6d;
-
-    text-shadow:
-    0 0 10px #ff2a6d;
+    color:#ff4d8d;
 }
 
-/* ===== BUTTON ===== */
+/* ===== BACK ===== */
 
 .back{
 
@@ -259,19 +313,19 @@ body{
 
     padding:14px;
 
-    text-align:center;
+    border-radius:16px;
 
-    border-radius:14px;
+    text-align:center;
 
     background:
     rgba(20,20,40,0.8);
 
     border:
-    1px solid rgba(255,0,255,0.2);
+    1px solid rgba(255,0,255,0.18);
+
+    transition:0.2s;
 
     cursor:pointer;
-
-    transition:0.22s;
 }
 
 .back:hover{
@@ -279,7 +333,7 @@ body{
     transform:scale(1.02);
 
     box-shadow:
-    0 0 20px rgba(255,0,255,0.4);
+    0 0 20px rgba(255,0,255,0.2);
 }
 
 </style>
@@ -287,7 +341,7 @@ body{
 
 <body>
 
-<!-- ===== SIGNALS ===== -->
+<!-- ===== MAIN ===== -->
 
 <div id="main">
 
@@ -295,84 +349,130 @@ body{
         CYBER SIGNALS
     </div>
 
+    <div class="stats">
+
+        <div class="card">
+
+            <div class="cardTitle">
+                WINRATE
+            </div>
+
+            <div class="cardValue">
+                87%
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <div class="cardTitle">
+                SIGNALS
+            </div>
+
+            <div class="cardValue">
+                24
+            </div>
+
+        </div>
+
+    </div>
+
     <div
     class="signal"
     onclick="openTrade('BTCUSDT','BUY')"
     >
-        <div class="signalPair">
+
+        <div class="pair">
             BTC / USDT
         </div>
 
         <div class="buy">
             BUY
         </div>
+
+        <div class="small">
+            1m • Strong Trend
+        </div>
+
     </div>
 
     <div
     class="signal"
     onclick="openTrade('ETHUSDT','SELL')"
     >
-        <div class="signalPair">
+
+        <div class="pair">
             ETH / USDT
         </div>
 
         <div class="sell">
             SELL
         </div>
+
+        <div class="small">
+            1m • Resistance Zone
+        </div>
+
     </div>
 
     <div
     class="signal"
     onclick="openTrade('BNBUSDT','BUY')"
     >
-        <div class="signalPair">
+
+        <div class="pair">
             BNB / USDT
         </div>
 
         <div class="buy">
             BUY
         </div>
+
+        <div class="small">
+            1m • Momentum Entry
+        </div>
+
     </div>
 
 </div>
 
 <!-- ===== TRADE ===== -->
 
-<div id="tradeScreen">
+<div id="trade">
 
-    <div id="chartWrapper">
+    <div id="chartWrap">
 
-        <div id="chartBox"></div>
+        <div id="chart"></div>
 
     </div>
 
-    <div id="infoBox">
+    <div id="info">
 
         <div
-        id="pair"
+        id="pairName"
         class="infoTitle"
         ></div>
 
         <div
-        id="signalText"
-        class="info"
+        id="signalType"
+        class="line"
         ></div>
 
         <div
-        id="priceText"
-        class="info"
+        id="price"
+        class="line"
         ></div>
 
         <div
-        id="statusText"
-        class="info"
+        id="profit"
+        class="line"
         ></div>
 
         <div
         class="back"
-        onclick="goBack()"
+        onclick="backToSignals()"
         >
-            ← BACK
+            ← BACK TO SIGNALS
         </div>
 
     </div>
@@ -386,74 +486,70 @@ body{
 const main=
 document.getElementById("main")
 
-const tradeScreen=
-document.getElementById("tradeScreen")
+const trade=
+document.getElementById("trade")
 
-const pairEl=
-document.getElementById("pair")
+const pairName=
+document.getElementById("pairName")
 
-const signalText=
-document.getElementById("signalText")
+const signalType=
+document.getElementById("signalType")
 
-const priceText=
-document.getElementById("priceText")
+const priceEl=
+document.getElementById("price")
 
-const statusText=
-document.getElementById("statusText")
+const profitEl=
+document.getElementById("profit")
 
 // ===== CHART =====
 
-let chart=null
-let candleSeries=null
-let ws=null
+let chart
+let candleSeries
+let ws
 
-// ===== OPEN =====
+// ===== OPEN TRADE =====
 
-function openTrade(symbol,dir){
+function openTrade(symbol,side){
 
     main.style.display="none"
 
-    tradeScreen.style.display="block"
+    trade.style.display="block"
 
-    pairEl.innerText=symbol
+    pairName.innerText=symbol
 
-    signalText.innerHTML=
+    signalType.innerHTML=
     `
     Signal:
     <span class="${
-        dir==="BUY"
+        side==="BUY"
         ? "buy"
         : "sell"
     }">
-        ${dir}
+        ${side}
     </span>
     `
 
     createChart()
 
-    connectBybit(symbol)
+    connect(symbol)
 }
 
 // ===== BACK =====
 
-function goBack(){
+function backToSignals(){
 
-    tradeScreen.style.display="none"
+    trade.style.display="none"
 
     main.style.display="block"
 
     if(ws){
 
         ws.close()
-
-        ws=null
     }
 
     if(chart){
 
         chart.remove()
-
-        chart=null
     }
 }
 
@@ -461,23 +557,23 @@ function goBack(){
 
 function createChart(){
 
-    const chartBox=
-    document.getElementById("chartBox")
+    const container=
+    document.getElementById("chart")
 
-    chartBox.innerHTML=""
+    container.innerHTML=""
 
     chart=
     LightweightCharts.createChart(
 
-        chartBox,
+        container,
 
         {
 
             width:
-            chartBox.clientWidth,
+            container.clientWidth,
 
             height:
-            chartBox.clientHeight,
+            container.clientHeight,
 
             layout:{
 
@@ -511,13 +607,9 @@ function createChart(){
 
                 timeVisible:true,
 
-                rightOffset:25,
+                rightOffset:18,
 
                 barSpacing:12
-            },
-
-            crosshair:{
-                mode:1
             }
         }
     )
@@ -529,24 +621,22 @@ function createChart(){
 
         {
 
-            upColor:"#ff4dff",
+            upColor:"#00d0ff",
 
-            downColor:"#ff2a6d",
+            downColor:"#ff4d8d",
 
-            wickUpColor:"#00c8ff",
+            wickUpColor:"#00d0ff",
 
-            wickDownColor:"#ff2a6d",
+            wickDownColor:"#ff4d8d",
 
             borderVisible:false
         }
     )
-
-    chart.timeScale().fitContent()
 }
 
 // ===== REALTIME =====
 
-function connectBybit(symbol){
+function connect(symbol){
 
     ws=new WebSocket(
     "wss://stream.bybit.com/v5/public/linear"
@@ -564,14 +654,15 @@ function connectBybit(symbol){
         }))
     }
 
-    ws.onmessage=(event)=>{
+    ws.onmessage=(e)=>{
 
         const msg=
-        JSON.parse(event.data)
+        JSON.parse(e.data)
 
         if(!msg.data)return
 
-        const k=msg.data[0]
+        const k=
+        msg.data[0]
 
         candleSeries.update({
 
@@ -593,7 +684,7 @@ function connectBybit(symbol){
 
         chart.timeScale().scrollToRealtime()
 
-        priceText.innerHTML=
+        priceEl.innerHTML=
         `
         Price:
         <span class="green">
@@ -601,59 +692,25 @@ function connectBybit(symbol){
         </span>
         `
 
-        const move=
+        const pnl=
         (
             parseFloat(k.close)-
             parseFloat(k.open)
         ).toFixed(2)
 
-        statusText.innerHTML=
+        profitEl.innerHTML=
         `
-        Candle:
+        PNL:
         <span class="${
-            move>=0
+            pnl>=0
             ? "green"
             : "red"
         }">
-            ${move}
-        </span>
-        `
-    }
-
-    ws.onerror=()=>{
-
-        statusText.innerHTML=
-        `
-        <span class="red">
-            WebSocket Error
+            ${pnl}
         </span>
         `
     }
 }
-
-// ===== RESIZE =====
-
-window.addEventListener(
-    "resize",
-    ()=>{
-
-        if(chart){
-
-            chart.applyOptions({
-
-                width:
-                document.getElementById(
-                    "chartBox"
-                ).clientWidth,
-
-                height:
-                document.getElementById(
-                    "chartBox"
-                ).clientHeight
-            })
-        }
-    }
-)
 
 </script>
 
