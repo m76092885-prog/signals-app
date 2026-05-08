@@ -7,14 +7,25 @@ import ta
 import random
 import json
 import asyncio
+import os
 
+from dotenv import load_dotenv
 from datetime import datetime
 
 # ==========================================
-# API KEY
+# LOAD ENV
+# ==========================================
+
+load_dotenv()
+
+# ==========================================
+# API KEYS
 # ==========================================
 
 API_KEY = "44e14a6e8f7c4360885483d51e2f4523"
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 
 # ==========================================
 # APP
@@ -81,6 +92,53 @@ def save_result(result_data):
 
     with open("results.json", "w") as f:
         json.dump(results, f, indent=2)
+
+# ==========================================
+# SEND TELEGRAM MESSAGE
+# ==========================================
+
+def send_telegram_signal(signal):
+
+    try:
+
+        text = f"""
+🔥 AI SIGNAL
+
+PAIR: {signal['pair']}
+
+SIGNAL: {signal['signal']}
+
+LEVEL: {signal['level']}
+
+SCORE: {signal['score']}%
+
+EXPIRATION: {signal['expiration']}
+
+BUYERS: {signal['buyers']}%
+
+SELLERS: {signal['sellers']}%
+
+ADX: {signal['adx']}
+
+RSI: {signal['rsi']}
+"""
+
+        url = (
+            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        )
+
+        data = {
+
+            "chat_id": CHAT_ID,
+
+            "text": text
+        }
+
+        requests.post(url, data=data)
+
+    except Exception as e:
+
+        print("TELEGRAM ERROR:", e)
 
 # ==========================================
 # GET MARKET DATA
@@ -187,10 +245,6 @@ def analyze_pair(pair):
     if df is None:
         return None
 
-    # ==========================================
-    # INDICATORS
-    # ==========================================
-
     ema50 = ta.trend.EMAIndicator(
         close=df["close"],
         window=50
@@ -221,10 +275,6 @@ def analyze_pair(pair):
 
     minus_di = adx.adx_neg()
 
-    # ==========================================
-    # LAST VALUES
-    # ==========================================
-
     price = df["close"].iloc[-1]
 
     ema = ema50.iloc[-1]
@@ -239,10 +289,6 @@ def analyze_pair(pair):
 
     minus = minus_di.iloc[-1]
 
-    # ==========================================
-    # CANDLE CONFIRMATION
-    # ==========================================
-
     candle1 = df.iloc[-1]
     candle2 = df.iloc[-2]
 
@@ -255,10 +301,6 @@ def analyze_pair(pair):
         candle1["close"] < candle1["open"]
         and candle2["close"] < candle2["open"]
     )
-
-    # ==========================================
-    # REAL LIQUIDITY ENGINE
-    # ==========================================
 
     last_5 = df.tail(5)
 
@@ -293,10 +335,6 @@ def analyze_pair(pair):
     buyers = max(5, min(95, buyers))
 
     sellers = 100 - buyers
-
-    # ==========================================
-    # SCORE SYSTEM
-    # ==========================================
 
     buy_score = 0
     sell_score = 0
@@ -336,10 +374,6 @@ def analyze_pair(pair):
     else:
         sell_score += 10
 
-    # ==========================================
-    # FINAL SIGNAL
-    # ==========================================
-
     if buy_score > sell_score:
 
         signal = "BUY"
@@ -350,16 +384,8 @@ def analyze_pair(pair):
         signal = "SELL"
         score = sell_score
 
-    # ==========================================
-    # FILTER
-    # ==========================================
-
     if score < 55:
         return None
-
-    # ==========================================
-    # SMART EXPIRATION AI
-    # ==========================================
 
     volatility = abs(
         candle1["close"] - candle1["open"]
@@ -386,10 +412,6 @@ def analyze_pair(pair):
             "10m"
         ])
 
-    # ==========================================
-    # LEVELS
-    # ==========================================
-
     if score >= 90:
         level = "A+"
 
@@ -398,10 +420,6 @@ def analyze_pair(pair):
 
     else:
         level = "B"
-
-    # ==========================================
-    # RESULT
-    # ==========================================
 
     result = {
 
@@ -428,6 +446,10 @@ def analyze_pair(pair):
 
     save_signal(result)
 
+    if result["score"] >= 80:
+
+        send_telegram_signal(result)
+
     asyncio.create_task(
         check_signal_result(
             result,
@@ -446,7 +468,7 @@ async def root():
 
     return {
         "status": "ONLINE",
-        "engine": "CYBER SIGNAL AI V5"
+        "engine": "CYBER SIGNAL AI V6"
     }
 
 # ==========================================
@@ -542,10 +564,6 @@ async def analytics():
             1
         )
 
-    # ==========================================
-    # PAIR STATS
-    # ==========================================
-
     pair_stats = {}
 
     for r in results:
@@ -563,10 +581,6 @@ async def analytics():
             pair_stats[pair]["wins"] += 1
         else:
             pair_stats[pair]["losses"] += 1
-
-    # ==========================================
-    # EXPIRATION STATS
-    # ==========================================
 
     expiration_stats = {}
 
