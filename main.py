@@ -1,3 +1,4 @@
+```python
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -14,22 +15,16 @@ API_KEY = "44e14a6e8f7c4360885483d51e2f4523"
 app = FastAPI()
 
 app.add_middleware(
-
     CORSMiddleware,
-
     allow_origins=["*"],
-
     allow_credentials=True,
-
     allow_methods=["*"],
-
     allow_headers=["*"],
 )
 
 # ===== PAIRS =====
 
 pairs = [
-
     "EUR/USD",
     "GBP/JPY",
     "USD/JPY",
@@ -37,15 +32,21 @@ pairs = [
     "AUD/USD"
 ]
 
-# ===== GET FOREX DATA =====
+# ===== GET DATA =====
 
 def get_data(pair):
 
-    url = f"https://api.twelvedata.com/time_series?symbol={pair}&interval=1min&outputsize=100&apikey={API_KEY}"
+    url = (
+        f"https://api.twelvedata.com/time_series?"
+        f"symbol={pair}"
+        f"&interval=1min"
+        f"&outputsize=100"
+        f"&apikey={API_KEY}"
+    )
 
     response = requests.get(url).json()
 
-    values = response.get("values", [])
+    values = response.get("values")
 
     if not values:
         return None
@@ -60,7 +61,7 @@ def get_data(pair):
 
     return df
 
-# ===== SIGNAL ENGINE =====
+# ===== ANALYZE =====
 
 def analyze_pair(pair):
 
@@ -69,78 +70,53 @@ def analyze_pair(pair):
     if df is None:
         return None
 
-    # ===== EMA =====
+    # ===== INDICATORS =====
 
-    ema50 =
-    ta.trend.EMAIndicator(
+    ema50 = ta.trend.EMAIndicator(
         close=df["close"],
         window=50
     ).ema_indicator()
 
-    # ===== RSI =====
-
-    rsi =
-    ta.momentum.RSIIndicator(
+    rsi = ta.momentum.RSIIndicator(
         close=df["close"],
         window=14
     ).rsi()
 
-    # ===== STOCH =====
-
-    stoch =
-    ta.momentum.StochasticOscillator(
-
+    stoch = ta.momentum.StochasticOscillator(
         high=df["high"],
         low=df["low"],
         close=df["close"]
-
     )
 
-    stoch_k =
-    stoch.stoch()
+    stoch_k = stoch.stoch()
 
-    # ===== ADX =====
-
-    adx =
-    ta.trend.ADXIndicator(
-
+    adx = ta.trend.ADXIndicator(
         high=df["high"],
         low=df["low"],
         close=df["close"]
-
     )
 
-    adx_value =
-    adx.adx()
+    adx_value = adx.adx()
 
-    plus_di =
-    adx.adx_pos()
+    plus_di = adx.adx_pos()
 
-    minus_di =
-    adx.adx_neg()
+    minus_di = adx.adx_neg()
 
     # ===== LAST VALUES =====
 
-    price =
-    df["close"].iloc[-1]
+    price = df["close"].iloc[-1]
 
-    ema =
-    ema50.iloc[-1]
+    ema = ema50.iloc[-1]
 
-    rsi_last =
-    rsi.iloc[-1]
+    rsi_last = rsi.iloc[-1]
 
-    stoch_last =
-    stoch_k.iloc[-1]
+    stoch_last = stoch_k.iloc[-1]
 
-    adx_last =
-    adx_value.iloc[-1]
+    adx_last = adx_value.iloc[-1]
 
-    plus =
-    plus_di.iloc[-1]
+    plus = plus_di.iloc[-1]
 
-    minus =
-    minus_di.iloc[-1]
+    minus = minus_di.iloc[-1]
 
     # ===== SCORE =====
 
@@ -204,31 +180,23 @@ def analyze_pair(pair):
 
     # ===== BUYERS SELLERS =====
 
-    buyers =
-    min(95, int(buy_score * 1.2))
+    buyers = min(95, int(buy_score * 1.2))
 
-    sellers =
-    min(95, int(sell_score * 1.2))
+    sellers = min(95, int(sell_score * 1.2))
 
     return {
 
-        "pair":
-        pair.replace("/", ""),
+        "pair": pair.replace("/", ""),
 
-        "signal":
-        signal,
+        "signal": signal,
 
-        "score":
-        score,
+        "score": score,
 
-        "expiration":
-        expiration,
+        "expiration": expiration,
 
-        "buyers":
-        buyers,
+        "buyers": buyers,
 
-        "sellers":
-        sellers
+        "sellers": sellers
     }
 
 # ===== ROOT =====
@@ -238,12 +206,8 @@ def analyze_pair(pair):
 async def root():
 
     return {
-
-        "status":
-        "ONLINE",
-
-        "engine":
-        "CYBER SIGNAL AI"
+        "status": "ONLINE",
+        "engine": "CYBER SIGNAL AI"
     }
 
 # ===== SIGNALS =====
@@ -256,8 +220,7 @@ async def signals():
 
     for pair in pairs:
 
-        signal =
-        analyze_pair(pair)
+        signal = analyze_pair(pair)
 
         if signal:
 
@@ -266,4 +229,4 @@ async def signals():
                 results.append(signal)
 
     return results
-
+```
