@@ -415,10 +415,6 @@ def analyze_pair(pair):
     else:
         sell_score += 10
 
-    # ==========================================
-    # LIQUIDITY SCORE
-    # ==========================================
-
     if liquidity_buy:
         buy_score += 25
 
@@ -562,7 +558,7 @@ async def root():
 
         "status": "ONLINE",
 
-        "engine": "SMART MONEY SNIPER AI"
+        "engine": "AUTO LEARNING SMART MONEY AI"
     }
 
 # ==========================================
@@ -639,6 +635,85 @@ async def results():
     except:
 
         return []
+
+# ==========================================
+# AI LEARNING ENGINE
+# ==========================================
+
+@app.get("/learning")
+async def learning():
+
+    try:
+
+        with open("results.json", "r") as f:
+
+            results = json.load(f)
+
+    except:
+
+        results = []
+
+    pair_stats = {}
+
+    for r in results:
+
+        pair = r["pair"]
+
+        if pair not in pair_stats:
+
+            pair_stats[pair] = {
+
+                "wins": 0,
+
+                "losses": 0
+            }
+
+        if r["result"] == "WIN":
+
+            pair_stats[pair]["wins"] += 1
+
+        else:
+
+            pair_stats[pair]["losses"] += 1
+
+    analytics = []
+
+    for pair, data in pair_stats.items():
+
+        total = (
+            data["wins"] +
+            data["losses"]
+        )
+
+        if total == 0:
+            continue
+
+        winrate = round(
+            (data["wins"] / total) * 100,
+            1
+        )
+
+        analytics.append({
+
+            "pair": pair,
+
+            "wins": data["wins"],
+
+            "losses": data["losses"],
+
+            "winrate": winrate
+        })
+
+    analytics = sorted(
+
+        analytics,
+
+        key=lambda x: x["winrate"],
+
+        reverse=True
+    )
+
+    return analytics
 
 # ==========================================
 # ANALYTICS
