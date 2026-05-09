@@ -74,7 +74,7 @@ body::before{
 
 .logo{
 
-    font-size:34px;
+    font-size:36px;
 
     font-weight:bold;
 
@@ -410,6 +410,17 @@ body::before{
     height:100%;
 }
 
+.resultCard{
+
+    margin-bottom:15px;
+
+    padding:15px;
+
+    border-radius:16px;
+
+    background:#09111d;
+}
+
 </style>
 
 </head>
@@ -454,6 +465,22 @@ body::before{
         <div class="analytics-card">
             <div id="winrate">0%</div>
             <span>WINRATE</span>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="analytics-box">
+
+    <div class="analytics-title">
+        LAST RESULTS
+    </div>
+
+    <div id="historyPanel">
+
+        <div class="loading">
+            Loading Results...
         </div>
 
     </div>
@@ -513,6 +540,90 @@ async function loadAnalytics(){
             "winrate"
         ).innerText =
         data.winrate + "%"
+
+    }catch(err){
+
+        console.log(err)
+    }
+}
+
+async function loadHistory(){
+
+    try{
+
+        const res = await fetch(
+            API + "/results"
+        )
+
+        const data = await res.json()
+
+        const panel =
+        document.getElementById(
+            "historyPanel"
+        )
+
+        panel.innerHTML = ""
+
+        data.reverse()
+
+        data.slice(0,10).forEach(item => {
+
+            const div =
+            document.createElement("div")
+
+            div.className = "resultCard"
+
+            div.style.border =
+            item.result === "WIN"
+            ? "1px solid #00ff88"
+            : "1px solid #ff3366"
+
+            div.innerHTML = `
+
+            <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            ">
+
+                <div style="
+                color:#00ffee;
+                font-size:20px;
+                font-weight:bold;
+                ">
+
+                    ${item.pair}
+
+                </div>
+
+                <div style="
+                color:
+                ${item.result === "WIN"
+                ? "#00ff88"
+                : "#ff3366"};
+
+                font-weight:bold;
+                font-size:18px;
+                ">
+
+                    ${item.result}
+
+                </div>
+
+            </div>
+
+            <div style="
+            margin-top:10px;
+            color:#aaa;
+            ">
+
+                ${item.signal}
+
+            </div>
+            `
+
+            panel.appendChild(div)
+        })
 
     }catch(err){
 
@@ -719,9 +830,13 @@ loadSignals()
 
 loadAnalytics()
 
+loadHistory()
+
 setInterval(loadSignals,5000)
 
 setInterval(loadAnalytics,5000)
+
+setInterval(loadHistory,5000)
 
 </script>
 
