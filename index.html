@@ -8,7 +8,7 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>CYBER AI SIGNALS</title>
+<title>CYBER AI SIGNALS V2</title>
 
 <style>
 
@@ -337,7 +337,7 @@ body{
 /* ========================================== */
 
 const API =
-"https://signals-ai-backend.onrender.com/signals";
+"https://signals-ai-backend.onrender.com/signals?v=" + Date.now();
 
 /* ========================================== */
 /* SAVED SIGNALS */
@@ -358,6 +358,8 @@ async function loadSignals(){
 
         const data =
         await response.json();
+
+        console.log(data);
 
         const container =
         document.getElementById("signals");
