@@ -105,7 +105,7 @@ def send_telegram_signal(signal):
     try:
 
         text = f"""
-🔥 SMART MONEY SNIPER
+🔥 CYBER AI SNIPER
 
 PAIR: {signal['pair']}
 
@@ -116,6 +116,8 @@ LEVEL: {signal['level']}
 SCORE: {signal['score']}%
 
 EXPIRATION: {signal['expiration']}
+
+MARKET: {signal['market']}
 
 BUYERS: {signal['buyers']}%
 
@@ -436,7 +438,67 @@ def analyze_pair(pair):
         score = sell_score
 
     # ==========================================
-    # SNIPER FILTER ENGINE
+    # VOLATILITY
+    # ==========================================
+
+    volatility = abs(
+        candle1["close"] - candle1["open"]
+    )
+
+    # ==========================================
+    # MARKET REGIME ENGINE
+    # ==========================================
+
+    market_regime = "RANGE"
+
+    if adx_last > 35:
+
+        market_regime = "TREND"
+
+    if volatility > 0.0020:
+
+        market_regime = "VOLATILE"
+
+    if adx_last < 18:
+
+        market_regime = "DEAD"
+
+    # ==========================================
+    # FILTER DEAD MARKET
+    # ==========================================
+
+    if market_regime == "DEAD":
+
+        return None
+
+    # ==========================================
+    # FILTER RANGE MARKET
+    # ==========================================
+
+    if market_regime == "RANGE":
+
+        if score < 82:
+
+            return None
+
+    # ==========================================
+    # BOOST TREND
+    # ==========================================
+
+    if market_regime == "TREND":
+
+        score += 5
+
+    # ==========================================
+    # BOOST VOLATILITY
+    # ==========================================
+
+    if market_regime == "VOLATILE":
+
+        score += 8
+
+    # ==========================================
+    # SNIPER FILTERS
     # ==========================================
 
     if adx_last < 22:
@@ -471,10 +533,6 @@ def analyze_pair(pair):
     # EXPIRATION AI
     # ==========================================
 
-    volatility = abs(
-        candle1["close"] - candle1["open"]
-    )
-
     if adx_last > 40 and volatility > 0.0015:
 
         expiration = random.choice([
@@ -500,10 +558,10 @@ def analyze_pair(pair):
     # LEVEL
     # ==========================================
 
-    if score >= 90:
+    if score >= 95:
         level = "A+"
 
-    elif score >= 80:
+    elif score >= 85:
         level = "A"
 
     else:
@@ -528,6 +586,8 @@ def analyze_pair(pair):
         "adx": round(adx_last, 1),
 
         "rsi": round(rsi_last, 1),
+
+        "market": market_regime,
 
         "time": str(datetime.now())
     }
@@ -558,7 +618,7 @@ async def root():
 
         "status": "ONLINE",
 
-        "engine": "AUTO LEARNING SMART MONEY AI"
+        "engine": "MARKET REGIME AI"
     }
 
 # ==========================================
@@ -637,7 +697,7 @@ async def results():
         return []
 
 # ==========================================
-# AI LEARNING ENGINE
+# LEARNING
 # ==========================================
 
 @app.get("/learning")
