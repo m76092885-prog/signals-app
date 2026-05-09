@@ -10,7 +10,7 @@ name="viewport"
 content="width=device-width, initial-scale=1.0"
 />
 
-<title>CYBER AI SIGNALS V5</title>
+<title>CYBER AI TERMINAL</title>
 
 <style>
 
@@ -281,6 +281,19 @@ body{
     0 0 20px #00ff8822;
 }
 
+canvas{
+
+    margin-top:15px;
+
+    width:100%;
+
+    height:80px;
+
+    background:#00000033;
+
+    border-radius:12px;
+}
+
 </style>
 
 </head>
@@ -425,6 +438,85 @@ const ANALYTICS =
 let savedSignals = {};
 
 /* ========================================== */
+/* CHART ENGINE */
+/* ========================================== */
+
+function drawChart(id, signal){
+
+    const canvas =
+    document.getElementById(id);
+
+    if(!canvas) return;
+
+    const ctx =
+    canvas.getContext("2d");
+
+    const width =
+    canvas.width = canvas.offsetWidth;
+
+    const height =
+    canvas.height = 80;
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+    ctx.beginPath();
+
+    let x = 0;
+
+    let y =
+    height / 2;
+
+    ctx.moveTo(x, y);
+
+    for(let i = 0; i < 30; i++){
+
+        x += width / 30;
+
+        if(signal === "BUY"){
+
+            y += (
+                Math.random() * 8 - 2
+            );
+
+        }else{
+
+            y += (
+                Math.random() * 8 - 6
+            );
+        }
+
+        y = Math.max(
+            10,
+            Math.min(
+                height - 10,
+                y
+            )
+        );
+
+        ctx.lineTo(x, y);
+    }
+
+    ctx.strokeStyle =
+    signal === "BUY"
+    ? "#00ff88"
+    : "#ff3355";
+
+    ctx.lineWidth = 3;
+
+    ctx.shadowBlur = 15;
+
+    ctx.shadowColor =
+    ctx.strokeStyle;
+
+    ctx.stroke();
+}
+
+/* ========================================== */
 /* LOAD SIGNALS */
 /* ========================================== */
 
@@ -481,6 +573,10 @@ async function loadSignals(){
                     ${signal.pair}
                 </h2>
 
+                <canvas
+                id="chart-${id}"
+                ></canvas>
+
                 <div class="row">
                     <span>Signal</span>
                     <span>
@@ -521,6 +617,11 @@ async function loadSignals(){
             };
 
             container.prepend(card);
+
+            drawChart(
+                `chart-${id}`,
+                signal.signal
+            );
 
         });
 
