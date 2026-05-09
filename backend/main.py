@@ -42,13 +42,14 @@ app.add_middleware(
 # ==========================================
 
 pairs = [
+
     "EUR/USD",
     "GBP/USD",
     "USD/JPY",
     "GBP/JPY",
     "AUD/USD",
     "USD/CAD",
-    "EUR/JPY",
+    "EUR/JPY"
 ]
 
 # ==========================================
@@ -104,7 +105,7 @@ def send_telegram_signal(signal):
     try:
 
         text = f"""
-🔥 AI SIGNAL
+🔥 SMART MONEY SIGNAL
 
 PAIR: {signal['pair']}
 
@@ -222,15 +223,11 @@ async def check_signal_result(signal_data, entry_price):
 
         "signal": signal,
 
-        "score": signal_data["score"],
-
-        "expiration": expiration,
+        "result": result,
 
         "entry_price": entry_price,
 
         "close_price": current_price,
-
-        "result": result,
 
         "time": str(datetime.now())
     }
@@ -305,6 +302,45 @@ def analyze_pair(pair):
         and candle2["close"] < candle2["open"]
     )
 
+    # ==========================================
+    # LIQUIDITY SWEEP ENGINE
+    # ==========================================
+
+    recent_high = (
+        df["high"]
+        .tail(15)
+        .max()
+    )
+
+    recent_low = (
+        df["low"]
+        .tail(15)
+        .min()
+    )
+
+    liquidity_buy = False
+    liquidity_sell = False
+
+    # SELL SIDE SWEEP
+    if (
+        candle1["low"] < recent_low
+        and candle1["close"] > candle1["open"]
+    ):
+
+        liquidity_buy = True
+
+    # BUY SIDE SWEEP
+    if (
+        candle1["high"] > recent_high
+        and candle1["close"] < candle1["open"]
+    ):
+
+        liquidity_sell = True
+
+    # ==========================================
+    # BUYERS / SELLERS
+    # ==========================================
+
     last_5 = df.tail(5)
 
     green = 0
@@ -338,6 +374,10 @@ def analyze_pair(pair):
     buyers = max(5, min(95, buyers))
 
     sellers = 100 - buyers
+
+    # ==========================================
+    # SCORE
+    # ==========================================
 
     buy_score = 0
     sell_score = 0
@@ -377,6 +417,20 @@ def analyze_pair(pair):
     else:
         sell_score += 10
 
+    # ==========================================
+    # LIQUIDITY SCORE
+    # ==========================================
+
+    if liquidity_buy:
+        buy_score += 25
+
+    if liquidity_sell:
+        sell_score += 25
+
+    # ==========================================
+    # SIGNAL
+    # ==========================================
+
     if buy_score > sell_score:
 
         signal = "BUY"
@@ -388,7 +442,7 @@ def analyze_pair(pair):
         score = sell_score
 
     # ==========================================
-    # SNIPER FILTER
+    # FILTERS
     # ==========================================
 
     if signal == "BUY":
@@ -404,11 +458,11 @@ def analyze_pair(pair):
     if adx_last < 18:
         return None
 
-    if score < 55:
+    if score < 60:
         return None
 
     # ==========================================
-    # EXPIRATION
+    # EXPIRATION AI
     # ==========================================
 
     volatility = abs(
@@ -474,7 +528,7 @@ def analyze_pair(pair):
 
     save_signal(result)
 
-    if result["score"] >= 55:
+    if result["score"] >= 70:
 
         send_telegram_signal(result)
 
@@ -498,7 +552,7 @@ async def root():
 
         "status": "ONLINE",
 
-        "engine": "CYBER AI V7"
+        "engine": "SMART MONEY AI"
     }
 
 # ==========================================
@@ -523,7 +577,7 @@ async def signals():
             results.append(signal)
 
     # ==========================================
-    # CACHE SIGNALS
+    # CACHE
     # ==========================================
 
     if len(results) == 0:
