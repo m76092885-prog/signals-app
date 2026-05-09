@@ -1,42 +1,45 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 
 <head>
 
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
-/>
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0"/>
 
-<title>CYBER AI TERMINAL</title>
+<title>CYBER AI SNIPER</title>
 
 <style>
 
 *{
-
     margin:0;
     padding:0;
     box-sizing:border-box;
+
+    font-family:Arial;
 }
 
 body{
 
-    background:#050816;
+    background:
+    linear-gradient(
+        135deg,
+        #050816,
+        #09111d,
+        #07121f
+    );
 
-    color:white;
-
-    font-family:Arial;
+    min-height:100vh;
 
     overflow-x:hidden;
+
+    color:white;
 }
 
-/* ========================================== */
-/* BACKGROUND */
-/* ========================================== */
+body::before{
 
-.bg{
+    content:"";
 
     position:fixed;
 
@@ -44,59 +47,124 @@ body{
     height:100%;
 
     background:
-    radial-gradient(circle at top,#00f0ff22,transparent 40%),
-    radial-gradient(circle at bottom,#ff00ff22,transparent 40%),
-    #050816;
-
-    z-index:-2;
-}
-
-.grid{
-
-    position:fixed;
-
-    width:100%;
-    height:100%;
-
-    background-image:
-    linear-gradient(#0ff1 1px, transparent 1px),
-    linear-gradient(90deg,#0ff1 1px, transparent 1px);
-
-    background-size:40px 40px;
-
-    opacity:0.12;
+    radial-gradient(
+        circle at top left,
+        #00ffee22,
+        transparent 40%
+    ),
+    radial-gradient(
+        circle at bottom right,
+        #ff00ff22,
+        transparent 40%
+    );
 
     z-index:-1;
 }
 
-/* ========================================== */
-/* TITLE */
-/* ========================================== */
-
-.title{
+.header{
 
     text-align:center;
 
-    margin-top:20px;
+    padding:25px;
+}
+
+.logo{
 
     font-size:34px;
 
     font-weight:bold;
 
-    color:#00f0ff;
+    color:#00ffee;
 
     text-shadow:
-    0 0 10px #00f0ff,
-    0 0 20px #00f0ff;
+    0 0 10px #00ffee,
+    0 0 20px #00ffee;
 }
 
-/* ========================================== */
-/* CONTAINER */
-/* ========================================== */
+.sub{
 
-.container{
+    color:#aaa;
+
+    margin-top:10px;
+}
+
+.analytics-box{
+
+    width:95%;
+
+    margin:20px auto;
+
+    background:rgba(0,0,0,0.45);
+
+    border:1px solid #00ffee44;
+
+    border-radius:25px;
 
     padding:20px;
+
+    backdrop-filter:blur(20px);
+
+    box-shadow:
+    0 0 25px #00ffee22;
+}
+
+.analytics-title{
+
+    color:#00ffee;
+
+    text-align:center;
+
+    font-size:22px;
+
+    margin-bottom:20px;
+
+    font-weight:bold;
+}
+
+.analytics-grid{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(2,1fr);
+
+    gap:15px;
+}
+
+.analytics-card{
+
+    background:#09111d;
+
+    border-radius:20px;
+
+    padding:20px;
+
+    text-align:center;
+
+    border:1px solid #00ffee22;
+}
+
+.analytics-card div{
+
+    font-size:30px;
+
+    color:#00ffee;
+
+    font-weight:bold;
+}
+
+.analytics-card span{
+
+    color:#aaa;
+
+    font-size:13px;
+}
+
+.signals{
+
+    width:95%;
+
+    margin:25px auto;
 
     display:flex;
 
@@ -105,193 +173,186 @@ body{
     gap:20px;
 }
 
-/* ========================================== */
-/* CARD */
-/* ========================================== */
-
 .signal{
 
-    background:#0b1224dd;
+    background:rgba(0,0,0,0.45);
 
-    border:1px solid #00f0ff44;
+    border:1px solid #00ffee44;
 
-    border-radius:20px;
+    border-radius:24px;
 
     padding:20px;
 
-    backdrop-filter:blur(10px);
+    backdrop-filter:blur(20px);
 
     box-shadow:
-    0 0 20px #00f0ff22;
+    0 0 25px #00ffee22;
 
-    transition:0.3s;
+    position:relative;
+
+    overflow:hidden;
+
+    animation:fade 0.4s ease;
 }
 
-.signal:hover{
+@keyframes fade{
 
-    transform:translateY(-3px);
+    from{
+        opacity:0;
+        transform:translateY(20px);
+    }
 
-    box-shadow:
-    0 0 30px #00f0ff55;
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
 }
 
-/* ========================================== */
-/* BUY SELL */
-/* ========================================== */
+.signal::before{
 
-.buy{
+    content:"";
 
-    border-left:5px solid #00ff88;
+    position:absolute;
+
+    top:0;
+    left:0;
+
+    width:100%;
+    height:3px;
+
+    background:
+    linear-gradient(
+        90deg,
+        #00ffee,
+        #ff00ff
+    );
 }
 
-.sell{
-
-    border-left:5px solid #ff3355;
-}
-
-/* ========================================== */
-/* ROW */
-/* ========================================== */
-
-.row{
+.top{
 
     display:flex;
 
     justify-content:space-between;
 
-    margin-top:10px;
-
-    font-size:15px;
+    align-items:center;
 }
 
-/* ========================================== */
-/* BUTTON */
-/* ========================================== */
+.pair{
 
-.btn{
-
-    margin-top:15px;
-
-    width:100%;
-
-    padding:12px;
-
-    border:none;
-
-    border-radius:15px;
-
-    background:#00f0ff22;
-
-    color:#00f0ff;
+    font-size:28px;
 
     font-weight:bold;
 
-    cursor:pointer;
-
-    transition:0.3s;
+    color:#00ffee;
 }
 
-.btn:hover{
+.level{
 
-    background:#00f0ff44;
-}
+    padding:8px 16px;
 
-/* ========================================== */
-/* MODAL */
-/* ========================================== */
+    border-radius:12px;
 
-.modal{
+    background:#00ffee22;
 
-    position:fixed;
-
-    top:50%;
-    left:50%;
-
-    transform:translate(-50%,-50%);
-
-    width:92%;
-
-    max-width:420px;
-
-    background:#0b1224ee;
-
-    border:1px solid #00f0ff55;
-
-    border-radius:20px;
-
-    padding:20px;
-
-    display:none;
-
-    z-index:999;
-
-    backdrop-filter:blur(10px);
-
-    box-shadow:
-    0 0 40px #00f0ff55;
-}
-
-.close{
-
-    margin-top:20px;
-
-    width:100%;
-
-    padding:12px;
-
-    border:none;
-
-    border-radius:15px;
-
-    background:#ff003322;
-
-    color:#ff3355;
+    color:#00ffee;
 
     font-weight:bold;
 }
 
-/* ========================================== */
-/* LEVEL COLORS */
-/* ========================================== */
-
-.levelAplus{
-
-    color:#00f0ff;
-}
-
-.levelA{
+.buy{
 
     color:#00ff88;
 }
 
-.levelB{
+.sell{
 
-    color:#ffaa00;
+    color:#ff3366;
 }
 
-/* ========================================== */
-/* ANALYTICS */
-/* ========================================== */
-
-.analytics{
-
-    border:1px solid #00ff8844;
-
-    box-shadow:
-    0 0 20px #00ff8822;
-}
-
-canvas{
+.signal-type{
 
     margin-top:15px;
 
-    width:100%;
+    font-size:26px;
 
-    height:80px;
+    font-weight:bold;
+}
 
-    background:#00000033;
+.grid{
 
-    border-radius:12px;
+    display:grid;
+
+    grid-template-columns:
+    repeat(2,1fr);
+
+    gap:15px;
+
+    margin-top:20px;
+}
+
+.card{
+
+    background:#09111d;
+
+    border-radius:16px;
+
+    padding:16px;
+
+    text-align:center;
+
+    border:1px solid #00ffee22;
+}
+
+.card-title{
+
+    color:#aaa;
+
+    font-size:13px;
+}
+
+.card-value{
+
+    margin-top:10px;
+
+    font-size:24px;
+
+    color:#00ffee;
+
+    font-weight:bold;
+}
+
+.footer{
+
+    margin-top:20px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+}
+
+.market{
+
+    color:#ff00ff;
+
+    font-weight:bold;
+}
+
+.time{
+
+    color:#888;
+
+    font-size:12px;
+}
+
+.loading{
+
+    text-align:center;
+
+    color:#00ffee;
+
+    margin-top:40px;
 }
 
 </style>
@@ -300,464 +361,250 @@ canvas{
 
 <body>
 
-<div class="bg"></div>
+<div class="header">
 
-<div class="grid"></div>
+    <div class="logo">
+        CYBER AI SNIPER
+    </div>
 
-<div class="title">
-😈 CYBER AI TERMINAL
-</div>
-
-<div class="container">
-
-<!-- ========================================== -->
-<!-- ANALYTICS -->
-<!-- ========================================== -->
-
-<div class="signal analytics">
-
-<h2>
-📊 AI ANALYTICS
-</h2>
-
-<div class="row">
-<span>Total Signals</span>
-<span id="totalSignals">0</span>
-</div>
-
-<div class="row">
-<span>Wins</span>
-<span id="wins">0</span>
-</div>
-
-<div class="row">
-<span>Losses</span>
-<span id="losses">0</span>
-</div>
-
-<div class="row">
-<span>Winrate</span>
-<span id="winrate">0%</span>
-</div>
-
-<div class="row">
-<span>AI Engine</span>
-<span style="color:#00ff88;">
-ONLINE
-</span>
-</div>
+    <div class="sub">
+        Adaptive Smart Liquidity Engine
+    </div>
 
 </div>
 
-<!-- ========================================== -->
-<!-- SIGNALS -->
-<!-- ========================================== -->
+<div class="analytics-box">
 
-<div id="signals"></div>
+    <div class="analytics-title">
+        AI PERFORMANCE
+    </div>
+
+    <div class="analytics-grid">
+
+        <div class="analytics-card">
+            <div id="totalTrades">0</div>
+            <span>TOTAL</span>
+        </div>
+
+        <div class="analytics-card">
+            <div id="wins">0</div>
+            <span>WINS</span>
+        </div>
+
+        <div class="analytics-card">
+            <div id="losses">0</div>
+            <span>LOSSES</span>
+        </div>
+
+        <div class="analytics-card">
+            <div id="winrate">0%</div>
+            <span>WINRATE</span>
+        </div>
+
+    </div>
 
 </div>
 
-<!-- ========================================== -->
-<!-- MODAL -->
-<!-- ========================================== -->
+<div class="signals" id="signals">
 
-<div class="modal" id="modal">
-
-<h2 id="pair"></h2>
-
-<div class="row">
-<span>Signal</span>
-<span id="signal"></span>
-</div>
-
-<div class="row">
-<span>Level</span>
-<span id="level"></span>
-</div>
-
-<div class="row">
-<span>Score</span>
-<span id="score"></span>
-</div>
-
-<div class="row">
-<span>Expiration</span>
-<span id="expiration"></span>
-</div>
-
-<div class="row">
-<span>Buyers</span>
-<span id="buyers"></span>
-</div>
-
-<div class="row">
-<span>Sellers</span>
-<span id="sellers"></span>
-</div>
-
-<div class="row">
-<span>ADX</span>
-<span id="adx"></span>
-</div>
-
-<div class="row">
-<span>RSI</span>
-<span id="rsi"></span>
-</div>
-
-<div class="row">
-<span>Time</span>
-<span id="time"></span>
-</div>
-
-<button
-class="close"
-onclick="closeModal()"
->
-CLOSE
-</button>
+    <div class="loading">
+        Loading AI Signals...
+    </div>
 
 </div>
 
 <script>
 
-/* ========================================== */
-/* API */
-/* ========================================== */
-
 const API =
-"https://signals-ai-backend.onrender.com/signals?v=999999";
-
-const ANALYTICS =
-"https://signals-ai-backend.onrender.com/analytics";
-
-/* ========================================== */
-/* CACHE */
-/* ========================================== */
-
-let savedSignals = {};
-
-/* ========================================== */
-/* CHART ENGINE */
-/* ========================================== */
-
-function drawChart(id, signal){
-
-    const canvas =
-    document.getElementById(id);
-
-    if(!canvas) return;
-
-    const ctx =
-    canvas.getContext("2d");
-
-    const width =
-    canvas.width = canvas.offsetWidth;
-
-    const height =
-    canvas.height = 80;
-
-    ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-    );
-
-    ctx.beginPath();
-
-    let x = 0;
-
-    let y =
-    height / 2;
-
-    ctx.moveTo(x, y);
-
-    for(let i = 0; i < 30; i++){
-
-        x += width / 30;
-
-        if(signal === "BUY"){
-
-            y += (
-                Math.random() * 8 - 2
-            );
-
-        }else{
-
-            y += (
-                Math.random() * 8 - 6
-            );
-        }
-
-        y = Math.max(
-            10,
-            Math.min(
-                height - 10,
-                y
-            )
-        );
-
-        ctx.lineTo(x, y);
-    }
-
-    ctx.strokeStyle =
-    signal === "BUY"
-    ? "#00ff88"
-    : "#ff3355";
-
-    ctx.lineWidth = 3;
-
-    ctx.shadowBlur = 15;
-
-    ctx.shadowColor =
-    ctx.strokeStyle;
-
-    ctx.stroke();
-}
-
-/* ========================================== */
-/* LOAD SIGNALS */
-/* ========================================== */
-
-async function loadSignals(){
-
-    try{
-
-        const response =
-        await fetch(API);
-
-        const data =
-        await response.json();
-
-        console.log(data);
-
-        const container =
-        document.getElementById("signals");
-
-        data.forEach(signal => {
-
-            const id =
-            signal.pair + signal.time;
-
-            if(savedSignals[id]){
-                return;
-            }
-
-            savedSignals[id] = true;
-
-            const card =
-            document.createElement("div");
-
-            card.className =
-            `signal ${
-                signal.signal === "BUY"
-                ? "buy"
-                : "sell"
-            }`;
-
-            let levelClass =
-            "levelB";
-
-            if(signal.level === "A"){
-                levelClass = "levelA";
-            }
-
-            if(signal.level === "A+"){
-                levelClass = "levelAplus";
-            }
-
-            card.innerHTML = `
-
-                <h2>
-                    ${signal.pair}
-                </h2>
-
-                <canvas
-                id="chart-${id}"
-                ></canvas>
-
-                <div class="row">
-                    <span>Signal</span>
-                    <span>
-                        ${signal.signal}
-                    </span>
-                </div>
-
-                <div class="row">
-                    <span>Score</span>
-                    <span>
-                        ${signal.score}%
-                    </span>
-                </div>
-
-                <div class="row">
-                    <span>Level</span>
-                    <span class="${levelClass}">
-                        ${signal.level}
-                    </span>
-                </div>
-
-                <div class="row">
-                    <span>Expiration</span>
-                    <span>
-                        ${signal.expiration}
-                    </span>
-                </div>
-
-                <button class="btn">
-                    OPEN DETAILS
-                </button>
-
-            `;
-
-            card.onclick = () => {
-
-                openModal(signal);
-            };
-
-            container.prepend(card);
-
-            drawChart(
-                `chart-${id}`,
-                signal.signal
-            );
-
-        });
-
-    }catch(error){
-
-        console.log(error);
-    }
-}
-
-/* ========================================== */
-/* LOAD ANALYTICS */
-/* ========================================== */
+"https://signals-ai-backend.onrender.com"
 
 async function loadAnalytics(){
 
     try{
 
-        const response =
-        await fetch(ANALYTICS);
+        const res = await fetch(
+            API + "/analytics"
+        )
 
-        const data =
-        await response.json();
+        const data = await res.json()
 
         document.getElementById(
-            "totalSignals"
+            "totalTrades"
         ).innerText =
-        data.total_signals;
+        data.total_signals
 
         document.getElementById(
             "wins"
         ).innerText =
-        data.wins;
+        data.wins
 
         document.getElementById(
             "losses"
         ).innerText =
-        data.losses;
+        data.losses
 
         document.getElementById(
             "winrate"
         ).innerText =
-        data.winrate + "%";
+        data.winrate + "%"
 
-    }catch(error){
+    }catch(err){
 
-        console.log(error);
+        console.log(err)
     }
 }
 
-/* ========================================== */
-/* OPEN MODAL */
-/* ========================================== */
+async function loadSignals(){
 
-function openModal(signal){
+    try{
 
-    document.getElementById(
-        "modal"
-    ).style.display = "block";
+        const res = await fetch(
+            API + "/signals"
+        )
 
-    document.getElementById(
-        "pair"
-    ).innerText =
-    signal.pair;
+        const data = await res.json()
 
-    document.getElementById(
-        "signal"
-    ).innerText =
-    signal.signal;
+        const container =
+        document.getElementById(
+            "signals"
+        )
 
-    document.getElementById(
-        "level"
-    ).innerText =
-    signal.level;
+        container.innerHTML = ""
 
-    document.getElementById(
-        "score"
-    ).innerText =
-    signal.score + "%";
+        data.forEach(signal => {
 
-    document.getElementById(
-        "expiration"
-    ).innerText =
-    signal.expiration;
+            const div =
+            document.createElement("div")
 
-    document.getElementById(
-        "buyers"
-    ).innerText =
-    signal.buyers + "%";
+            div.className = "signal"
 
-    document.getElementById(
-        "sellers"
-    ).innerText =
-    signal.sellers + "%";
+            div.innerHTML = `
 
-    document.getElementById(
-        "adx"
-    ).innerText =
-    signal.adx;
+            <div class="top">
 
-    document.getElementById(
-        "rsi"
-    ).innerText =
-    signal.rsi;
+                <div class="pair">
+                    ${signal.pair}
+                </div>
 
-    document.getElementById(
-        "time"
-    ).innerText =
-    signal.time;
+                <div class="level">
+                    ${signal.level}
+                </div>
+
+            </div>
+
+            <div class="signal-type
+            ${signal.signal === "BUY"
+            ? "buy"
+            : "sell"}">
+
+                ${signal.signal}
+
+            </div>
+
+            <div class="grid">
+
+                <div class="card">
+
+                    <div class="card-title">
+                        SCORE
+                    </div>
+
+                    <div class="card-value">
+                        ${signal.score}%
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-title">
+                        EXPIRATION
+                    </div>
+
+                    <div class="card-value">
+                        ${signal.expiration}
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-title">
+                        BUYERS
+                    </div>
+
+                    <div class="card-value">
+                        ${signal.buyers}%
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-title">
+                        SELLERS
+                    </div>
+
+                    <div class="card-value">
+                        ${signal.sellers}%
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-title">
+                        RSI
+                    </div>
+
+                    <div class="card-value">
+                        ${signal.rsi}
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-title">
+                        ADX
+                    </div>
+
+                    <div class="card-value">
+                        ${signal.adx}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="footer">
+
+                <div class="market">
+                    ${signal.market}
+                </div>
+
+                <div class="time">
+                    ${signal.time}
+                </div>
+
+            </div>
+            `
+
+            container.appendChild(div)
+        })
+
+    }catch(err){
+
+        console.log(err)
+    }
 }
 
-/* ========================================== */
-/* CLOSE MODAL */
-/* ========================================== */
+loadSignals()
+loadAnalytics()
 
-function closeModal(){
+setInterval(loadSignals,5000)
 
-    document.getElementById(
-        "modal"
-    ).style.display = "none";
-}
-
-/* ========================================== */
-/* START */
-/* ========================================== */
-
-loadSignals();
-
-loadAnalytics();
-
-setInterval(() => {
-
-    loadSignals();
-
-    loadAnalytics();
-
-}, 10000);
+setInterval(loadAnalytics,5000)
 
 </script>
 
