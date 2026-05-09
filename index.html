@@ -5,17 +5,23 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+/>
 
-<title>CYBER AI SIGNALS V2</title>
+<title>CYBER AI SIGNALS V5</title>
 
 <style>
 
-body{
+*{
 
     margin:0;
     padding:0;
+    box-sizing:border-box;
+}
+
+body{
 
     background:#050816;
 
@@ -58,7 +64,7 @@ body{
 
     background-size:40px 40px;
 
-    opacity:0.15;
+    opacity:0.12;
 
     z-index:-1;
 }
@@ -73,13 +79,15 @@ body{
 
     margin-top:20px;
 
-    font-size:32px;
+    font-size:34px;
 
     font-weight:bold;
 
     color:#00f0ff;
 
-    text-shadow:0 0 15px #00f0ff;
+    text-shadow:
+    0 0 10px #00f0ff,
+    0 0 20px #00f0ff;
 }
 
 /* ========================================== */
@@ -98,7 +106,7 @@ body{
 }
 
 /* ========================================== */
-/* SIGNAL CARD */
+/* CARD */
 /* ========================================== */
 
 .signal{
@@ -121,11 +129,15 @@ body{
 
 .signal:hover{
 
-    transform:translateY(-4px);
+    transform:translateY(-3px);
 
     box-shadow:
     0 0 30px #00f0ff55;
 }
+
+/* ========================================== */
+/* BUY SELL */
+/* ========================================== */
 
 .buy{
 
@@ -148,6 +160,8 @@ body{
     justify-content:space-between;
 
     margin-top:10px;
+
+    font-size:15px;
 }
 
 /* ========================================== */
@@ -195,7 +209,7 @@ body{
 
     transform:translate(-50%,-50%);
 
-    width:90%;
+    width:92%;
 
     max-width:420px;
 
@@ -211,10 +225,10 @@ body{
 
     z-index:999;
 
-    box-shadow:
-    0 0 30px #00f0ff55;
-
     backdrop-filter:blur(10px);
+
+    box-shadow:
+    0 0 40px #00f0ff55;
 }
 
 .close{
@@ -231,13 +245,13 @@ body{
 
     background:#ff003322;
 
-    color:#ff0033;
+    color:#ff3355;
 
     font-weight:bold;
 }
 
 /* ========================================== */
-/* LEVELS */
+/* LEVEL COLORS */
 /* ========================================== */
 
 .levelAplus{
@@ -255,6 +269,18 @@ body{
     color:#ffaa00;
 }
 
+/* ========================================== */
+/* ANALYTICS */
+/* ========================================== */
+
+.analytics{
+
+    border:1px solid #00ff8844;
+
+    box-shadow:
+    0 0 20px #00ff8822;
+}
+
 </style>
 
 </head>
@@ -266,10 +292,55 @@ body{
 <div class="grid"></div>
 
 <div class="title">
-😈 CYBER AI SIGNALS
+😈 CYBER AI TERMINAL
 </div>
 
-<div class="container" id="signals">
+<div class="container">
+
+<!-- ========================================== -->
+<!-- ANALYTICS -->
+<!-- ========================================== -->
+
+<div class="signal analytics">
+
+<h2>
+📊 AI ANALYTICS
+</h2>
+
+<div class="row">
+<span>Total Signals</span>
+<span id="totalSignals">0</span>
+</div>
+
+<div class="row">
+<span>Wins</span>
+<span id="wins">0</span>
+</div>
+
+<div class="row">
+<span>Losses</span>
+<span id="losses">0</span>
+</div>
+
+<div class="row">
+<span>Winrate</span>
+<span id="winrate">0%</span>
+</div>
+
+<div class="row">
+<span>AI Engine</span>
+<span style="color:#00ff88;">
+ONLINE
+</span>
+</div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- SIGNALS -->
+<!-- ========================================== -->
+
+<div id="signals"></div>
 
 </div>
 
@@ -279,54 +350,59 @@ body{
 
 <div class="modal" id="modal">
 
-    <h2 id="pair"></h2>
+<h2 id="pair"></h2>
 
-    <div class="row">
-        <span>Signal:</span>
-        <span id="signal"></span>
-    </div>
+<div class="row">
+<span>Signal</span>
+<span id="signal"></span>
+</div>
 
-    <div class="row">
-        <span>Level:</span>
-        <span id="level"></span>
-    </div>
+<div class="row">
+<span>Level</span>
+<span id="level"></span>
+</div>
 
-    <div class="row">
-        <span>Score:</span>
-        <span id="score"></span>
-    </div>
+<div class="row">
+<span>Score</span>
+<span id="score"></span>
+</div>
 
-    <div class="row">
-        <span>Expiration:</span>
-        <span id="expiration"></span>
-    </div>
+<div class="row">
+<span>Expiration</span>
+<span id="expiration"></span>
+</div>
 
-    <div class="row">
-        <span>Buyers:</span>
-        <span id="buyers"></span>
-    </div>
+<div class="row">
+<span>Buyers</span>
+<span id="buyers"></span>
+</div>
 
-    <div class="row">
-        <span>Sellers:</span>
-        <span id="sellers"></span>
-    </div>
+<div class="row">
+<span>Sellers</span>
+<span id="sellers"></span>
+</div>
 
-    <div class="row">
-        <span>ADX:</span>
-        <span id="adx"></span>
-    </div>
+<div class="row">
+<span>ADX</span>
+<span id="adx"></span>
+</div>
 
-    <div class="row">
-        <span>RSI:</span>
-        <span id="rsi"></span>
-    </div>
+<div class="row">
+<span>RSI</span>
+<span id="rsi"></span>
+</div>
 
-    <button
-        class="close"
-        onclick="closeModal()"
-    >
-        CLOSE
-    </button>
+<div class="row">
+<span>Time</span>
+<span id="time"></span>
+</div>
+
+<button
+class="close"
+onclick="closeModal()"
+>
+CLOSE
+</button>
 
 </div>
 
@@ -337,10 +413,13 @@ body{
 /* ========================================== */
 
 const API =
-"https://signals-ai-backend.onrender.com/signals?v=" + Date.now();
+"https://signals-ai-backend.onrender.com/signals?v=999999";
+
+const ANALYTICS =
+"https://signals-ai-backend.onrender.com/analytics";
 
 /* ========================================== */
-/* SAVED SIGNALS */
+/* CACHE */
 /* ========================================== */
 
 let savedSignals = {};
@@ -423,6 +502,13 @@ async function loadSignals(){
                     </span>
                 </div>
 
+                <div class="row">
+                    <span>Expiration</span>
+                    <span>
+                        ${signal.expiration}
+                    </span>
+                </div>
+
                 <button class="btn">
                     OPEN DETAILS
                 </button>
@@ -445,6 +531,46 @@ async function loadSignals(){
 }
 
 /* ========================================== */
+/* LOAD ANALYTICS */
+/* ========================================== */
+
+async function loadAnalytics(){
+
+    try{
+
+        const response =
+        await fetch(ANALYTICS);
+
+        const data =
+        await response.json();
+
+        document.getElementById(
+            "totalSignals"
+        ).innerText =
+        data.total_signals;
+
+        document.getElementById(
+            "wins"
+        ).innerText =
+        data.wins;
+
+        document.getElementById(
+            "losses"
+        ).innerText =
+        data.losses;
+
+        document.getElementById(
+            "winrate"
+        ).innerText =
+        data.winrate + "%";
+
+    }catch(error){
+
+        console.log(error);
+    }
+}
+
+/* ========================================== */
 /* OPEN MODAL */
 /* ========================================== */
 
@@ -456,15 +582,18 @@ function openModal(signal){
 
     document.getElementById(
         "pair"
-    ).innerText = signal.pair;
+    ).innerText =
+    signal.pair;
 
     document.getElementById(
         "signal"
-    ).innerText = signal.signal;
+    ).innerText =
+    signal.signal;
 
     document.getElementById(
         "level"
-    ).innerText = signal.level;
+    ).innerText =
+    signal.level;
 
     document.getElementById(
         "score"
@@ -495,6 +624,11 @@ function openModal(signal){
         "rsi"
     ).innerText =
     signal.rsi;
+
+    document.getElementById(
+        "time"
+    ).innerText =
+    signal.time;
 }
 
 /* ========================================== */
@@ -509,12 +643,20 @@ function closeModal(){
 }
 
 /* ========================================== */
-/* AUTO REFRESH */
+/* START */
 /* ========================================== */
 
 loadSignals();
 
-setInterval(loadSignals, 10000);
+loadAnalytics();
+
+setInterval(() => {
+
+    loadSignals();
+
+    loadAnalytics();
+
+}, 10000);
 
 </script>
 
