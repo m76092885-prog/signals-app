@@ -105,7 +105,7 @@ def send_telegram_signal(signal):
     try:
 
         text = f"""
-🔥 SMART MONEY SIGNAL
+🔥 SMART MONEY SNIPER
 
 PAIR: {signal['pair']}
 
@@ -303,7 +303,7 @@ def analyze_pair(pair):
     )
 
     # ==========================================
-    # LIQUIDITY SWEEP ENGINE
+    # LIQUIDITY ENGINE
     # ==========================================
 
     recent_high = (
@@ -321,7 +321,6 @@ def analyze_pair(pair):
     liquidity_buy = False
     liquidity_sell = False
 
-    # SELL SIDE SWEEP
     if (
         candle1["low"] < recent_low
         and candle1["close"] > candle1["open"]
@@ -329,7 +328,6 @@ def analyze_pair(pair):
 
         liquidity_buy = True
 
-    # BUY SIDE SWEEP
     if (
         candle1["high"] > recent_high
         and candle1["close"] < candle1["open"]
@@ -338,7 +336,7 @@ def analyze_pair(pair):
         liquidity_sell = True
 
     # ==========================================
-    # BUYERS / SELLERS
+    # BUYERS SELLERS
     # ==========================================
 
     last_5 = df.tail(5)
@@ -442,23 +440,35 @@ def analyze_pair(pair):
         score = sell_score
 
     # ==========================================
-    # FILTERS
+    # SNIPER FILTER ENGINE
     # ==========================================
+
+    if adx_last < 22:
+        return None
 
     if signal == "BUY":
 
-        if rsi_last > 75:
+        if buyers < 65:
+            return None
+
+        if rsi_last > 72:
+            return None
+
+        if not bullish:
             return None
 
     if signal == "SELL":
 
-        if rsi_last < 25:
+        if sellers < 65:
             return None
 
-    if adx_last < 18:
-        return None
+        if rsi_last < 28:
+            return None
 
-    if score < 60:
+        if not bearish:
+            return None
+
+    if score < 75:
         return None
 
     # ==========================================
@@ -528,7 +538,7 @@ def analyze_pair(pair):
 
     save_signal(result)
 
-    if result["score"] >= 70:
+    if result["score"] >= 80:
 
         send_telegram_signal(result)
 
@@ -552,7 +562,7 @@ async def root():
 
         "status": "ONLINE",
 
-        "engine": "SMART MONEY AI"
+        "engine": "SMART MONEY SNIPER AI"
     }
 
 # ==========================================
@@ -575,10 +585,6 @@ async def signals():
 
         if signal:
             results.append(signal)
-
-    # ==========================================
-    # CACHE
-    # ==========================================
 
     if len(results) == 0:
 
