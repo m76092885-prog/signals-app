@@ -74,7 +74,7 @@ body::before{
 
 .logo{
 
-    font-size:36px;
+    font-size:38px;
 
     font-weight:bold;
 
@@ -90,6 +90,53 @@ body::before{
     color:#aaa;
 
     margin-top:10px;
+}
+
+#tickerTape{
+
+    width:95%;
+
+    margin:10px auto;
+
+    padding:14px;
+
+    border-radius:20px;
+
+    background:rgba(0,0,0,0.45);
+
+    border:1px solid #00ffee33;
+
+    overflow:hidden;
+
+    white-space:nowrap;
+
+    color:#00ffee;
+
+    font-weight:bold;
+
+    font-size:16px;
+
+    backdrop-filter:blur(20px);
+
+    box-shadow:
+    0 0 20px #00ffee22;
+}
+
+.tickerItem{
+
+    display:inline-block;
+
+    margin-right:35px;
+}
+
+.green{
+
+    color:#00ff88;
+}
+
+.red{
+
+    color:#ff3366;
 }
 
 .analytics-box{
@@ -439,6 +486,12 @@ body::before{
 
 </div>
 
+<div id="tickerTape">
+
+    Loading Market...
+
+</div>
+
 <div class="analytics-box">
 
     <div class="analytics-title">
@@ -510,6 +563,56 @@ body::before{
 
 const API =
 "https://signals-ai-backend.onrender.com"
+
+async function loadTicker(){
+
+    try{
+
+        const res = await fetch(
+            API + "/signals"
+        )
+
+        const data = await res.json()
+
+        const ticker =
+        document.getElementById(
+            "tickerTape"
+        )
+
+        ticker.innerHTML = ""
+
+        data.forEach(signal => {
+
+            const span =
+            document.createElement("span")
+
+            span.className = "tickerItem"
+
+            span.innerHTML = `
+
+            ${signal.pair}
+
+            <span class="${
+                signal.signal === "BUY"
+                ? "green"
+                : "red"
+            }">
+
+            ${signal.signal}
+
+            </span>
+
+            ${signal.score}%
+            `
+
+            ticker.appendChild(span)
+        })
+
+    }catch(err){
+
+        console.log(err)
+    }
+}
 
 async function loadAnalytics(){
 
@@ -826,11 +929,15 @@ function closeChart(){
     ).style.display = "none"
 }
 
+loadTicker()
+
 loadSignals()
 
 loadAnalytics()
 
 loadHistory()
+
+setInterval(loadTicker,5000)
 
 setInterval(loadSignals,5000)
 
@@ -841,4 +948,5 @@ setInterval(loadHistory,5000)
 </script>
 
 </body>
+</html>
 </html>
