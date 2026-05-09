@@ -38,10 +38,10 @@ app.add_middleware(
 )
 
 # ==========================================
-# PAIRS
+# BASE PAIRS
 # ==========================================
 
-pairs = [
+base_pairs = [
 
     "EUR/USD",
     "GBP/USD",
@@ -51,6 +51,8 @@ pairs = [
     "USD/CAD",
     "EUR/JPY"
 ]
+
+pairs = base_pairs.copy()
 
 # ==========================================
 # SAVE SIGNAL
@@ -237,6 +239,95 @@ async def check_signal_result(signal_data, entry_price):
     save_result(result_data)
 
 # ==========================================
+# PAIR RANKING ENGINE
+# ==========================================
+
+def get_best_pairs():
+
+    try:
+
+        with open("results.json", "r") as f:
+
+            results = json.load(f)
+
+    except:
+
+        return base_pairs
+
+    stats = {}
+
+    for r in results:
+
+        pair = r["pair"]
+
+        if pair not in stats:
+
+            stats[pair] = {
+
+                "wins": 0,
+
+                "losses": 0
+            }
+
+        if r["result"] == "WIN":
+
+            stats[pair]["wins"] += 1
+
+        else:
+
+            stats[pair]["losses"] += 1
+
+    ranked = []
+
+    for pair, data in stats.items():
+
+        total = (
+            data["wins"] +
+            data["losses"]
+        )
+
+        if total < 3:
+            continue
+
+        wr = (
+            data["wins"] / total
+        ) * 100
+
+        ranked.append({
+
+            "pair": pair,
+
+            "wr": wr
+        })
+
+    ranked = sorted(
+
+        ranked,
+
+        key=lambda x: x["wr"],
+
+        reverse=True
+    )
+
+    best = []
+
+    for r in ranked[:5]:
+
+        formatted = (
+            r["pair"][:3] +
+            "/" +
+            r["pair"][3:]
+        )
+
+        best.append(formatted)
+
+    if len(best) == 0:
+
+        return base_pairs
+
+    return best
+
+# ==========================================
 # ANALYZE
 # ==========================================
 
@@ -305,7 +396,7 @@ def analyze_pair(pair):
     )
 
     # ==========================================
-    # LIQUIDITY ENGINE
+    # LIQUIDITY
     # ==========================================
 
     recent_high = (
@@ -338,7 +429,7 @@ def analyze_pair(pair):
         liquidity_sell = True
 
     # ==========================================
-    # BUYERS SELLERS
+    # BUYERS / SELLERS
     # ==========================================
 
     last_5 = df.tail(5)
@@ -438,16 +529,12 @@ def analyze_pair(pair):
         score = sell_score
 
     # ==========================================
-    # VOLATILITY
+    # MARKET REGIME
     # ==========================================
 
     volatility = abs(
         candle1["close"] - candle1["open"]
     )
-
-    # ==========================================
-    # MARKET REGIME ENGINE
-    # ==========================================
 
     market_regime = "RANGE"
 
@@ -463,17 +550,9 @@ def analyze_pair(pair):
 
         market_regime = "DEAD"
 
-    # ==========================================
-    # FILTER DEAD MARKET
-    # ==========================================
-
     if market_regime == "DEAD":
 
         return None
-
-    # ==========================================
-    # FILTER RANGE MARKET
-    # ==========================================
 
     if market_regime == "RANGE":
 
@@ -481,17 +560,9 @@ def analyze_pair(pair):
 
             return None
 
-    # ==========================================
-    # BOOST TREND
-    # ==========================================
-
     if market_regime == "TREND":
 
         score += 5
-
-    # ==========================================
-    # BOOST VOLATILITY
-    # ==========================================
 
     if market_regime == "VOLATILE":
 
@@ -530,7 +601,7 @@ def analyze_pair(pair):
         return None
 
     # ==========================================
-    # EXPIRATION AI
+    # EXPIRATION
     # ==========================================
 
     if adx_last > 40 and volatility > 0.0015:
@@ -618,7 +689,7 @@ async def root():
 
         "status": "ONLINE",
 
-        "engine": "MARKET REGIME AI"
+        "engine": "ULTIMATE AI ENGINE"
     }
 
 # ==========================================
@@ -630,9 +701,13 @@ async def signals():
 
     results = []
 
+    smart_pairs = get_best_pairs()
+
     shuffled = random.sample(
-        pairs,
-        len(pairs)
+
+        smart_pairs,
+
+        len(smart_pairs)
     )
 
     for pair in shuffled:
