@@ -437,6 +437,260 @@ body::before{
     }
 }
 
+.m5Scene{
+
+    position:relative;
+
+    width:700px;
+    height:300px;
+}
+
+.carLaunch{
+
+    animation:
+    launchCar 1.3s ease forwards;
+}
+
+@keyframes launchCar{
+
+    100%{
+        transform:translateX(1200px);
+    }
+}
+
+.carBody{
+
+    position:absolute;
+
+    width:520px;
+    height:120px;
+
+    background:
+    linear-gradient(
+        135deg,
+        #050505,
+        #1a1a1a,
+        #050505
+    );
+
+    border-radius:
+    140px 180px 45px 45px;
+
+    box-shadow:
+    0 0 40px #00ffee22,
+    inset 0 0 20px #444;
+}
+
+.roof{
+
+    position:absolute;
+
+    width:230px;
+    height:70px;
+
+    background:#0d0d0d;
+
+    top:-55px;
+    left:145px;
+
+    border-radius:
+    80px 100px 10px 10px;
+}
+
+.window{
+
+    position:absolute;
+
+    width:180px;
+    height:45px;
+
+    background:#091c25;
+
+    top:-42px;
+    left:170px;
+
+    border-radius:40px 50px 5px 5px;
+
+    box-shadow:
+    inset 0 0 20px #00ffee22;
+}
+
+.headlight{
+
+    position:absolute;
+
+    width:50px;
+    height:14px;
+
+    background:#00ffee;
+
+    right:18px;
+    top:32px;
+
+    border-radius:20px;
+
+    box-shadow:
+    0 0 25px #00ffee,
+    0 0 60px #00ffee;
+}
+
+.rearLight{
+
+    position:absolute;
+
+    width:35px;
+    height:12px;
+
+    background:#ff2255;
+
+    left:18px;
+    top:35px;
+
+    border-radius:20px;
+}
+
+.grill{
+
+    position:absolute;
+
+    width:16px;
+    height:40px;
+
+    background:#111;
+
+    top:40px;
+
+    border-radius:10px;
+}
+
+.grill1{
+    right:75px;
+}
+
+.grill2{
+    right:52px;
+}
+
+.wheel{
+
+    position:absolute;
+
+    width:110px;
+    height:110px;
+
+    border-radius:50%;
+
+    background:
+    radial-gradient(
+        circle,
+        #111 20%,
+        #000 70%
+    );
+
+    border:12px solid #151515;
+
+    animation:
+    wheelSpin 0.5s linear infinite;
+}
+
+.leftWheel{
+
+    bottom:0;
+    left:120px;
+}
+
+.rightWheel{
+
+    bottom:0;
+    right:120px;
+}
+
+.rim{
+
+    width:100%;
+    height:100%;
+
+    border-radius:50%;
+
+    background:
+    repeating-conic-gradient(
+        #999 0deg,
+        #333 10deg,
+        #999 20deg
+    );
+}
+
+@keyframes wheelSpin{
+
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+.smoke{
+
+    position:absolute;
+
+    width:120px;
+    height:120px;
+
+    background:
+    radial-gradient(
+        circle,
+        rgba(255,255,255,0.22),
+        transparent 70%
+    );
+
+    filter:blur(15px);
+
+    border-radius:50%;
+
+    animation:
+    smokeAnim 2s linear infinite;
+}
+
+.smoke1{
+
+    left:40px;
+    bottom:10px;
+}
+
+.smoke2{
+
+    left:70px;
+    bottom:40px;
+
+    animation-delay:0.5s;
+}
+
+.smoke3{
+
+    left:100px;
+    bottom:0px;
+
+    animation-delay:1s;
+}
+
+@keyframes smokeAnim{
+
+    0%{
+        opacity:0;
+        transform:translateX(0px) scale(0.7);
+    }
+
+    50%{
+        opacity:0.5;
+    }
+
+    100%{
+        opacity:0;
+        transform:
+        translateX(-100px)
+        translateY(-40px)
+        scale(1.8);
+    }
+}
+
 .searchText{
 
     margin-top:40px;
@@ -720,103 +974,58 @@ id="searchScreen">
 </div>
 
 <div class="screen"
-id="signalScreen">
+id="searchScreen">
 
     <button class="backBtn"
-    onclick="showHome()">
+    onclick="showQuality()">
 
         BACK
 
     </button>
 
-    <div class="signalCard">
+    <div class="m5Scene">
 
-        <div class="pair"
-        id="pair">
+        <div class="smoke smoke1"></div>
+        <div class="smoke smoke2"></div>
+        <div class="smoke smoke3"></div>
 
-            EURUSD
+        <div class="carBody">
 
-        </div>
+            <div class="roof"></div>
 
-        <div class="action"
-        id="action">
+            <div class="window"></div>
 
-            BUY
+            <div class="headlight"></div>
 
-        </div>
+            <div class="rearLight"></div>
 
-        <div class="confidence"
-        id="confidence">
+            <div class="grill grill1"></div>
 
-            94%
-
-        </div>
-
-        <div class="exp"
-        id="expiration">
-
-            3 MIN
+            <div class="grill grill2"></div>
 
         </div>
 
-        <div class="details">
+        <div class="wheel leftWheel">
 
-            <div class="detail">
-
-                <div class="detailTitle">
-
-                    LIQUIDITY
-
-                </div>
-
-                <div class="detailValue">
-
-                    HIGH
-
-                </div>
-
-            </div>
-
-            <div class="detail">
-
-                <div class="detailTitle">
-
-                    TREND
-
-                </div>
-
-                <div class="detailValue">
-
-                    BULL
-
-                </div>
-
-            </div>
-
-            <div class="detail">
-
-                <div class="detailTitle">
-
-                    MOMENTUM
-
-                </div>
-
-                <div class="detailValue">
-
-                    STRONG
-
-                </div>
-
-            </div>
+            <div class="rim"></div>
 
         </div>
 
-        <div id="chart"></div>
+        <div class="wheel rightWheel">
+
+            <div class="rim"></div>
+
+        </div>
+
+    </div>
+
+    <div class="searchText">
+
+        SEARCHING ELITE ENTRY...
 
     </div>
 
 </div>
-
 <script>
 
 const API =
@@ -929,7 +1138,16 @@ async function startSearch(level){
     }
 }
 
-function showSignal(signal){
+async function showSignal(signal){
+
+    const car =
+    document.querySelector(".m5Scene")
+
+    car.classList.add("carLaunch")
+
+    await new Promise(r =>
+        setTimeout(r,1200)
+    )
 
     show("signalScreen")
 
@@ -994,7 +1212,6 @@ function showSignal(signal){
         container_id:"chart"
     })
 }
-
 loadStats()
 
 </script>
