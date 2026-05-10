@@ -20,7 +20,6 @@ src="https://s3.tradingview.com/tv.js">
     margin:0;
     padding:0;
     box-sizing:border-box;
-
     font-family:Arial;
 }
 
@@ -34,290 +33,277 @@ body{
         #07121f
     );
 
-    min-height:100vh;
-
-    overflow-x:hidden;
-
     color:white;
+
+    overflow:hidden;
+
+    height:100vh;
 }
 
-body::before{
+.screen{
 
-    content:"";
-
-    position:fixed;
+    position:absolute;
 
     width:100%;
     height:100%;
 
-    background:
-    radial-gradient(
-        circle at top left,
-        #00ffee22,
-        transparent 40%
-    ),
-    radial-gradient(
-        circle at bottom right,
-        #ff00ff22,
-        transparent 40%
-    );
+    display:none;
 
-    z-index:-1;
-}
+    justify-content:center;
 
-.header{
-
-    text-align:center;
-
-    padding:25px;
-}
-
-.logo{
-
-    font-size:38px;
-
-    font-weight:bold;
-
-    color:#00ffee;
-
-    text-shadow:
-    0 0 10px #00ffee,
-    0 0 20px #00ffee;
-}
-
-.sub{
-
-    color:#aaa;
-
-    margin-top:10px;
-}
-
-#tickerTape{
-
-    width:95%;
-
-    margin:10px auto;
-
-    padding:14px;
-
-    border-radius:20px;
-
-    background:rgba(0,0,0,0.45);
-
-    border:1px solid #00ffee33;
-
-    overflow:hidden;
-
-    white-space:nowrap;
-
-    color:#00ffee;
-
-    font-weight:bold;
-
-    font-size:16px;
-
-    backdrop-filter:blur(20px);
-
-    box-shadow:
-    0 0 20px #00ffee22;
-}
-
-.tickerItem{
-
-    display:inline-block;
-
-    margin-right:35px;
-}
-
-.green{
-
-    color:#00ff88;
-}
-
-.red{
-
-    color:#ff3366;
-}
-
-.analytics-box{
-
-    width:95%;
-
-    margin:20px auto;
-
-    background:rgba(0,0,0,0.45);
-
-    border:1px solid #00ffee44;
-
-    border-radius:25px;
-
-    padding:20px;
-
-    backdrop-filter:blur(20px);
-
-    box-shadow:
-    0 0 25px #00ffee22;
-}
-
-.analytics-title{
-
-    color:#00ffee;
-
-    text-align:center;
-
-    font-size:22px;
-
-    margin-bottom:20px;
-
-    font-weight:bold;
-}
-
-.analytics-grid{
-
-    display:grid;
-
-    grid-template-columns:
-    repeat(2,1fr);
-
-    gap:15px;
-}
-
-.analytics-card{
-
-    background:#09111d;
-
-    border-radius:20px;
-
-    padding:20px;
-
-    text-align:center;
-
-    border:1px solid #00ffee22;
-}
-
-.analytics-card div{
-
-    font-size:30px;
-
-    color:#00ffee;
-
-    font-weight:bold;
-}
-
-.analytics-card span{
-
-    color:#aaa;
-
-    font-size:13px;
-}
-
-.signals{
-
-    width:95%;
-
-    margin:25px auto;
-
-    display:flex;
+    align-items:center;
 
     flex-direction:column;
 
-    gap:20px;
-}
-
-.signal{
-
-    background:rgba(0,0,0,0.45);
-
-    border:1px solid #00ffee44;
-
-    border-radius:24px;
-
-    padding:20px;
-
-    backdrop-filter:blur(20px);
-
-    box-shadow:
-    0 0 25px #00ffee22;
-
-    position:relative;
-
-    overflow:hidden;
+    padding:25px;
 
     animation:fade 0.4s ease;
-
-    cursor:pointer;
-
-    transition:0.3s;
 }
 
-.signal:hover{
+.active{
 
-    transform:scale(1.02);
-
-    box-shadow:
-    0 0 35px #00ffee55;
+    display:flex;
 }
 
 @keyframes fade{
 
     from{
         opacity:0;
-        transform:translateY(20px);
+        transform:scale(1.03);
     }
 
     to{
         opacity:1;
-        transform:translateY(0);
+        transform:scale(1);
     }
 }
 
-.signal::before{
+.logo{
 
-    content:"";
+    font-size:42px;
 
-    position:absolute;
+    font-weight:bold;
 
-    top:0;
-    left:0;
+    color:#00ffee;
 
-    width:100%;
-    height:3px;
-
-    background:
-    linear-gradient(
-        90deg,
-        #00ffee,
-        #ff00ff
-    );
+    text-shadow:
+    0 0 20px #00ffee;
 }
 
-.top{
+.winrateBox{
 
-    display:flex;
+    margin-top:40px;
 
-    justify-content:space-between;
+    width:90%;
 
-    align-items:center;
+    max-width:420px;
+
+    background:rgba(0,0,0,0.45);
+
+    border:1px solid #00ffee44;
+
+    border-radius:28px;
+
+    padding:30px;
+
+    text-align:center;
+
+    backdrop-filter:blur(20px);
+
+    box-shadow:
+    0 0 30px #00ffee22;
 }
 
-.pair{
+.winrateTitle{
 
-    font-size:28px;
+    color:#aaa;
+
+    font-size:18px;
+}
+
+.winrate{
+
+    margin-top:15px;
+
+    font-size:72px;
 
     font-weight:bold;
 
     color:#00ffee;
 }
 
-.level{
+.stats{
 
-    padding:8px 16px;
+    margin-top:25px;
 
-    border-radius:12px;
+    display:flex;
 
-    background:#00ffee22;
+    justify-content:space-around;
+}
+
+.stats div{
+
+    text-align:center;
+}
+
+.stats strong{
+
+    display:block;
+
+    font-size:24px;
 
     color:#00ffee;
+}
+
+.btn{
+
+    margin-top:50px;
+
+    padding:20px 45px;
+
+    border:none;
+
+    border-radius:20px;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    background:
+    linear-gradient(
+        90deg,
+        #00ffee,
+        #00bfff
+    );
+
+    color:black;
+
+    box-shadow:
+    0 0 25px #00ffee55;
+
+    transition:0.3s;
+}
+
+.btn:hover{
+
+    transform:scale(1.05);
+}
+
+.qualityWrap{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:25px;
+
+    width:90%;
+
+    max-width:400px;
+}
+
+.qualityBtn{
+
+    padding:25px;
+
+    border-radius:25px;
+
+    border:1px solid #00ffee55;
+
+    background:rgba(0,0,0,0.45);
+
+    color:white;
+
+    font-size:24px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:0.3s;
+}
+
+.qualityBtn:hover{
+
+    transform:scale(1.03);
+
+    box-shadow:
+    0 0 30px #00ffee44;
+}
+
+.wheel{
+
+    width:260px;
+
+    animation:spin 2.5s linear infinite;
+
+    filter:
+    drop-shadow(0 0 20px #00ffee);
+}
+
+@keyframes spin{
+
+    from{
+        transform:rotate(0deg);
+    }
+
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+.searchText{
+
+    margin-top:35px;
+
+    font-size:28px;
+
+    color:#00ffee;
+
+    text-shadow:
+    0 0 10px #00ffee;
+}
+
+.signalCard{
+
+    width:95%;
+
+    max-width:520px;
+
+    background:rgba(0,0,0,0.45);
+
+    border:1px solid #00ffee55;
+
+    border-radius:30px;
+
+    padding:30px;
+
+    backdrop-filter:blur(20px);
+
+    box-shadow:
+    0 0 35px #00ffee22;
+}
+
+.pair{
+
+    font-size:52px;
+
+    font-weight:bold;
+
+    color:#00ffee;
+
+    text-align:center;
+}
+
+.action{
+
+    margin-top:20px;
+
+    text-align:center;
+
+    font-size:48px;
 
     font-weight:bold;
 }
@@ -332,140 +318,82 @@ body::before{
     color:#ff3366;
 }
 
-.signal-type{
-
-    margin-top:15px;
-
-    font-size:26px;
-
-    font-weight:bold;
-}
-
-.grid{
-
-    display:grid;
-
-    grid-template-columns:
-    repeat(2,1fr);
-
-    gap:15px;
+.confidence{
 
     margin-top:20px;
-}
-
-.card{
-
-    background:#09111d;
-
-    border-radius:16px;
-
-    padding:16px;
 
     text-align:center;
 
-    border:1px solid #00ffee22;
-}
-
-.card-title{
-
-    color:#aaa;
-
-    font-size:13px;
-}
-
-.card-value{
-
-    margin-top:10px;
-
-    font-size:24px;
-
-    color:#00ffee;
-
-    font-weight:bold;
-}
-
-.footer{
-
-    margin-top:20px;
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-}
-
-.market{
+    font-size:32px;
 
     color:#ff00ff;
 
     font-weight:bold;
 }
 
-.time{
+.exp{
+
+    margin-top:15px;
+
+    text-align:center;
+
+    color:#aaa;
+
+    font-size:22px;
+}
+
+.details{
+
+    margin-top:30px;
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(3,1fr);
+
+    gap:15px;
+}
+
+.detail{
+
+    background:#09111d;
+
+    border-radius:16px;
+
+    padding:15px;
+
+    text-align:center;
+}
+
+.detailTitle{
 
     color:#888;
 
     font-size:12px;
 }
 
-.loading{
+.detailValue{
 
-    text-align:center;
+    margin-top:10px;
 
     color:#00ffee;
 
-    margin-top:40px;
+    font-size:22px;
+
+    font-weight:bold;
 }
 
-#chartModal{
+#chart{
 
-    display:none;
-
-    position:fixed;
-
-    top:0;
-    left:0;
+    margin-top:30px;
 
     width:100%;
-    height:100%;
 
-    background:rgba(0,0,0,0.95);
+    height:320px;
 
-    z-index:9999;
-}
+    border-radius:20px;
 
-.closeChart{
-
-    position:absolute;
-
-    top:20px;
-    right:25px;
-
-    font-size:42px;
-
-    color:white;
-
-    cursor:pointer;
-
-    z-index:10000;
-}
-
-#tvchart{
-
-    width:100%;
-    height:100%;
-}
-
-.resultCard{
-
-    margin-bottom:15px;
-
-    padding:15px;
-
-    border-radius:16px;
-
-    background:#09111d;
+    overflow:hidden;
 }
 
 </style>
@@ -474,88 +402,198 @@ body::before{
 
 <body>
 
-<div class="header">
+<div class="screen active"
+id="homeScreen">
 
     <div class="logo">
+
         CYBER AI SNIPER
+
     </div>
 
-    <div class="sub">
-        Adaptive Smart Liquidity Engine
-    </div>
+    <div class="winrateBox">
 
-</div>
+        <div class="winrateTitle">
 
-<div id="tickerTape">
+            TODAY WINRATE
 
-    Loading Market...
-
-</div>
-
-<div class="analytics-box">
-
-    <div class="analytics-title">
-        AI PERFORMANCE
-    </div>
-
-    <div class="analytics-grid">
-
-        <div class="analytics-card">
-            <div id="totalTrades">0</div>
-            <span>TOTAL</span>
         </div>
 
-        <div class="analytics-card">
-            <div id="wins">0</div>
-            <span>WINS</span>
+        <div class="winrate"
+        id="winrate">
+
+            0%
+
         </div>
 
-        <div class="analytics-card">
-            <div id="losses">0</div>
-            <span>LOSSES</span>
-        </div>
+        <div class="stats">
 
-        <div class="analytics-card">
-            <div id="winrate">0%</div>
-            <span>WINRATE</span>
-        </div>
+            <div>
 
-    </div>
+                <strong id="wins">
+                    0
+                </strong>
 
-</div>
+                WINS
 
-<div class="analytics-box">
+            </div>
 
-    <div class="analytics-title">
-        LAST RESULTS
-    </div>
+            <div>
 
-    <div id="historyPanel">
+                <strong id="losses">
+                    0
+                </strong>
 
-        <div class="loading">
-            Loading Results...
+                LOSSES
+
+            </div>
+
         </div>
 
     </div>
 
+    <button class="btn"
+    onclick="showQuality()">
+
+        GET SIGNAL
+
+    </button>
+
 </div>
 
-<div class="signals" id="signals">
+<div class="screen"
+id="qualityScreen">
 
-    <div class="loading">
-        Loading AI Signals...
+    <div class="qualityWrap">
+
+        <button class="qualityBtn"
+        onclick="startSearch('A+')">
+
+            A+ SNIPER
+
+        </button>
+
+        <button class="qualityBtn"
+        onclick="startSearch('A')">
+
+            A
+
+        </button>
+
+        <button class="qualityBtn"
+        onclick="startSearch('B')">
+
+            B
+
+        </button>
+
     </div>
 
 </div>
 
-<div id="chartModal">
+<div class="screen"
+id="searchScreen">
 
-    <div class="closeChart"
-    onclick="closeChart()">
-        ×
+    <img
+    src="assets/wheel.png"
+    class="wheel">
+
+    <div class="searchText">
+
+        SEARCHING ELITE ENTRY...
+
     </div>
 
-    <div id="tvchart"></div>
+</div>
+
+<div class="screen"
+id="signalScreen">
+
+    <div class="signalCard">
+
+        <div class="pair"
+        id="pair">
+
+            EURUSD
+
+        </div>
+
+        <div class="action"
+        id="action">
+
+            BUY
+
+        </div>
+
+        <div class="confidence"
+        id="confidence">
+
+            94%
+
+        </div>
+
+        <div class="exp"
+        id="expiration">
+
+            3 MIN
+
+        </div>
+
+        <div class="details">
+
+            <div class="detail">
+
+                <div class="detailTitle">
+
+                    LIQUIDITY
+
+                </div>
+
+                <div class="detailValue">
+
+                    HIGH
+
+                </div>
+
+            </div>
+
+            <div class="detail">
+
+                <div class="detailTitle">
+
+                    TREND
+
+                </div>
+
+                <div class="detailValue">
+
+                    BULL
+
+                </div>
+
+            </div>
+
+            <div class="detail">
+
+                <div class="detailTitle">
+
+                    MOMENTUM
+
+                </div>
+
+                <div class="detailValue">
+
+                    STRONG
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="chart"></div>
+
+    </div>
 
 </div>
 
@@ -564,169 +602,45 @@ body::before{
 const API =
 "https://signals-ai-backend.onrender.com"
 
-async function loadTicker(){
+function show(screen){
 
-    try{
+    document
+    .querySelectorAll(".screen")
+    .forEach(s =>
+        s.classList.remove("active")
+    )
 
-        const res = await fetch(
-            API + "/signals"
-        )
-
-        const data = await res.json()
-
-        const ticker =
-        document.getElementById(
-            "tickerTape"
-        )
-
-        ticker.innerHTML = ""
-
-        data.forEach(signal => {
-
-            const span =
-            document.createElement("span")
-
-            span.className = "tickerItem"
-
-            span.innerHTML = `
-
-            ${signal.pair}
-
-            <span class="${
-                signal.signal === "BUY"
-                ? "green"
-                : "red"
-            }">
-
-            ${signal.signal}
-
-            </span>
-
-            ${signal.score}%
-            `
-
-            ticker.appendChild(span)
-        })
-
-    }catch(err){
-
-        console.log(err)
-    }
+    document
+    .getElementById(screen)
+    .classList.add("active")
 }
 
-async function loadAnalytics(){
+async function loadStats(){
 
     try{
 
-        const res = await fetch(
+        const res =
+        await fetch(
             API + "/analytics"
         )
 
-        const data = await res.json()
+        const data =
+        await res.json()
 
-        document.getElementById(
-            "totalTrades"
-        ).innerText =
-        data.total_signals
-
-        document.getElementById(
-            "wins"
-        ).innerText =
-        data.wins
-
-        document.getElementById(
-            "losses"
-        ).innerText =
-        data.losses
-
-        document.getElementById(
-            "winrate"
-        ).innerText =
+        document
+        .getElementById("winrate")
+        .innerText =
         data.winrate + "%"
 
-    }catch(err){
+        document
+        .getElementById("wins")
+        .innerText =
+        data.wins
 
-        console.log(err)
-    }
-}
-
-async function loadHistory(){
-
-    try{
-
-        const res = await fetch(
-            API + "/results"
-        )
-
-        const data = await res.json()
-
-        const panel =
-        document.getElementById(
-            "historyPanel"
-        )
-
-        panel.innerHTML = ""
-
-        data.reverse()
-
-        data.slice(0,10).forEach(item => {
-
-            const div =
-            document.createElement("div")
-
-            div.className = "resultCard"
-
-            div.style.border =
-            item.result === "WIN"
-            ? "1px solid #00ff88"
-            : "1px solid #ff3366"
-
-            div.innerHTML = `
-
-            <div style="
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            ">
-
-                <div style="
-                color:#00ffee;
-                font-size:20px;
-                font-weight:bold;
-                ">
-
-                    ${item.pair}
-
-                </div>
-
-                <div style="
-                color:
-                ${item.result === "WIN"
-                ? "#00ff88"
-                : "#ff3366"};
-
-                font-weight:bold;
-                font-size:18px;
-                ">
-
-                    ${item.result}
-
-                </div>
-
-            </div>
-
-            <div style="
-            margin-top:10px;
-            color:#aaa;
-            ">
-
-                ${item.signal}
-
-            </div>
-            `
-
-            panel.appendChild(div)
-        })
+        document
+        .getElementById("losses")
+        .innerText =
+        data.losses
 
     }catch(err){
 
@@ -734,171 +648,105 @@ async function loadHistory(){
     }
 }
 
-async function loadSignals(){
+function showQuality(){
 
-    try{
+    show("qualityScreen")
+}
 
-        const res = await fetch(
-            API + "/signals"
-        )
+async function startSearch(level){
 
-        const data = await res.json()
+    show("searchScreen")
 
-        const container =
-        document.getElementById(
-            "signals"
-        )
+    let found = false
 
-        container.innerHTML = ""
+    while(!found){
 
-        data.forEach(signal => {
+        try{
 
-            const div =
-            document.createElement("div")
+            const res =
+            await fetch(
+                API + "/signals"
+            )
 
-            div.className = "signal"
+            const data =
+            await res.json()
 
-            div.onclick = () => {
+            let filtered =
+            data.filter(s => {
 
-                openChart(signal.pair)
+                if(level === "A+")
+                    return s.score >= 90
+
+                if(level === "A")
+                    return s.score >= 75
+
+                return s.score >= 60
+            })
+
+            if(filtered.length > 0){
+
+                const signal =
+                filtered[0]
+
+                showSignal(signal)
+
+                found = true
             }
 
-            div.innerHTML = `
+        }catch(err){
 
-            <div class="top">
+            console.log(err)
+        }
 
-                <div class="pair">
-                    ${signal.pair}
-                </div>
-
-                <div class="level">
-                    ${signal.level}
-                </div>
-
-            </div>
-
-            <div class="signal-type
-            ${signal.signal === "BUY"
-            ? "buy"
-            : "sell"}">
-
-                ${signal.signal}
-
-            </div>
-
-            <div class="grid">
-
-                <div class="card">
-
-                    <div class="card-title">
-                        SCORE
-                    </div>
-
-                    <div class="card-value">
-                        ${signal.score}%
-                    </div>
-
-                </div>
-
-                <div class="card">
-
-                    <div class="card-title">
-                        EXPIRATION
-                    </div>
-
-                    <div class="card-value">
-                        ${signal.expiration}
-                    </div>
-
-                </div>
-
-                <div class="card">
-
-                    <div class="card-title">
-                        BUYERS
-                    </div>
-
-                    <div class="card-value">
-                        ${signal.buyers}%
-                    </div>
-
-                </div>
-
-                <div class="card">
-
-                    <div class="card-title">
-                        SELLERS
-                    </div>
-
-                    <div class="card-value">
-                        ${signal.sellers}%
-                    </div>
-
-                </div>
-
-                <div class="card">
-
-                    <div class="card-title">
-                        RSI
-                    </div>
-
-                    <div class="card-value">
-                        ${signal.rsi}
-                    </div>
-
-                </div>
-
-                <div class="card">
-
-                    <div class="card-title">
-                        ADX
-                    </div>
-
-                    <div class="card-value">
-                        ${signal.adx}
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="footer">
-
-                <div class="market">
-                    ${signal.market}
-                </div>
-
-                <div class="time">
-                    ${signal.time}
-                </div>
-
-            </div>
-            `
-
-            container.appendChild(div)
-        })
-
-    }catch(err){
-
-        console.log(err)
+        await new Promise(r =>
+            setTimeout(r,3000)
+        )
     }
 }
 
-function openChart(pair){
+function showSignal(signal){
 
-    document.getElementById(
-        "chartModal"
-    ).style.display = "block"
+    show("signalScreen")
 
-    document.getElementById(
-        "tvchart"
-    ).innerHTML = ""
+    document
+    .getElementById("pair")
+    .innerText =
+    signal.pair
+
+    const action =
+    document.getElementById("action")
+
+    action.innerText =
+    signal.signal
+
+    action.className =
+    "action " +
+    (
+        signal.signal === "BUY"
+        ? "buy"
+        : "sell"
+    )
+
+    document
+    .getElementById("confidence")
+    .innerText =
+    signal.score + "%"
+
+    document
+    .getElementById("expiration")
+    .innerText =
+    signal.expiration.toUpperCase()
+
+    document
+    .getElementById("chart")
+    .innerHTML = ""
 
     new TradingView.widget({
 
         autosize:true,
 
-        symbol:"OANDA:" + pair,
+        symbol:
+        "OANDA:" + signal.pair,
 
         interval:"1",
 
@@ -916,37 +764,15 @@ function openChart(pair){
 
         hide_side_toolbar:false,
 
-        allow_symbol_change:true,
+        allow_symbol_change:false,
 
-        container_id:"tvchart"
+        container_id:"chart"
     })
 }
 
-function closeChart(){
-
-    document.getElementById(
-        "chartModal"
-    ).style.display = "none"
-}
-
-loadTicker()
-
-loadSignals()
-
-loadAnalytics()
-
-loadHistory()
-
-setInterval(loadTicker,5000)
-
-setInterval(loadSignals,5000)
-
-setInterval(loadAnalytics,5000)
-
-setInterval(loadHistory,5000)
+loadStats()
 
 </script>
 
 </body>
-</html>
 </html>
