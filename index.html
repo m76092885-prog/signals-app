@@ -12,20 +12,13 @@ content="width=device-width, initial-scale=1.0">
 AI Futures Sniper
 </title>
 
-<script src="https://s3.tradingview.com/tv.js"></script>
-
 <style>
 
 *{
-
     margin:0;
     padding:0;
     box-sizing:border-box;
-
-    font-family:
-    Inter,
-    Arial,
-    sans-serif;
+    font-family:Arial,sans-serif;
 }
 
 body{
@@ -46,53 +39,6 @@ body{
     overflow:hidden;
 }
 
-body::before{
-
-    content:"";
-
-    position:fixed;
-
-    inset:0;
-
-    background:
-
-    radial-gradient(
-        circle at 20% 20%,
-        rgba(0,255,255,0.12),
-        transparent 20%
-    ),
-
-    radial-gradient(
-        circle at 80% 30%,
-        rgba(0,255,255,0.07),
-        transparent 20%
-    ),
-
-    radial-gradient(
-        circle at 50% 80%,
-        rgba(0,255,255,0.05),
-        transparent 20%
-    );
-
-    animation:
-    pulseBg 10s linear infinite;
-}
-
-@keyframes pulseBg{
-
-    0%{
-        transform:scale(1);
-    }
-
-    50%{
-        transform:scale(1.08);
-    }
-
-    100%{
-        transform:scale(1);
-    }
-}
-
 .screen{
 
     position:absolute;
@@ -107,18 +53,15 @@ body::before{
     flex-direction:column;
 
     padding:20px;
-
-    z-index:2;
 }
 
 .active{
-
     display:flex;
 }
 
 .panel{
 
-    width:430px;
+    width:min(92vw,430px);
 
     background:
     rgba(255,255,255,0.05);
@@ -129,34 +72,26 @@ body::before{
     backdrop-filter:
     blur(25px);
 
-    border-radius:35px;
+    border-radius:30px;
 
-    padding:35px;
+    padding:30px;
 
     box-shadow:
-
-    0 0 60px rgba(0,255,255,0.12),
-
-    inset 0 0 25px rgba(255,255,255,0.03);
+    0 0 40px rgba(0,255,255,0.15);
 }
 
 .logo{
 
-    font-size:42px;
-
-    font-weight:800;
+    font-size:34px;
 
     text-align:center;
 
-    letter-spacing:2px;
+    font-weight:800;
 
     color:#00ffee;
 
     text-shadow:
-
-    0 0 20px #00ffee,
-
-    0 0 40px #00ffee;
+    0 0 20px #00ffee;
 
     margin-bottom:20px;
 }
@@ -165,22 +100,22 @@ body::before{
 
     text-align:center;
 
-    opacity:0.75;
+    opacity:0.7;
 
     line-height:1.5;
 
-    margin-bottom:40px;
+    margin-bottom:35px;
 }
 
 .btn{
 
     width:100%;
 
-    padding:20px;
+    padding:18px;
 
     border:none;
 
-    border-radius:22px;
+    border-radius:18px;
 
     background:
     linear-gradient(
@@ -197,20 +132,7 @@ body::before{
 
     cursor:pointer;
 
-    transition:0.3s;
-
-    box-shadow:
-    0 0 30px rgba(0,255,255,0.35);
-}
-
-.btn:hover{
-
-    transform:
-    translateY(-2px)
-    scale(1.02);
-
-    box-shadow:
-    0 0 45px rgba(0,255,255,0.5);
+    margin-top:18px;
 }
 
 .select{
@@ -223,101 +145,43 @@ body::before{
 
     border:none;
 
-    border-radius:20px;
+    border-radius:18px;
 
-    background:#0e1628;
+    background:#111827;
 
     color:white;
 
     font-size:16px;
-
-    outline:none;
 }
 
 .option{
-
-    margin-top:25px;
 
     display:flex;
 
     align-items:center;
 
-    gap:12px;
+    gap:10px;
 
-    opacity:0.85;
+    margin-top:20px;
 }
 
 .radar{
 
-    position:relative;
-
-    width:220px;
-    height:220px;
+    width:200px;
+    height:200px;
 
     border-radius:50%;
 
-    border:
-    5px solid rgba(0,255,255,0.3);
+    border:5px solid #00ffee;
 
     box-shadow:
-
-    0 0 40px rgba(0,255,255,0.4),
-
-    inset 0 0 30px rgba(0,255,255,0.15);
+    0 0 35px #00ffee;
 
     animation:
-    rotateRadar 4s linear infinite;
+    spin 3s linear infinite;
 }
 
-.radar::before{
-
-    content:"";
-
-    position:absolute;
-
-    inset:20px;
-
-    border-radius:50%;
-
-    border:
-    2px solid rgba(0,255,255,0.25);
-}
-
-.radar::after{
-
-    content:"";
-
-    position:absolute;
-
-    width:50%;
-    height:3px;
-
-    background:#00ffee;
-
-    top:50%;
-    left:50%;
-
-    transform-origin:left center;
-
-    animation:
-    scanLine 2s linear infinite;
-
-    box-shadow:
-    0 0 20px #00ffee;
-}
-
-@keyframes rotateRadar{
-
-    from{
-        transform:rotate(0deg);
-    }
-
-    to{
-        transform:rotate(360deg);
-    }
-}
-
-@keyframes scanLine{
+@keyframes spin{
 
     from{
         transform:rotate(0deg);
@@ -330,16 +194,13 @@ body::before{
 
 .scanText{
 
-    margin-top:45px;
+    margin-top:40px;
 
-    font-size:28px;
-
-    font-weight:700;
+    font-size:26px;
 
     color:#00ffee;
 
-    text-shadow:
-    0 0 20px #00ffee;
+    text-align:center;
 }
 
 .scanChecks{
@@ -352,12 +213,12 @@ body::before{
 
     gap:12px;
 
-    opacity:0.85;
+    opacity:0.8;
 }
 
 .signalBox{
 
-    width:520px;
+    width:min(92vw,520px);
 
     background:
     rgba(255,255,255,0.05);
@@ -368,23 +229,12 @@ body::before{
     backdrop-filter:
     blur(25px);
 
-    border-radius:35px;
+    border-radius:30px;
 
-    padding:35px;
+    padding:30px;
 
     box-shadow:
-    0 0 60px rgba(0,255,255,0.15);
-}
-
-.signalHeader{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:30px;
+    0 0 40px rgba(0,255,255,0.15);
 }
 
 .signalTitle{
@@ -393,47 +243,33 @@ body::before{
 
     color:#00ffee;
 
+    margin-bottom:20px;
+
     font-weight:800;
 }
 
-.badge{
+.signalSide{
 
-    padding:12px 18px;
+    font-size:28px;
 
-    border-radius:20px;
+    font-weight:800;
 
-    font-weight:700;
+    margin-bottom:25px;
 }
 
 .buy{
-
-    background:
-    rgba(0,255,120,0.15);
-
     color:#00ff88;
-
-    box-shadow:
-    0 0 20px rgba(0,255,120,0.25);
 }
 
 .sell{
-
-    background:
-    rgba(255,50,80,0.15);
-
     color:#ff3355;
-
-    box-shadow:
-    0 0 20px rgba(255,50,80,0.25);
 }
 
 .metric{
 
-    margin-top:18px;
+    margin-top:15px;
 
     font-size:20px;
-
-    opacity:0.92;
 }
 
 .confidence{
@@ -445,28 +281,25 @@ body::before{
     color:#00ffee;
 
     font-weight:800;
-
-    text-shadow:
-    0 0 20px #00ffee;
 }
 
 .reasonBox{
 
-    margin-top:30px;
+    margin-top:25px;
 
-    padding:20px;
+    padding:18px;
 
-    border-radius:20px;
+    border-radius:18px;
 
     background:
-    rgba(255,255,255,0.03);
+    rgba(255,255,255,0.04);
 }
 
 .reason{
 
-    margin-top:12px;
+    margin-top:10px;
 
-    opacity:0.85;
+    opacity:0.8;
 }
 
 </style>
@@ -493,7 +326,7 @@ id="homeScreen">
         </div>
 
         <button class="btn"
-        onclick="showSettings()">
+        onclick="show('settingsScreen')">
 
             GET SIGNAL
 
@@ -507,6 +340,13 @@ id="homeScreen">
 id="settingsScreen">
 
     <div class="panel">
+
+        <button class="btn"
+        onclick="show('homeScreen')">
+
+            BACK
+
+        </button>
 
         <div class="logo">
 
@@ -562,7 +402,6 @@ id="settingsScreen">
         </div>
 
         <button class="btn"
-        style="margin-top:30px"
         onclick="startScan()">
 
             START AI SCAN
@@ -619,20 +458,23 @@ id="signalScreen">
 
     <div class="signalBox">
 
-        <div class="signalHeader">
+        <button class="btn"
+        onclick="show('homeScreen')">
 
-            <div class="signalTitle">
+            BACK
 
-                ELITE ENTRY
+        </button>
 
-            </div>
+        <div class="signalTitle">
 
-            <div class="badge"
-            id="sideBadge">
+            ELITE ENTRY
 
-                BUY
+        </div>
 
-            </div>
+        <div class="signalSide"
+        id="side">
+
+            BUY
 
         </div>
 
@@ -683,7 +525,6 @@ id="signalScreen">
 <script>
 
 const API =
-
 "https://signals-ai-backend.onrender.com"
 
 function show(id){
@@ -699,11 +540,6 @@ function show(id){
     document
     .getElementById(id)
     .classList.add("active")
-}
-
-function showSettings(){
-
-    show("settingsScreen")
 }
 
 async function startScan(){
@@ -725,44 +561,45 @@ async function startScan(){
     .getElementById("trendOnly")
     .checked
 
-    const res =
-    await fetch(
+    try{
 
-        API +
+        const response =
+        await fetch(
 
-        "/signal?asset=" +
+            `${API}/signal?asset=${asset}&timeframe=${timeframe}&trend_only=${trendOnly}`
 
-        asset +
+        )
 
-        "&timeframe=" +
+        const data =
+        await response.json()
 
-        timeframe +
+        console.log(data)
 
-        "&trend_only=" +
+        showSignal(data)
 
-        trendOnly
+    }catch(err){
 
-    )
+        console.log(err)
 
-    const data =
-    await res.json()
+        alert("Backend connection error")
 
-    showSignal(data)
+        show("homeScreen")
+    }
 }
 
 function showSignal(data){
 
     show("signalScreen")
 
-    const badge =
+    const side =
     document
-    .getElementById("sideBadge")
+    .getElementById("side")
 
-    badge.innerText =
+    side.innerText =
     data.side
 
-    badge.className =
-    "badge " +
+    side.className =
+    "signalSide " +
 
     (
         data.side === "BUY"
