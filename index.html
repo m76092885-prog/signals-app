@@ -1,3 +1,4 @@
+```html id="jlwmzw"
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,18 +9,22 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>CYBER AI SNIPER</title>
+<title>
 
-<script
-src="https://s3.tradingview.com/tv.js">
-</script>
+AI Futures Sniper
+
+</title>
+
+<script src="https://s3.tradingview.com/tv.js"></script>
 
 <style>
 
 *{
+
     margin:0;
     padding:0;
     box-sizing:border-box;
+
     font-family:Arial;
 }
 
@@ -27,61 +32,27 @@ body{
 
     background:
     linear-gradient(
-        135deg,
-        #040816,
-        #08101d,
-        #050b14
+        180deg,
+        #050816,
+        #0b1020
     );
 
     color:white;
 
     overflow:hidden;
-
-    height:100vh;
-}
-
-body::before{
-
-    content:"";
-
-    position:fixed;
-
-    width:100%;
-    height:100%;
-
-    background:
-    radial-gradient(
-        circle at top left,
-        #00ffee22,
-        transparent 40%
-    ),
-    radial-gradient(
-        circle at bottom right,
-        #ff00ff22,
-        transparent 40%
-    );
-
-    z-index:-1;
 }
 
 .screen{
 
-    position:absolute;
-
-    width:100%;
-    height:100%;
+    width:100vw;
+    height:100vh;
 
     display:none;
 
     justify-content:center;
-
     align-items:center;
 
     flex-direction:column;
-
-    padding:25px;
-
-    animation:fade 0.4s ease;
 }
 
 .active{
@@ -89,189 +60,58 @@ body::before{
     display:flex;
 }
 
-@keyframes fade{
+.panel{
 
-    from{
-        opacity:0;
-        transform:scale(1.03);
-    }
+    width:420px;
 
-    to{
-        opacity:1;
-        transform:scale(1);
-    }
-}
+    background:
+    rgba(255,255,255,0.05);
 
-.logo{
+    border:
+    1px solid rgba(255,255,255,0.1);
 
-    font-size:48px;
-
-    font-weight:bold;
-
-    color:#00ffee;
-
-    text-shadow:
-    0 0 25px #00ffee;
-}
-
-.winrateBox{
-
-    margin-top:40px;
-
-    width:90%;
-
-    max-width:430px;
-
-    background:rgba(0,0,0,0.45);
-
-    border:1px solid #00ffee44;
+    backdrop-filter:blur(20px);
 
     border-radius:30px;
 
     padding:35px;
 
+    box-shadow:
+    0 0 40px rgba(0,255,255,0.15);
+}
+
+.title{
+
+    font-size:34px;
+
     text-align:center;
 
-    backdrop-filter:blur(20px);
-
-    box-shadow:
-    0 0 35px #00ffee22;
-}
-
-.winrateTitle{
-
-    color:#aaa;
-
-    font-size:18px;
-}
-
-.winrate{
-
-    margin-top:15px;
-
-    font-size:78px;
-
-    font-weight:bold;
-
     color:#00ffee;
+
+    margin-bottom:20px;
 
     text-shadow:
     0 0 20px #00ffee;
 }
 
-.stats{
-
-    margin-top:25px;
-
-    display:flex;
-
-    justify-content:space-around;
-}
-
-.stats div{
+.subtitle{
 
     text-align:center;
-}
 
-.stats strong{
+    opacity:0.7;
 
-    display:block;
-
-    font-size:26px;
-
-    color:#00ffee;
+    margin-bottom:40px;
 }
 
 .btn{
 
-    margin-top:50px;
+    width:100%;
 
-    padding:20px 45px;
-
-    border:none;
-
-    border-radius:20px;
-
-    font-size:22px;
-
-    font-weight:bold;
-
-    cursor:pointer;
-
-    background:
-    linear-gradient(
-        90deg,
-        #00ffee,
-        #00bfff
-    );
-
-    color:black;
-
-    box-shadow:
-    0 0 25px #00ffee55;
-
-    transition:0.3s;
-}
-
-.btn:hover{
-
-    transform:scale(1.05);
-}
-
-.qualityWrap{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:25px;
-
-    width:90%;
-
-    max-width:420px;
-}
-
-.qualityBtn{
-
-    padding:25px;
-
-    border-radius:25px;
-
-    border:1px solid #00ffee55;
-
-    background:rgba(0,0,0,0.45);
-
-    color:white;
-
-    font-size:24px;
-
-    font-weight:bold;
-
-    cursor:pointer;
-
-    transition:0.3s;
-}
-
-.qualityBtn:hover{
-
-    transform:scale(1.03);
-
-    box-shadow:
-    0 0 30px #00ffee44;
-}
-
-.backBtn{
-
-    position:absolute;
-
-    top:30px;
-    left:30px;
-
-    padding:12px 25px;
+    padding:18px;
 
     border:none;
 
-    border-radius:15px;
+    border-radius:18px;
 
     background:#00ffee;
 
@@ -283,147 +123,51 @@ body::before{
 
     cursor:pointer;
 
-    box-shadow:
-    0 0 20px #00ffee55;
-
-    z-index:999;
+    margin-top:20px;
 }
 
-.carScene{
+.select{
 
-    position:relative;
+    width:100%;
 
-    width:520px;
-    height:260px;
+    padding:16px;
+
+    margin-top:15px;
+
+    border:none;
+
+    border-radius:16px;
+
+    background:#111827;
+
+    color:white;
+
+    font-size:16px;
+}
+
+.checkbox{
+
+    margin-top:20px;
 
     display:flex;
 
-    justify-content:center;
-    align-items:center;
+    gap:10px;
 }
 
-.carBody{
-
-    position:absolute;
-
-    width:420px;
-    height:120px;
-
-    background:
-    linear-gradient(
-        135deg,
-        #0f0f0f,
-        #1c1c1c,
-        #050505
-    );
-
-    border-radius:
-    90px 140px 40px 40px;
-
-    box-shadow:
-    0 0 50px #00ffee22,
-    inset 0 0 20px #333;
-}
-
-.carBody::before{
-
-    content:"";
-
-    position:absolute;
+.radar{
 
     width:180px;
-    height:55px;
-
-    background:#111;
-
-    border-radius:
-    40px 60px 10px 10px;
-
-    top:-40px;
-    left:120px;
-
-    box-shadow:
-    inset 0 0 10px #333;
-}
-
-.carGlow{
-
-    position:absolute;
-
-    width:460px;
-    height:140px;
-
-    border-radius:100px;
-
-    background:
-    radial-gradient(
-        circle,
-        #00ffee22,
-        transparent 70%
-    );
-
-    filter:blur(30px);
-
-    z-index:-1;
-}
-
-.wheel{
-
-    position:absolute;
-
-    width:100px;
-    height:100px;
+    height:180px;
 
     border-radius:50%;
 
-    background:
-    radial-gradient(
-        circle,
-        #111 20%,
-        #000 70%
-    );
+    border:6px solid #00ffee;
 
-    border:10px solid #1b1b1b;
+    box-shadow:
+    0 0 40px #00ffee;
 
     animation:
-    spin 1.5s linear infinite;
-
-    box-shadow:
-    0 0 25px #00ffee55,
-    inset 0 0 20px #000;
-}
-
-.leftWheel{
-
-    bottom:0;
-    left:85px;
-}
-
-.rightWheel{
-
-    bottom:0;
-    right:85px;
-}
-
-.wheelInner{
-
-    position:absolute;
-
-    width:100%;
-    height:100%;
-
-    border-radius:50%;
-
-    background:
-    repeating-conic-gradient(
-
-        #999 0deg,
-        #222 15deg,
-        #999 30deg
-
-    );
-
-    opacity:0.7;
+    spin 2s linear infinite;
 }
 
 @keyframes spin{
@@ -437,312 +181,44 @@ body::before{
     }
 }
 
-.m5Scene{
-
-    position:relative;
-
-    width:700px;
-    height:300px;
-}
-
-.carLaunch{
-
-    animation:
-    launchCar 1.3s ease forwards;
-}
-
-@keyframes launchCar{
-
-    100%{
-        transform:translateX(1200px);
-    }
-}
-
-.carBody{
-
-    position:absolute;
-
-    width:520px;
-    height:120px;
-
-    background:
-    linear-gradient(
-        135deg,
-        #050505,
-        #1a1a1a,
-        #050505
-    );
-
-    border-radius:
-    140px 180px 45px 45px;
-
-    box-shadow:
-    0 0 40px #00ffee22,
-    inset 0 0 20px #444;
-}
-
-.roof{
-
-    position:absolute;
-
-    width:230px;
-    height:70px;
-
-    background:#0d0d0d;
-
-    top:-55px;
-    left:145px;
-
-    border-radius:
-    80px 100px 10px 10px;
-}
-
-.window{
-
-    position:absolute;
-
-    width:180px;
-    height:45px;
-
-    background:#091c25;
-
-    top:-42px;
-    left:170px;
-
-    border-radius:40px 50px 5px 5px;
-
-    box-shadow:
-    inset 0 0 20px #00ffee22;
-}
-
-.headlight{
-
-    position:absolute;
-
-    width:50px;
-    height:14px;
-
-    background:#00ffee;
-
-    right:18px;
-    top:32px;
-
-    border-radius:20px;
-
-    box-shadow:
-    0 0 25px #00ffee,
-    0 0 60px #00ffee;
-}
-
-.rearLight{
-
-    position:absolute;
-
-    width:35px;
-    height:12px;
-
-    background:#ff2255;
-
-    left:18px;
-    top:35px;
-
-    border-radius:20px;
-}
-
-.grill{
-
-    position:absolute;
-
-    width:16px;
-    height:40px;
-
-    background:#111;
-
-    top:40px;
-
-    border-radius:10px;
-}
-
-.grill1{
-    right:75px;
-}
-
-.grill2{
-    right:52px;
-}
-
-.wheel{
-
-    position:absolute;
-
-    width:110px;
-    height:110px;
-
-    border-radius:50%;
-
-    background:
-    radial-gradient(
-        circle,
-        #111 20%,
-        #000 70%
-    );
-
-    border:12px solid #151515;
-
-    animation:
-    wheelSpin 0.5s linear infinite;
-}
-
-.leftWheel{
-
-    bottom:0;
-    left:120px;
-}
-
-.rightWheel{
-
-    bottom:0;
-    right:120px;
-}
-
-.rim{
-
-    width:100%;
-    height:100%;
-
-    border-radius:50%;
-
-    background:
-    repeating-conic-gradient(
-        #999 0deg,
-        #333 10deg,
-        #999 20deg
-    );
-}
-
-@keyframes wheelSpin{
-
-    to{
-        transform:rotate(360deg);
-    }
-}
-
-.smoke{
-
-    position:absolute;
-
-    width:120px;
-    height:120px;
-
-    background:
-    radial-gradient(
-        circle,
-        rgba(255,255,255,0.22),
-        transparent 70%
-    );
-
-    filter:blur(15px);
-
-    border-radius:50%;
-
-    animation:
-    smokeAnim 2s linear infinite;
-}
-
-.smoke1{
-
-    left:40px;
-    bottom:10px;
-}
-
-.smoke2{
-
-    left:70px;
-    bottom:40px;
-
-    animation-delay:0.5s;
-}
-
-.smoke3{
-
-    left:100px;
-    bottom:0px;
-
-    animation-delay:1s;
-}
-
-@keyframes smokeAnim{
-
-    0%{
-        opacity:0;
-        transform:translateX(0px) scale(0.7);
-    }
-
-    50%{
-        opacity:0.5;
-    }
-
-    100%{
-        opacity:0;
-        transform:
-        translateX(-100px)
-        translateY(-40px)
-        scale(1.8);
-    }
-}
-
-.searchText{
+.scanText{
 
     margin-top:40px;
 
-    font-size:30px;
+    font-size:28px;
 
     color:#00ffee;
-
-    text-shadow:
-    0 0 15px #00ffee;
 }
 
-.signalCard{
+.signalBox{
 
-    width:95%;
+    width:500px;
 
-    max-width:520px;
+    background:
+    rgba(255,255,255,0.05);
 
-    background:rgba(0,0,0,0.45);
-
-    border:1px solid #00ffee55;
+    border:
+    1px solid rgba(255,255,255,0.1);
 
     border-radius:30px;
 
-    padding:30px;
-
-    backdrop-filter:blur(20px);
-
-    box-shadow:
-    0 0 35px #00ffee22;
+    padding:35px;
 }
 
-.pair{
+.signalTitle{
 
-    font-size:52px;
-
-    font-weight:bold;
+    font-size:36px;
 
     color:#00ffee;
 
-    text-align:center;
+    margin-bottom:20px;
 }
 
-.action{
+.signalValue{
 
-    margin-top:20px;
+    font-size:28px;
 
-    text-align:center;
-
-    font-size:48px;
-
-    font-weight:bold;
+    margin-top:15px;
 }
 
 .buy{
@@ -752,85 +228,14 @@ body::before{
 
 .sell{
 
-    color:#ff3366;
+    color:#ff3355;
 }
 
-.confidence{
-
-    margin-top:20px;
-
-    text-align:center;
-
-    font-size:32px;
-
-    color:#ff00ff;
-
-    font-weight:bold;
-}
-
-.exp{
-
-    margin-top:15px;
-
-    text-align:center;
-
-    color:#aaa;
-
-    font-size:22px;
-}
-
-.details{
-
-    margin-top:30px;
-
-    display:grid;
-
-    grid-template-columns:
-    repeat(3,1fr);
-
-    gap:15px;
-}
-
-.detail{
-
-    background:#09111d;
-
-    border-radius:16px;
-
-    padding:15px;
-
-    text-align:center;
-}
-
-.detailTitle{
-
-    color:#888;
-
-    font-size:12px;
-}
-
-.detailValue{
+.reason{
 
     margin-top:10px;
 
-    color:#00ffee;
-
-    font-size:22px;
-
-    font-weight:bold;
-}
-
-#chart{
-
-    margin-top:30px;
-
-    width:100%;
-
-    height:320px;
-
-    border-radius:20px;
-
-    overflow:hidden;
+    opacity:0.8;
 }
 
 </style>
@@ -842,92 +247,24 @@ body::before{
 <div class="screen active"
 id="homeScreen">
 
-    <div class="logo">
+    <div class="panel">
 
-        CYBER AI SNIPER
+        <div class="title">
 
-    </div>
-
-    <div class="winrateBox">
-
-        <div class="winrateTitle">
-
-            TODAY WINRATE
+            AI FUTURES SNIPER
 
         </div>
 
-        <div class="winrate"
-        id="winrate">
+        <div class="subtitle">
 
-            0%
-
-        </div>
-
-        <div class="stats">
-
-            <div>
-
-                <strong id="wins">
-                    0
-                </strong>
-
-                WINS
-
-            </div>
-
-            <div>
-
-                <strong id="losses">
-                    0
-                </strong>
-
-                LOSSES
-
-            </div>
+            The Most Powerful AI Futures Trading System
 
         </div>
 
-    </div>
+        <button class="btn"
+        onclick="showSettings()">
 
-    <button class="btn"
-    onclick="showQuality()">
-
-        GET SIGNAL
-
-    </button>
-
-</div>
-
-<div class="screen"
-id="qualityScreen">
-
-    <button class="backBtn"
-    onclick="showHome()">
-
-        BACK
-
-    </button>
-
-    <div class="qualityWrap">
-
-        <button class="qualityBtn"
-        onclick="startSearch('A+')">
-
-            A+ SNIPER
-
-        </button>
-
-        <button class="qualityBtn"
-        onclick="startSearch('A')">
-
-            A
-
-        </button>
-
-        <button class="qualityBtn"
-        onclick="startSearch('B')">
-
-            B
+            GET SIGNAL
 
         </button>
 
@@ -936,285 +273,300 @@ id="qualityScreen">
 </div>
 
 <div class="screen"
-id="searchScreen">
+id="settingsScreen">
 
-    <button class="backBtn"
-    onclick="showQuality()">
+    <div class="panel">
 
-        BACK
+        <div class="title">
 
-    </button>
-
-    <div class="carScene">
-
-        <div class="carBody"></div>
-
-        <div class="carGlow"></div>
-
-        <div class="wheel leftWheel">
-
-            <div class="wheelInner"></div>
+            SIGNAL SETTINGS
 
         </div>
 
-        <div class="wheel rightWheel">
+        <select class="select"
+        id="asset">
 
-            <div class="wheelInner"></div>
+            <option>
+
+                CC1!
+
+            </option>
+
+        </select>
+
+        <select class="select"
+        id="timeframe">
+
+            <option value="3m">
+
+                3 MIN
+
+            </option>
+
+            <option value="5m">
+
+                5 MIN
+
+            </option>
+
+            <option value="15m">
+
+                15 MIN
+
+            </option>
+
+        </select>
+
+        <div class="checkbox">
+
+            <input type="checkbox"
+            id="trendOnly">
+
+            <label>
+
+                ONLY TREND TRADES
+
+            </label>
 
         </div>
 
-    </div>
+        <button class="btn"
+        onclick="startScan()">
 
-    <div class="searchText">
+            START AI SCAN
 
-        SEARCHING ELITE ENTRY...
+        </button>
 
     </div>
 
 </div>
 
 <div class="screen"
-id="searchScreen">
+id="scanScreen">
 
-    <button class="backBtn"
-    onclick="showQuality()">
+    <div class="radar"></div>
 
-        BACK
+    <div class="scanText">
 
-    </button>
-
-    <div class="m5Scene">
-
-        <div class="smoke smoke1"></div>
-        <div class="smoke smoke2"></div>
-        <div class="smoke smoke3"></div>
-
-        <div class="carBody">
-
-            <div class="roof"></div>
-
-            <div class="window"></div>
-
-            <div class="headlight"></div>
-
-            <div class="rearLight"></div>
-
-            <div class="grill grill1"></div>
-
-            <div class="grill grill2"></div>
-
-        </div>
-
-        <div class="wheel leftWheel">
-
-            <div class="rim"></div>
-
-        </div>
-
-        <div class="wheel rightWheel">
-
-            <div class="rim"></div>
-
-        </div>
-
-    </div>
-
-    <div class="searchText">
-
-        SEARCHING ELITE ENTRY...
+        SCANNING MARKET STRUCTURE...
 
     </div>
 
 </div>
+
+<div class="screen"
+id="signalScreen">
+
+    <div class="signalBox">
+
+        <div class="signalTitle">
+
+            ELITE ENTRY FOUND
+
+        </div>
+
+        <div class="signalValue"
+        id="side">
+
+            BUY
+
+        </div>
+
+        <div class="signalValue"
+        id="assetText">
+
+            CC1!
+
+        </div>
+
+        <div class="signalValue"
+        id="confidence">
+
+            84%
+
+        </div>
+
+        <div class="signalValue"
+        id="entry">
+
+            ENTRY
+
+        </div>
+
+        <div class="signalValue"
+        id="sl">
+
+            SL
+
+        </div>
+
+        <div class="signalValue"
+        id="tp">
+
+            TP
+
+        </div>
+
+        <div id="reasons"></div>
+
+    </div>
+
+</div>
+
 <script>
 
 const API =
+
 "https://signals-ai-backend.onrender.com"
 
-function show(screen){
+function show(id){
 
     document
     .querySelectorAll(".screen")
     .forEach(s =>
+
         s.classList.remove("active")
+
     )
 
     document
-    .getElementById(screen)
+    .getElementById(id)
     .classList.add("active")
 }
 
-function showHome(){
+function showSettings(){
 
-    show("homeScreen")
+    show("settingsScreen")
 }
 
-function showQuality(){
+async function startScan(){
 
-    show("qualityScreen")
-}
+    show("scanScreen")
 
-async function loadStats(){
+    const asset =
+    document
+    .getElementById("asset")
+    .value
 
-    try{
+    const timeframe =
+    document
+    .getElementById("timeframe")
+    .value
 
-        const res =
-        await fetch(
-            API + "/analytics"
-        )
+    const trendOnly =
+    document
+    .getElementById("trendOnly")
+    .checked
 
-        const data =
-        await res.json()
+    const res =
+    await fetch(
 
-        document
-        .getElementById("winrate")
-        .innerText =
-        data.winrate + "%"
+        API +
 
-        document
-        .getElementById("wins")
-        .innerText =
-        data.wins
+        "/signal?asset=" +
 
-        document
-        .getElementById("losses")
-        .innerText =
-        data.losses
+        asset +
 
-    }catch(err){
+        "&timeframe=" +
 
-        console.log(err)
-    }
-}
+        timeframe +
 
-async function startSearch(level){
+        "&trend_only=" +
 
-    show("searchScreen")
+        trendOnly
 
-    let found = false
-
-    while(!found){
-
-        try{
-
-            const res =
-            await fetch(
-                API + "/signals"
-            )
-
-            const data =
-            await res.json()
-
-            let filtered =
-            data.filter(s => {
-
-                if(level === "A+")
-                    return s.score >= 90
-
-                if(level === "A")
-                    return s.score >= 75
-
-                return s.score >= 60
-            })
-
-            if(filtered.length > 0){
-
-                const signal =
-                filtered[0]
-
-                showSignal(signal)
-
-                found = true
-            }
-
-        }catch(err){
-
-            console.log(err)
-        }
-
-        await new Promise(r =>
-            setTimeout(r,3000)
-        )
-    }
-}
-
-async function showSignal(signal){
-
-    const car =
-    document.querySelector(".m5Scene")
-
-    car.classList.add("carLaunch")
-
-    await new Promise(r =>
-        setTimeout(r,1200)
     )
+
+    const data =
+    await res.json()
+
+    showSignal(data)
+}
+
+function showSignal(data){
 
     show("signalScreen")
 
+    const side =
     document
-    .getElementById("pair")
-    .innerText =
-    signal.pair
+    .getElementById("side")
 
-    const action =
-    document.getElementById("action")
+    side.innerText =
+    data.side
 
-    action.innerText =
-    signal.signal
+    side.className =
+    "signalValue " +
 
-    action.className =
-    "action " +
     (
-        signal.signal === "BUY"
+        data.side === "BUY"
         ? "buy"
         : "sell"
     )
 
     document
+    .getElementById("assetText")
+    .innerText =
+    data.asset
+
+    document
     .getElementById("confidence")
     .innerText =
-    signal.score + "%"
+
+    "SUCCESS RATE: " +
+
+    data.confidence +
+
+    "%"
 
     document
-    .getElementById("expiration")
+    .getElementById("entry")
     .innerText =
-    signal.expiration.toUpperCase()
+
+    "ENTRY: " +
+
+    data.entry
 
     document
-    .getElementById("chart")
-    .innerHTML = ""
+    .getElementById("sl")
+    .innerText =
 
-    new TradingView.widget({
+    "SL: " +
 
-        autosize:true,
+    data.sl
 
-        symbol:
-        "OANDA:" + signal.pair,
+    document
+    .getElementById("tp")
+    .innerText =
 
-        interval:"1",
+    "TP1: " +
 
-        timezone:"Etc/UTC",
+    data.tp1 +
 
-        theme:"dark",
+    " | TP2: " +
 
-        style:"1",
+    data.tp2
 
-        locale:"en",
+    const reasons =
+    document
+    .getElementById("reasons")
 
-        toolbar_bg:"#0a0f1c",
+    reasons.innerHTML = ""
 
-        enable_publishing:false,
+    data.reasons.forEach(r => {
 
-        hide_side_toolbar:false,
+        reasons.innerHTML +=
 
-        allow_symbol_change:false,
+        `<div class="reason">
 
-        container_id:"chart"
+            • ${r}
+
+        </div>`
     })
 }
-loadStats()
 
 </script>
 
 </body>
+
 </html>
+```
