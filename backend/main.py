@@ -33,81 +33,139 @@ def get_signal():
     try:
 
         df = tv.get_hist(
-            symbol="CC",
-            exchange="ICEUS",
+
+            symbol="CC1!",
+
+            exchange="RUS",
+
             interval=Interval.in_5_minute,
-            n_bars=120
+
+            n_bars=150
         )
 
-        if df is None:
+        if df is None or len(df) < 50:
 
             return {
                 "error":"No market data"
             }
 
-        high_sr = df["high"].rolling(20).max()
-        low_sr = df["low"].rolling(20).min()
+        highest_high = df["high"].rolling(20).max()
+
+        lowest_low = df["low"].rolling(20).min()
 
         volume_avg = df["volume"].rolling(20).mean()
 
         latest = df.iloc[-1]
 
-        latest_high = high_sr.iloc[-1]
-        latest_low = low_sr.iloc[-1]
+        latest_high = highest_high.iloc[-1]
+
+        latest_low = lowest_low.iloc[-1]
 
         volume_spike = (
+
             latest["volume"]
+
             >
+
             volume_avg.iloc[-1] * 1.5
         )
 
-        buy_signal = (
+        buy_entry = (
+
             latest["low"] <= latest_low
-            and volume_spike
-            and latest["close"] > latest_low
+
+            and
+
+            volume_spike
         )
 
-        sell_signal = (
+        sell_entry = (
+
             latest["high"] >= latest_high
-            and volume_spike
-            and latest["close"] < latest_high
+
+            and
+
+            volume_spike
         )
 
-        side = None
+        buy_hold = (
 
-        if buy_signal:
-            side = "BUY"
+            latest["close"] > latest_low
+        )
 
-        elif sell_signal:
-            side = "SELL"
+        sell_hold = (
 
-        else:
+            latest["close"] < latest_high
+        )
+
+        final_buy = (
+
+            buy_entry
+            and
+            buy_hold
+        )
+
+        final_sell = (
+
+            sell_entry
+            and
+            sell_hold
+        )
+
+        if not final_buy and not final_sell:
 
             return {
                 "status":"NO SIGNAL"
             }
 
         atr = (
+
             df["high"] - df["low"]
+
         ).rolling(14).mean().iloc[-1]
 
-        entry = round(latest["close"],2)
+        side = "BUY" if final_buy else "SELL"
+
+        entry = round(
+
+            latest["close"],
+
+            2
+        )
 
         if side == "BUY":
 
-            sl = round(entry - atr,2)
+            sl = round(
+                entry - atr,
+                2
+            )
 
-            tp1 = round(entry + atr * 2,2)
+            tp1 = round(
+                entry + atr * 2,
+                2
+            )
 
-            tp2 = round(entry + atr * 3,2)
+            tp2 = round(
+                entry + atr * 3,
+                2
+            )
 
         else:
 
-            sl = round(entry + atr,2)
+            sl = round(
+                entry + atr,
+                2
+            )
 
-            tp1 = round(entry - atr * 2,2)
+            tp1 = round(
+                entry - atr * 2,
+                2
+            )
 
-            tp2 = round(entry - atr * 3,2)
+            tp2 = round(
+                entry - atr * 3,
+                2
+            )
 
         confidence = np.random.randint(78,92)
 
@@ -133,10 +191,9 @@ def get_signal():
 
                 "Volume spike confirmed",
 
-                "Structure breakout valid",
+                "Market structure valid",
 
-                "Momentum aligned"
-
+                "Momentum alignment confirmed"
             ]
         }
 
