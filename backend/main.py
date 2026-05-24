@@ -39,6 +39,12 @@ def get_signal():
 
         columns = data["candles"]["columns"]
 
+        if not candles or len(candles) < 30:
+
+            return {
+                "status":"NO SIGNAL"
+            }
+
         df = pd.DataFrame(
             candles,
             columns=columns
@@ -48,6 +54,12 @@ def get_signal():
         df["low"] = df["low"].astype(float)
         df["close"] = df["close"].astype(float)
         df["volume"] = df["volume"].astype(float)
+
+        if len(df) < 30:
+
+            return {
+                "status":"NO SIGNAL"
+            }
 
         highest_high = df["high"].rolling(20).max()
 
