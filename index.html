@@ -29,9 +29,9 @@ body{
     background:
     radial-gradient(
         circle at top,
-        #12203d,
-        #050816 45%,
-        #02040a 100%
+        #1a0f2e,
+        #090014 45%,
+        #020005 100%
     );
 
     color:white;
@@ -55,19 +55,19 @@ body::before{
 
     radial-gradient(
         circle at 20% 20%,
-        rgba(0,255,255,0.12),
+        rgba(255,0,140,0.10),
         transparent 20%
     ),
 
     radial-gradient(
         circle at 80% 30%,
-        rgba(0,255,255,0.07),
+        rgba(140,0,255,0.08),
         transparent 20%
     ),
 
     radial-gradient(
         circle at 50% 80%,
-        rgba(0,255,255,0.05),
+        rgba(0,255,255,0.04),
         transparent 20%
     );
 
@@ -120,6 +120,17 @@ body::before{
     }
 }
 
+@keyframes spin{
+
+    from{
+        transform:rotate(0deg);
+    }
+
+    to{
+        transform:rotate(360deg);
+    }
+}
+
 .screen{
 
     position:absolute;
@@ -135,12 +146,10 @@ body::before{
 
     padding:20px;
 
-    transition:0.4s;
+    overflow-y:auto;
 
     animation:
     fadeScreen 0.4s ease;
-
-    overflow-y:auto;
 
     z-index:2;
 }
@@ -154,20 +163,23 @@ body::before{
     width:min(92vw,430px);
 
     background:
-    rgba(255,255,255,0.05);
+    rgba(255,255,255,0.04);
 
     border:
-    1px solid rgba(255,255,255,0.08);
+    1px solid rgba(255,0,180,0.12);
 
     backdrop-filter:
-    blur(25px);
+    blur(30px);
 
-    border-radius:30px;
+    border-radius:34px;
 
-    padding:32px;
+    padding:34px;
 
     box-shadow:
-    0 0 20px rgba(0,180,255,0.08);
+
+    0 0 35px rgba(255,0,180,0.10),
+
+    inset 0 0 30px rgba(255,255,255,0.02);
 
     animation:
     floatPanel 5s ease-in-out infinite;
@@ -179,16 +191,19 @@ body::before{
 
     text-align:center;
 
-    font-weight:800;
+    font-weight:900;
 
     letter-spacing:1px;
 
-    color:#00d5ff;
+    color:#ff4fd8;
 
     text-shadow:
-    0 0 20px rgba(0,213,255,0.5);
 
-    margin-bottom:20px;
+    0 0 20px rgba(255,79,216,0.6),
+
+    0 0 50px rgba(140,0,255,0.3);
+
+    margin-bottom:22px;
 }
 
 .subtitle{
@@ -197,9 +212,9 @@ body::before{
 
     opacity:0.7;
 
-    line-height:1.6;
+    line-height:1.7;
 
-    margin-bottom:35px;
+    margin-bottom:36px;
 
     font-size:15px;
 }
@@ -217,11 +232,11 @@ body::before{
     background:
     linear-gradient(
         90deg,
-        #00c2d1,
-        #008cff
+        #ff4fd8,
+        #7a5cff
     );
 
-    color:#001018;
+    color:white;
 
     font-size:17px;
 
@@ -233,7 +248,10 @@ body::before{
     0.18s ease;
 
     box-shadow:
-    0 0 18px rgba(0,180,255,0.2);
+
+    0 0 25px rgba(255,79,216,0.25),
+
+    0 0 40px rgba(122,92,255,0.18);
 
     margin-top:18px;
 }
@@ -243,11 +261,11 @@ body::before{
     transform:
     scale(0.96);
 
-    filter:
-    brightness(1.1);
-
     box-shadow:
-    0 0 30px rgba(0,255,255,0.3);
+
+    0 0 40px rgba(255,79,216,0.45),
+
+    0 0 60px rgba(122,92,255,0.35);
 }
 
 .select{
@@ -262,13 +280,17 @@ body::before{
 
     border-radius:18px;
 
-    background:#111827;
+    background:
+    rgba(255,255,255,0.05);
 
     color:white;
 
     font-size:16px;
 
     outline:none;
+
+    border:
+    1px solid rgba(255,255,255,0.06);
 }
 
 .option{
@@ -277,11 +299,60 @@ body::before{
 
     align-items:center;
 
-    gap:10px;
+    gap:14px;
 
-    margin-top:22px;
+    margin-top:25px;
 
-    opacity:0.8;
+    opacity:0.92;
+
+    font-size:15px;
+
+    cursor:pointer;
+
+    user-select:none;
+}
+
+.option input{
+
+    appearance:none;
+
+    width:22px;
+    height:22px;
+
+    border-radius:50%;
+
+    border:
+    2px solid rgba(255,255,255,0.55);
+
+    background:
+    rgba(255,255,255,0.05);
+
+    transition:0.2s;
+
+    cursor:pointer;
+}
+
+.option input:checked{
+
+    background:
+    linear-gradient(
+        135deg,
+        #ff4fd8,
+        #8b5cff
+    );
+
+    border:
+    2px solid #ff8ef2;
+
+    box-shadow:
+
+    0 0 15px rgba(255,79,216,0.5),
+
+    0 0 25px rgba(140,92,255,0.3);
+}
+
+.option label{
+    cursor:pointer;
 }
 
 .radar{
@@ -292,41 +363,31 @@ body::before{
     border-radius:50%;
 
     border:
-    5px solid rgba(0,213,255,0.8);
+    5px solid #ff4fd8;
 
     box-shadow:
 
-    0 0 40px rgba(0,213,255,0.45),
+    0 0 45px rgba(255,79,216,0.45),
 
-    inset 0 0 25px rgba(0,213,255,0.2);
+    inset 0 0 35px rgba(140,92,255,0.18);
 
     animation:
     spin 3s linear infinite;
-}
-
-@keyframes spin{
-
-    from{
-        transform:rotate(0deg);
-    }
-
-    to{
-        transform:rotate(360deg);
-    }
 }
 
 .scanText{
 
     margin-top:40px;
 
-    font-size:28px;
+    font-size:30px;
 
-    color:#00d5ff;
+    color:#ff4fd8;
 
     text-align:center;
 
     text-shadow:
-    0 0 15px rgba(0,213,255,0.4);
+
+    0 0 15px rgba(255,79,216,0.5);
 }
 
 .scanChecks{
@@ -352,56 +413,57 @@ body::before{
     rgba(255,255,255,0.05);
 
     border:
-    1px solid rgba(255,255,255,0.08);
+    1px solid rgba(255,0,180,0.12);
 
     backdrop-filter:
-    blur(25px);
+    blur(30px);
 
-    border-radius:30px;
+    border-radius:34px;
 
-    padding:30px;
+    padding:32px;
 
     box-shadow:
-    0 0 20px rgba(0,180,255,0.08);
 
-    animation:
-    fadeScreen 0.4s ease;
+    0 0 35px rgba(255,0,180,0.10),
+
+    inset 0 0 30px rgba(255,255,255,0.02);
 }
 
 .signalTitle{
 
-    font-size:36px;
+    font-size:38px;
 
-    color:#00d5ff;
+    color:#ff4fd8;
 
     margin-bottom:18px;
 
-    font-weight:800;
+    font-weight:900;
 
     text-shadow:
-    0 0 15px rgba(0,213,255,0.35);
+
+    0 0 20px rgba(255,79,216,0.5);
 }
 
 .signalSide{
 
     font-size:32px;
 
-    font-weight:800;
+    font-weight:900;
 
-    margin-bottom:28px;
+    margin-bottom:25px;
 }
 
 .buy{
-    color:#00ff88;
+    color:#00ff9d;
 }
 
 .sell{
-    color:#ff4466;
+    color:#ff5c7c;
 }
 
 .metric{
 
-    margin-top:15px;
+    margin-top:16px;
 
     font-size:20px;
 
@@ -410,28 +472,32 @@ body::before{
 
 .confidence{
 
-    margin-top:28px;
+    margin-top:30px;
 
-    font-size:44px;
+    font-size:46px;
 
-    color:#00d5ff;
+    color:#ff4fd8;
 
-    font-weight:800;
+    font-weight:900;
 
     text-shadow:
-    0 0 20px rgba(0,213,255,0.45);
+
+    0 0 25px rgba(255,79,216,0.45);
 }
 
 .reasonBox{
 
     margin-top:30px;
 
-    padding:20px;
+    padding:22px;
 
-    border-radius:20px;
+    border-radius:24px;
 
     background:
     rgba(255,255,255,0.04);
+
+    border:
+    1px solid rgba(255,255,255,0.05);
 }
 
 .reason{
@@ -445,27 +511,40 @@ body::before{
 
 .backBtn{
 
-    width:120px;
+    display:block;
+
+    margin:
+
+    34px auto 0 auto;
+
+    width:100px;
 
     padding:10px;
 
     border:none;
 
-    border-radius:14px;
+    border-radius:16px;
 
     background:
-    rgba(255,255,255,0.06);
+    rgba(255,255,255,0.04);
 
     color:
-    rgba(255,255,255,0.55);
+    rgba(255,255,255,0.35);
 
-    font-size:13px;
-
-    margin-top:30px;
+    font-size:12px;
 
     cursor:pointer;
 
     transition:0.2s;
+}
+
+.backBtn:hover{
+
+    color:
+    rgba(255,255,255,0.55);
+
+    background:
+    rgba(255,255,255,0.06);
 }
 
 .backBtn:active{
@@ -493,7 +572,7 @@ id="homeScreen">
 
         <div class="subtitle">
 
-            The Most Powerful AI Futures Trading System
+            The Most Powerful Cyberpunk AI Futures Trading System
 
         </div>
 
@@ -558,7 +637,7 @@ id="settingsScreen">
             <input type="checkbox"
             id="trendOnly">
 
-            <label>
+            <label for="trendOnly">
 
                 ONLY TREND TRADES
 
@@ -750,8 +829,6 @@ async function startScan(){
     }catch(err){
 
         alert("Backend connection error")
-
-        console.log(err)
 
         show("homeScreen")
     }
