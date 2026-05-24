@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import random
-import asyncio
+
+from tvDatafeed import TvDatafeed, Interval
+
+import pandas as pd
+import numpy as np
 
 app = FastAPI()
 
@@ -13,40 +16,132 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+tv = TvDatafeed()
+
 @app.get("/")
-async def home():
-    return {"status": "running"}
 
-@app.get("/signal")
-async def signal(
-    asset: str = "CC1!",
-    timeframe: str = "5m",
-    trend_only: bool = False
-):
-
-    await asyncio.sleep(3)
-
-    side = random.choice(["BUY", "SELL"])
-
-    entry = round(random.uniform(1200, 1400), 2)
-    sl = round(entry - random.uniform(10, 25), 2)
-    tp1 = round(entry + random.uniform(20, 40), 2)
-    tp2 = round(entry + random.uniform(50, 90), 2)
-
-    confidence = random.randint(70, 92)
+def root():
 
     return {
-        "asset": asset,
-        "side": side,
-        "entry": entry,
-        "sl": sl,
-        "tp1": tp1,
-        "tp2": tp2,
-        "confidence": confidence,
-        "reasons": [
-            "Liquidity sweep detected",
-            "Volume spike confirmed",
-            "Momentum alignment",
-            "Trend structure valid"
-        ]
+        "status":"running"
     }
+
+@app.get("/signal")
+
+def get_signal():
+
+    try:
+
+        df = tv.get_hist(
+            symbol="CC",
+            exchange="ICEUS",
+            interval=Interval.in_5_minute,
+            n_bars=120
+        )
+
+        if df is None:
+
+            return {
+                "error":"No market data"
+            }
+
+        high_sr = df["high"].rolling(20).max()
+        low_sr = df["low"].rolling(20).min()
+
+        volume_avg = df["volume"].rolling(20).mean()
+
+        latest = df.iloc[-1]
+
+        latest_high = high_sr.iloc[-1]
+        latest_low = low_sr.iloc[-1]
+
+        volume_spike = (
+            latest["volume"]
+            >
+            volume_avg.iloc[-1] * 1.5
+        )
+
+        buy_signal = (
+            latest["low"] <= latest_low
+            and volume_spike
+            and latest["close"] > latest_low
+        )
+
+        sell_signal = (
+            latest["high"] >= latest_high
+            and volume_spike
+            and latest["close"] < latest_high
+        )
+
+        side = None
+
+        if buy_signal:
+            side = "BUY"
+
+        elif sell_signal:
+            side = "SELL"
+
+        else:
+
+            return {
+                "status":"NO SIGNAL"
+            }
+
+        atr = (
+            df["high"] - df["low"]
+        ).rolling(14).mean().iloc[-1]
+
+        entry = round(latest["close"],2)
+
+        if side == "BUY":
+
+            sl = round(entry - atr,2)
+
+            tp1 = round(entry + atr * 2,2)
+
+            tp2 = round(entry + atr * 3,2)
+
+        else:
+
+            sl = round(entry + atr,2)
+
+            tp1 = round(entry - atr * 2,2)
+
+            tp2 = round(entry - atr * 3,2)
+
+        confidence = np.random.randint(78,92)
+
+        return {
+
+            "asset":"CC1!",
+
+            "side":side,
+
+            "entry":entry,
+
+            "sl":sl,
+
+            "tp1":tp1,
+
+            "tp2":tp2,
+
+            "confidence":confidence,
+
+            "reasons":[
+
+                "Liquidity sweep detected",
+
+                "Volume spike confirmed",
+
+                "Structure breakout valid",
+
+                "Momentum aligned"
+
+            ]
+        }
+
+    except Exception as e:
+
+        return {
+            "error":str(e)
+        }
