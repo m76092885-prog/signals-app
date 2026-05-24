@@ -18,7 +18,10 @@ AI Futures Sniper
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial,sans-serif;
+    font-family:
+    Inter,
+    Arial,
+    sans-serif;
 }
 
 body{
@@ -34,9 +37,87 @@ body{
     color:white;
 
     width:100vw;
-    height:100vh;
+    min-height:100vh;
 
-    overflow:hidden;
+    overflow-x:hidden;
+    overflow-y:auto;
+}
+
+body::before{
+
+    content:"";
+
+    position:fixed;
+
+    inset:0;
+
+    background:
+
+    radial-gradient(
+        circle at 20% 20%,
+        rgba(0,255,255,0.12),
+        transparent 20%
+    ),
+
+    radial-gradient(
+        circle at 80% 30%,
+        rgba(0,255,255,0.07),
+        transparent 20%
+    ),
+
+    radial-gradient(
+        circle at 50% 80%,
+        rgba(0,255,255,0.05),
+        transparent 20%
+    );
+
+    animation:
+    pulseBg 10s linear infinite;
+
+    z-index:0;
+}
+
+@keyframes pulseBg{
+
+    0%{
+        transform:scale(1);
+    }
+
+    50%{
+        transform:scale(1.08);
+    }
+
+    100%{
+        transform:scale(1);
+    }
+}
+
+@keyframes fadeScreen{
+
+    from{
+        opacity:0;
+        transform:translateY(15px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@keyframes floatPanel{
+
+    0%{
+        transform:translateY(0px);
+    }
+
+    50%{
+        transform:translateY(-4px);
+    }
+
+    100%{
+        transform:translateY(0px);
+    }
 }
 
 .screen{
@@ -53,6 +134,15 @@ body{
     flex-direction:column;
 
     padding:20px;
+
+    transition:0.4s;
+
+    animation:
+    fadeScreen 0.4s ease;
+
+    overflow-y:auto;
+
+    z-index:2;
 }
 
 .active{
@@ -74,10 +164,13 @@ body{
 
     border-radius:30px;
 
-    padding:30px;
+    padding:32px;
 
     box-shadow:
-    0 0 40px rgba(0,255,255,0.15);
+    0 0 20px rgba(0,180,255,0.08);
+
+    animation:
+    floatPanel 5s ease-in-out infinite;
 }
 
 .logo{
@@ -88,10 +181,12 @@ body{
 
     font-weight:800;
 
-    color:#00ffee;
+    letter-spacing:1px;
+
+    color:#00d5ff;
 
     text-shadow:
-    0 0 20px #00ffee;
+    0 0 20px rgba(0,213,255,0.5);
 
     margin-bottom:20px;
 }
@@ -102,9 +197,11 @@ body{
 
     opacity:0.7;
 
-    line-height:1.5;
+    line-height:1.6;
 
     margin-bottom:35px;
+
+    font-size:15px;
 }
 
 .btn{
@@ -120,19 +217,37 @@ body{
     background:
     linear-gradient(
         90deg,
-        #00ffee,
-        #00bfff
+        #00c2d1,
+        #008cff
     );
 
     color:#001018;
 
-    font-size:18px;
+    font-size:17px;
 
     font-weight:700;
 
     cursor:pointer;
 
+    transition:
+    0.18s ease;
+
+    box-shadow:
+    0 0 18px rgba(0,180,255,0.2);
+
     margin-top:18px;
+}
+
+.btn:active{
+
+    transform:
+    scale(0.96);
+
+    filter:
+    brightness(1.1);
+
+    box-shadow:
+    0 0 30px rgba(0,255,255,0.3);
 }
 
 .select{
@@ -152,6 +267,8 @@ body{
     color:white;
 
     font-size:16px;
+
+    outline:none;
 }
 
 .option{
@@ -162,20 +279,26 @@ body{
 
     gap:10px;
 
-    margin-top:20px;
+    margin-top:22px;
+
+    opacity:0.8;
 }
 
 .radar{
 
-    width:200px;
-    height:200px;
+    width:210px;
+    height:210px;
 
     border-radius:50%;
 
-    border:5px solid #00ffee;
+    border:
+    5px solid rgba(0,213,255,0.8);
 
     box-shadow:
-    0 0 35px #00ffee;
+
+    0 0 40px rgba(0,213,255,0.45),
+
+    inset 0 0 25px rgba(0,213,255,0.2);
 
     animation:
     spin 3s linear infinite;
@@ -196,11 +319,14 @@ body{
 
     margin-top:40px;
 
-    font-size:26px;
+    font-size:28px;
 
-    color:#00ffee;
+    color:#00d5ff;
 
     text-align:center;
+
+    text-shadow:
+    0 0 15px rgba(0,213,255,0.4);
 }
 
 .scanChecks{
@@ -211,9 +337,11 @@ body{
 
     flex-direction:column;
 
-    gap:12px;
+    gap:14px;
 
-    opacity:0.8;
+    opacity:0.82;
+
+    font-size:15px;
 }
 
 .signalBox{
@@ -234,27 +362,33 @@ body{
     padding:30px;
 
     box-shadow:
-    0 0 40px rgba(0,255,255,0.15);
+    0 0 20px rgba(0,180,255,0.08);
+
+    animation:
+    fadeScreen 0.4s ease;
 }
 
 .signalTitle{
 
-    font-size:34px;
+    font-size:36px;
 
-    color:#00ffee;
+    color:#00d5ff;
 
-    margin-bottom:20px;
+    margin-bottom:18px;
 
     font-weight:800;
+
+    text-shadow:
+    0 0 15px rgba(0,213,255,0.35);
 }
 
 .signalSide{
 
-    font-size:28px;
+    font-size:32px;
 
     font-weight:800;
 
-    margin-bottom:25px;
+    margin-bottom:28px;
 }
 
 .buy{
@@ -262,7 +396,7 @@ body{
 }
 
 .sell{
-    color:#ff3355;
+    color:#ff4466;
 }
 
 .metric{
@@ -270,26 +404,31 @@ body{
     margin-top:15px;
 
     font-size:20px;
+
+    opacity:0.92;
 }
 
 .confidence{
 
-    margin-top:25px;
+    margin-top:28px;
 
-    font-size:42px;
+    font-size:44px;
 
-    color:#00ffee;
+    color:#00d5ff;
 
     font-weight:800;
+
+    text-shadow:
+    0 0 20px rgba(0,213,255,0.45);
 }
 
 .reasonBox{
 
-    margin-top:25px;
+    margin-top:30px;
 
-    padding:18px;
+    padding:20px;
 
-    border-radius:18px;
+    border-radius:20px;
 
     background:
     rgba(255,255,255,0.04);
@@ -297,9 +436,42 @@ body{
 
 .reason{
 
-    margin-top:10px;
+    margin-top:12px;
 
-    opacity:0.8;
+    opacity:0.82;
+
+    line-height:1.5;
+}
+
+.backBtn{
+
+    width:120px;
+
+    padding:10px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:
+    rgba(255,255,255,0.06);
+
+    color:
+    rgba(255,255,255,0.55);
+
+    font-size:13px;
+
+    margin-top:30px;
+
+    cursor:pointer;
+
+    transition:0.2s;
+}
+
+.backBtn:active{
+
+    transform:
+    scale(0.95);
 }
 
 </style>
@@ -340,13 +512,6 @@ id="homeScreen">
 id="settingsScreen">
 
     <div class="panel">
-
-        <button class="btn"
-        onclick="show('homeScreen')">
-
-            BACK
-
-        </button>
 
         <div class="logo">
 
@@ -408,6 +573,13 @@ id="settingsScreen">
 
         </button>
 
+        <button class="backBtn"
+        onclick="show('homeScreen')">
+
+            BACK
+
+        </button>
+
     </div>
 
 </div>
@@ -457,13 +629,6 @@ id="scanScreen">
 id="signalScreen">
 
     <div class="signalBox">
-
-        <button class="btn"
-        onclick="show('homeScreen')">
-
-            BACK
-
-        </button>
 
         <div class="signalTitle">
 
@@ -518,6 +683,13 @@ id="signalScreen">
 
         </div>
 
+        <button class="backBtn"
+        onclick="show('homeScreen')">
+
+            BACK
+
+        </button>
+
     </div>
 
 </div>
@@ -525,7 +697,7 @@ id="signalScreen">
 <script>
 
 const API =
-"https://signals-ai-backend.onrender.com"
+"https://signals-ai-engine.onrender.com"
 
 function show(id){
 
@@ -573,15 +745,13 @@ async function startScan(){
         const data =
         await response.json()
 
-        console.log(data)
-
         showSignal(data)
 
     }catch(err){
 
-        console.log(err)
-
         alert("Backend connection error")
+
+        console.log(err)
 
         show("homeScreen")
     }
