@@ -2,5 +2,4 @@ fastapi
 uvicorn
 pandas
 numpy
-ta
-tvdatafeed
+requests
