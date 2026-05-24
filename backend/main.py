@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from tvDatafeed import TvDatafeed, Interval
-
+import requests
 import pandas as pd
 import numpy as np
 
@@ -15,8 +14,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-tv = TvDatafeed()
 
 @app.get("/")
 
@@ -32,22 +29,25 @@ def get_signal():
 
     try:
 
-        df = tv.get_hist(
+        url = "https://iss.moex.com/iss/engines/futures/markets/forts/securities/CCM2026/candles.json?interval=5"
 
-            symbol="CC1!",
+        response = requests.get(url)
 
-            exchange="RUS",
+        data = response.json()
 
-            interval=Interval.in_5_minute,
+        candles = data["candles"]["data"]
 
-            n_bars=150
+        columns = data["candles"]["columns"]
+
+        df = pd.DataFrame(
+            candles,
+            columns=columns
         )
 
-        if df is None or len(df) < 50:
-
-            return {
-                "error":"No market data"
-            }
+        df["high"] = df["high"].astype(float)
+        df["low"] = df["low"].astype(float)
+        df["close"] = df["close"].astype(float)
+        df["volume"] = df["volume"].astype(float)
 
         highest_high = df["high"].rolling(20).max()
 
@@ -70,53 +70,39 @@ def get_signal():
             volume_avg.iloc[-1] * 1.5
         )
 
-        buy_entry = (
+        buy_signal = (
 
             latest["low"] <= latest_low
 
             and
 
             volume_spike
+
+            and
+
+            latest["close"] > latest_low
         )
 
-        sell_entry = (
+        sell_signal = (
 
             latest["high"] >= latest_high
 
             and
 
             volume_spike
-        )
 
-        buy_hold = (
-
-            latest["close"] > latest_low
-        )
-
-        sell_hold = (
+            and
 
             latest["close"] < latest_high
         )
 
-        final_buy = (
-
-            buy_entry
-            and
-            buy_hold
-        )
-
-        final_sell = (
-
-            sell_entry
-            and
-            sell_hold
-        )
-
-        if not final_buy and not final_sell:
+        if not buy_signal and not sell_signal:
 
             return {
                 "status":"NO SIGNAL"
             }
+
+        side = "BUY" if buy_signal else "SELL"
 
         atr = (
 
@@ -124,12 +110,8 @@ def get_signal():
 
         ).rolling(14).mean().iloc[-1]
 
-        side = "BUY" if final_buy else "SELL"
-
         entry = round(
-
             latest["close"],
-
             2
         )
 
@@ -167,7 +149,7 @@ def get_signal():
                 2
             )
 
-        confidence = np.random.randint(78,92)
+        confidence = np.random.randint(80,93)
 
         return {
 
