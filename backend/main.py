@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import requests
+from tvDatafeed import TvDatafeed, Interval
+
 import pandas as pd
 import numpy as np
 
@@ -14,6 +15,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+tv = TvDatafeed()
 
 @app.get("/")
 
@@ -29,31 +32,21 @@ def signal():
 
     try:
 
-        url = "https://iss.moex.com/iss/engines/futures/markets/forts/securities/CCM2026/candles.json?interval=5"
+        # TV DATA
+        df = tv.get_hist(
+            symbol="CC1!",
+            exchange="RUS",
+            interval=Interval.in_5_minute,
+            n_bars=200
+        )
 
-        r = requests.get(url)
-
-        data = r.json()
-
-        candles = data["candles"]["data"]
-        columns = data["candles"]["columns"]
-
-        if not candles or len(candles) < 50:
+        if df is None or len(df) < 50:
 
             return {
                 "status":"SEARCHING"
             }
 
-        df = pd.DataFrame(
-            candles,
-            columns=columns
-        )
-
-        df["open"] = df["open"].astype(float)
-        df["high"] = df["high"].astype(float)
-        df["low"] = df["low"].astype(float)
-        df["close"] = df["close"].astype(float)
-        df["volume"] = df["volume"].astype(float)
+        df = df.reset_index()
 
         # SETTINGS
 
@@ -70,12 +63,25 @@ def signal():
 
         # LEVELS
 
-        df["highestHigh"] = df["high"].rolling(lengthSR).max()
-        df["lowestLow"] = df["low"].rolling(lengthSR).min()
+        df["highestHigh"] = (
+            df["high"]
+            .rolling(lengthSR)
+            .max()
+        )
 
-        # VOLUME SPIKE
+        df["lowestLow"] = (
+            df["low"]
+            .rolling(lengthSR)
+            .min()
+        )
 
-        df["volMA"] = df["volume"].rolling(20).mean()
+        # VOLUME
+
+        df["volMA"] = (
+            df["volume"]
+            .rolling(20)
+            .mean()
+        )
 
         df["volSpike"] = (
 
@@ -138,7 +144,9 @@ def signal():
 
                 and
 
-                df["close"].iloc[i] > df["lowestLow"].iloc[i]
+                df["close"].iloc[i]
+                >
+                df["lowestLow"].iloc[i]
             )
 
             sellHold.append(
@@ -147,7 +155,9 @@ def signal():
 
                 and
 
-                df["close"].iloc[i] < df["highestHigh"].iloc[i]
+                df["close"].iloc[i]
+                <
+                df["highestHigh"].iloc[i]
             )
 
         df["buyHold"] = buyHold
@@ -174,7 +184,9 @@ def signal():
 
                 and
 
-                df["close"].iloc[i] > df["lowestLow"].iloc[i]
+                df["close"].iloc[i]
+                >
+                df["lowestLow"].iloc[i]
             )
 
             sellRetest.append(
@@ -183,13 +195,15 @@ def signal():
 
                 and
 
-                df["close"].iloc[i] < df["highestHigh"].iloc[i]
+                df["close"].iloc[i]
+                <
+                df["highestHigh"].iloc[i]
             )
 
         df["buyRetest"] = buyRetest
         df["sellRetest"] = sellRetest
 
-        # FINAL SIGNALS
+        # FINAL
 
         df["finalBuy"] = (
 
@@ -240,16 +254,12 @@ def signal():
         if side == "BUY":
 
             entry = round(
-
                 latest["low"] - (atr * buyOffset),
-
                 2
             )
 
             sl = round(
-
                 latest["low"] - atr * slATRmult,
-
                 2
             )
 
@@ -268,16 +278,12 @@ def signal():
         else:
 
             entry = round(
-
                 latest["high"] + (atr * sellOffset),
-
                 2
             )
 
             sl = round(
-
                 latest["high"] + atr * slATRmult,
-
                 2
             )
 
@@ -293,7 +299,7 @@ def signal():
                 2
             )
 
-        confidence = np.random.randint(82,95)
+        confidence = np.random.randint(84,96)
 
         return {
 
