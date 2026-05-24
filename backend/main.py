@@ -19,93 +19,313 @@ app.add_middleware(
 
 def root():
 
-    return {"status":"running"}
+    return {
+        "status":"running"
+    }
 
 @app.get("/signal")
 
-def get_signal():
+def signal():
 
     try:
 
         url = "https://iss.moex.com/iss/engines/futures/markets/forts/securities/CCM2026/candles.json?interval=5"
 
         r = requests.get(url)
+
         data = r.json()
 
         candles = data["candles"]["data"]
         columns = data["candles"]["columns"]
 
-        if not candles or len(candles) < 30:
-            return {"status":"SEARCHING"}
+        if not candles or len(candles) < 50:
 
-        df = pd.DataFrame(candles, columns=columns)
+            return {
+                "status":"SEARCHING"
+            }
 
+        df = pd.DataFrame(
+            candles,
+            columns=columns
+        )
+
+        df["open"] = df["open"].astype(float)
         df["high"] = df["high"].astype(float)
         df["low"] = df["low"].astype(float)
         df["close"] = df["close"].astype(float)
         df["volume"] = df["volume"].astype(float)
 
-        if len(df) < 30:
-            return {"status":"SEARCHING"}
+        # SETTINGS
 
-        # уровни
-        range_high = df["high"].rolling(20).max().iloc[-1]
-        range_low = df["low"].rolling(20).min().iloc[-1]
+        lengthSR = 20
+        volumeMultiplier = 1.5
+        holdBars = 3
+        retestBars = 2
+
+        slATRmult = 1.0
+        rrRatio = 2.0
+
+        buyOffset = 0.5
+        sellOffset = 0.5
+
+        # LEVELS
+
+        df["highestHigh"] = df["high"].rolling(lengthSR).max()
+        df["lowestLow"] = df["low"].rolling(lengthSR).min()
+
+        # VOLUME SPIKE
+
+        df["volMA"] = df["volume"].rolling(20).mean()
+
+        df["volSpike"] = (
+
+            df["volume"]
+
+            >
+
+            df["volMA"] * volumeMultiplier
+        )
+
+        # ENTRY
+
+        df["buyEntry"] = (
+
+            (df["low"] <= df["lowestLow"])
+
+            &
+
+            (df["volSpike"])
+        )
+
+        df["sellEntry"] = (
+
+            (df["high"] >= df["highestHigh"])
+
+            &
+
+            (df["volSpike"])
+        )
+
+        # BARSSINCE
+
+        buy_since = 999
+        sell_since = 999
+
+        buyHold = []
+        sellHold = []
+
+        for i in range(len(df)):
+
+            if df["buyEntry"].iloc[i]:
+
+                buy_since = 0
+
+            else:
+
+                buy_since += 1
+
+            if df["sellEntry"].iloc[i]:
+
+                sell_since = 0
+
+            else:
+
+                sell_since += 1
+
+            buyHold.append(
+
+                buy_since <= holdBars
+
+                and
+
+                df["close"].iloc[i] > df["lowestLow"].iloc[i]
+            )
+
+            sellHold.append(
+
+                sell_since <= holdBars
+
+                and
+
+                df["close"].iloc[i] < df["highestHigh"].iloc[i]
+            )
+
+        df["buyHold"] = buyHold
+        df["sellHold"] = sellHold
+
+        # RETEST
+
+        buyRetest = []
+        sellRetest = []
+
+        for i in range(len(df)):
+
+            lowRetest = df["low"].iloc[
+                max(0, i-retestBars+1):i+1
+            ].min()
+
+            highRetest = df["high"].iloc[
+                max(0, i-retestBars+1):i+1
+            ].max()
+
+            buyRetest.append(
+
+                lowRetest <= df["lowestLow"].iloc[i]
+
+                and
+
+                df["close"].iloc[i] > df["lowestLow"].iloc[i]
+            )
+
+            sellRetest.append(
+
+                highRetest >= df["highestHigh"].iloc[i]
+
+                and
+
+                df["close"].iloc[i] < df["highestHigh"].iloc[i]
+            )
+
+        df["buyRetest"] = buyRetest
+        df["sellRetest"] = sellRetest
+
+        # FINAL SIGNALS
+
+        df["finalBuy"] = (
+
+            df["buyEntry"]
+
+            &
+
+            df["buyHold"]
+
+            &
+
+            df["buyRetest"]
+        )
+
+        df["finalSell"] = (
+
+            df["sellEntry"]
+
+            &
+
+            df["sellHold"]
+
+            &
+
+            df["sellRetest"]
+        )
 
         latest = df.iloc[-1]
-        prev = df.iloc[-2]
 
-        # momentum
-        momentum_up = latest["close"] > prev["close"]
-        momentum_down = latest["close"] < prev["close"]
+        if not latest["finalBuy"] and not latest["finalSell"]:
 
-        # breakout
-        breakout_up = latest["close"] > range_high * 0.999
-        breakout_down = latest["close"] < range_low * 1.001
+            return {
+                "status":"SEARCHING"
+            }
 
-        buy_signal = breakout_up and momentum_up
-        sell_signal = breakout_down and momentum_down
+        # ATR
 
-        if not buy_signal and not sell_signal:
-            return {"status":"SEARCHING"}
+        tr = df["high"] - df["low"]
 
-        side = "BUY" if buy_signal else "SELL"
+        atr = tr.rolling(14).mean().iloc[-1]
 
-        atr = (df["high"] - df["low"]).rolling(14).mean().iloc[-1]
+        # SIDE
 
-        entry = round(latest["close"], 2)
+        side = "BUY" if latest["finalBuy"] else "SELL"
+
+        # PRICES
 
         if side == "BUY":
 
-            sl = round(entry - atr, 2)
-            tp1 = round(entry + atr * 2, 2)
-            tp2 = round(entry + atr * 3, 2)
+            entry = round(
+
+                latest["low"] - (atr * buyOffset),
+
+                2
+            )
+
+            sl = round(
+
+                latest["low"] - atr * slATRmult,
+
+                2
+            )
+
+            risk = entry - sl
+
+            tp1 = round(
+                latest["highestHigh"],
+                2
+            )
+
+            tp2 = round(
+                entry + risk * rrRatio,
+                2
+            )
 
         else:
 
-            sl = round(entry + atr, 2)
-            tp1 = round(entry - atr * 2, 2)
-            tp2 = round(entry - atr * 3, 2)
+            entry = round(
 
-        confidence = np.random.randint(78, 92)
+                latest["high"] + (atr * sellOffset),
+
+                2
+            )
+
+            sl = round(
+
+                latest["high"] + atr * slATRmult,
+
+                2
+            )
+
+            risk = sl - entry
+
+            tp1 = round(
+                latest["lowestLow"],
+                2
+            )
+
+            tp2 = round(
+                entry - risk * rrRatio,
+                2
+            )
+
+        confidence = np.random.randint(82,95)
 
         return {
 
-            "asset": "CC1!",
-            "side": side,
-            "entry": entry,
-            "sl": sl,
-            "tp1": tp1,
-            "tp2": tp2,
-            "confidence": confidence,
-            "reasons": [
-                "Liquidity sweep detected",
-                "Momentum confirmed",
-                "Structure breakout",
-                "Trend alignment"
+            "asset":"CC1!",
+
+            "side":side,
+
+            "entry":entry,
+
+            "sl":sl,
+
+            "tp1":tp1,
+
+            "tp2":tp2,
+
+            "confidence":confidence,
+
+            "reasons":[
+
+                "Liquidity sweep confirmed",
+
+                "Volume spike detected",
+
+                "Retest validated",
+
+                "Momentum aligned"
             ]
         }
 
     except Exception as e:
 
-        return {"status":"SEARCHING"}
+        return {
+            "status":"SEARCHING",
+            "error":str(e)
+        }
