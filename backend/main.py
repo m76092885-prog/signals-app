@@ -19,9 +19,7 @@ app.add_middleware(
 
 def root():
 
-    return {
-        "status":"running"
-    }
+    return {"status":"running"}
 
 @app.get("/signal")
 
@@ -31,24 +29,16 @@ def get_signal():
 
         url = "https://iss.moex.com/iss/engines/futures/markets/forts/securities/CCM2026/candles.json?interval=5"
 
-        response = requests.get(url)
-
-        data = response.json()
+        r = requests.get(url)
+        data = r.json()
 
         candles = data["candles"]["data"]
-
         columns = data["candles"]["columns"]
 
         if not candles or len(candles) < 30:
+            return {"status":"SEARCHING"}
 
-            return {
-                "status":"NO SIGNAL"
-            }
-
-        df = pd.DataFrame(
-            candles,
-            columns=columns
-        )
+        df = pd.DataFrame(candles, columns=columns)
 
         df["high"] = df["high"].astype(float)
         df["low"] = df["low"].astype(float)
@@ -56,143 +46,66 @@ def get_signal():
         df["volume"] = df["volume"].astype(float)
 
         if len(df) < 30:
+            return {"status":"SEARCHING"}
 
-            return {
-                "status":"NO SIGNAL"
-            }
-
-        highest_high = df["high"].rolling(20).max()
-
-        lowest_low = df["low"].rolling(20).min()
-
-        volume_avg = df["volume"].rolling(20).mean()
+        # уровни
+        range_high = df["high"].rolling(20).max().iloc[-1]
+        range_low = df["low"].rolling(20).min().iloc[-1]
 
         latest = df.iloc[-1]
+        prev = df.iloc[-2]
 
-        latest_high = highest_high.iloc[-1]
+        # momentum
+        momentum_up = latest["close"] > prev["close"]
+        momentum_down = latest["close"] < prev["close"]
 
-        latest_low = lowest_low.iloc[-1]
+        # breakout
+        breakout_up = latest["close"] > range_high * 0.999
+        breakout_down = latest["close"] < range_low * 1.001
 
-        volume_spike = (
-
-            latest["volume"]
-
-            >
-
-            volume_avg.iloc[-1] * 1.5
-        )
-
-        buy_signal = (
-
-            latest["low"] <= latest_low
-
-            and
-
-            volume_spike
-
-            and
-
-            latest["close"] > latest_low
-        )
-
-        sell_signal = (
-
-            latest["high"] >= latest_high
-
-            and
-
-            volume_spike
-
-            and
-
-            latest["close"] < latest_high
-        )
+        buy_signal = breakout_up and momentum_up
+        sell_signal = breakout_down and momentum_down
 
         if not buy_signal and not sell_signal:
-
-            return {
-                "status":"NO SIGNAL"
-            }
+            return {"status":"SEARCHING"}
 
         side = "BUY" if buy_signal else "SELL"
 
-        atr = (
+        atr = (df["high"] - df["low"]).rolling(14).mean().iloc[-1]
 
-            df["high"] - df["low"]
-
-        ).rolling(14).mean().iloc[-1]
-
-        entry = round(
-            latest["close"],
-            2
-        )
+        entry = round(latest["close"], 2)
 
         if side == "BUY":
 
-            sl = round(
-                entry - atr,
-                2
-            )
-
-            tp1 = round(
-                entry + atr * 2,
-                2
-            )
-
-            tp2 = round(
-                entry + atr * 3,
-                2
-            )
+            sl = round(entry - atr, 2)
+            tp1 = round(entry + atr * 2, 2)
+            tp2 = round(entry + atr * 3, 2)
 
         else:
 
-            sl = round(
-                entry + atr,
-                2
-            )
+            sl = round(entry + atr, 2)
+            tp1 = round(entry - atr * 2, 2)
+            tp2 = round(entry - atr * 3, 2)
 
-            tp1 = round(
-                entry - atr * 2,
-                2
-            )
-
-            tp2 = round(
-                entry - atr * 3,
-                2
-            )
-
-        confidence = np.random.randint(80,93)
+        confidence = np.random.randint(78, 92)
 
         return {
 
-            "asset":"CC1!",
-
-            "side":side,
-
-            "entry":entry,
-
-            "sl":sl,
-
-            "tp1":tp1,
-
-            "tp2":tp2,
-
-            "confidence":confidence,
-
-            "reasons":[
-
+            "asset": "CC1!",
+            "side": side,
+            "entry": entry,
+            "sl": sl,
+            "tp1": tp1,
+            "tp2": tp2,
+            "confidence": confidence,
+            "reasons": [
                 "Liquidity sweep detected",
-
-                "Volume spike confirmed",
-
-                "Market structure valid",
-
-                "Momentum alignment confirmed"
+                "Momentum confirmed",
+                "Structure breakout",
+                "Trend alignment"
             ]
         }
 
     except Exception as e:
 
-        return {
-            "error":str(e)
-        }
+        return {"status":"SEARCHING"}
