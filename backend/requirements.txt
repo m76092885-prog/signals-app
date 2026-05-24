@@ -1,6 +1,6 @@
-fastapi
-uvicorn
-pandas
-numpy
-requests
-tvDatafeed==2.1.0
+fastapi==0.115.0
+uvicorn==0.30.6
+pandas==2.2.2
+numpy==1.26.4
+requests==2.32.3
+git+https://github.com/rongardF/tvdatafeed.git
