@@ -2,5 +2,5 @@ fastapi
 uvicorn
 pandas
 numpy
-tvdatafeed
 requests
+tvDatafeed==2.1.0
