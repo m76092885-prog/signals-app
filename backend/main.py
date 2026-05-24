@@ -16,23 +16,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# TV connection
 tv = TvDatafeed()
 
 @app.get("/")
-
 def root():
 
     return {
-        "status":"running"
+        "status": "running"
     }
 
 @app.get("/signal")
-
-def signal():
+def get_signal():
 
     try:
 
-        # TV DATA
+        # GET DATA FROM TRADINGVIEW
         df = tv.get_hist(
             symbol="CC1!",
             exchange="RUS",
@@ -43,7 +42,7 @@ def signal():
         if df is None or len(df) < 50:
 
             return {
-                "status":"SEARCHING"
+                "status": "SEARCHING"
             }
 
         df = df.reset_index()
@@ -75,7 +74,7 @@ def signal():
             .min()
         )
 
-        # VOLUME
+        # VOLUME SPIKE
 
         df["volMA"] = (
             df["volume"]
@@ -84,35 +83,26 @@ def signal():
         )
 
         df["volSpike"] = (
-
             df["volume"]
-
             >
-
             df["volMA"] * volumeMultiplier
         )
 
-        # ENTRY
+        # ENTRY CONDITIONS
 
         df["buyEntry"] = (
-
             (df["low"] <= df["lowestLow"])
-
             &
-
             (df["volSpike"])
         )
 
         df["sellEntry"] = (
-
             (df["high"] >= df["highestHigh"])
-
             &
-
             (df["volSpike"])
         )
 
-        # BARSSINCE
+        # BARSSINCE LOGIC
 
         buy_since = 999
         sell_since = 999
@@ -171,11 +161,11 @@ def signal():
         for i in range(len(df)):
 
             lowRetest = df["low"].iloc[
-                max(0, i-retestBars+1):i+1
+                max(0, i - retestBars + 1):i + 1
             ].min()
 
             highRetest = df["high"].iloc[
-                max(0, i-retestBars+1):i+1
+                max(0, i - retestBars + 1):i + 1
             ].max()
 
             buyRetest.append(
@@ -203,40 +193,32 @@ def signal():
         df["buyRetest"] = buyRetest
         df["sellRetest"] = sellRetest
 
-        # FINAL
+        # FINAL SIGNALS
 
         df["finalBuy"] = (
-
             df["buyEntry"]
-
             &
-
             df["buyHold"]
-
             &
-
             df["buyRetest"]
         )
 
         df["finalSell"] = (
-
             df["sellEntry"]
-
             &
-
             df["sellHold"]
-
             &
-
             df["sellRetest"]
         )
 
         latest = df.iloc[-1]
 
+        # NO SIGNAL
+
         if not latest["finalBuy"] and not latest["finalSell"]:
 
             return {
-                "status":"SEARCHING"
+                "status": "SEARCHING"
             }
 
         # ATR
@@ -299,25 +281,25 @@ def signal():
                 2
             )
 
-        confidence = np.random.randint(84,96)
+        confidence = np.random.randint(84, 96)
 
         return {
 
-            "asset":"CC1!",
+            "asset": "CC1!",
 
-            "side":side,
+            "side": side,
 
-            "entry":entry,
+            "entry": entry,
 
-            "sl":sl,
+            "sl": sl,
 
-            "tp1":tp1,
+            "tp1": tp1,
 
-            "tp2":tp2,
+            "tp2": tp2,
 
-            "confidence":confidence,
+            "confidence": confidence,
 
-            "reasons":[
+            "reasons": [
 
                 "Liquidity sweep confirmed",
 
@@ -332,6 +314,6 @@ def signal():
     except Exception as e:
 
         return {
-            "status":"SEARCHING",
-            "error":str(e)
+            "status": "SEARCHING",
+            "error": str(e)
         }
